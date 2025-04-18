@@ -6,7 +6,7 @@ import {
   lookupPathEx,
   reconstruct,
 } from '@dfinity/agent';
-import {blobFromUint8Array} from '@dfinity/candid';
+import { blobFromUint8Array } from '@dfinity/candid';
 import { Principal } from '@dfinity/principal';
 
 /**
@@ -27,11 +27,11 @@ export async function validateBody(
   certificate: ArrayBuffer,
   tree: ArrayBuffer,
   agent: HttpAgent,
-  shouldFetchRootKey = false,
+  shouldFetchRootKey = false
 ): Promise<boolean> {
   const cert = new Certificate(
     { certificate: blobFromUint8Array(new Uint8Array(certificate)) },
-    agent,
+    agent
   );
 
   // If we're running locally, update the key manually.

@@ -14,7 +14,10 @@ self.addEventListener('install', () => {
 self.addEventListener('fetch', (event: any) => {
   try {
     const response = handleRequest(event.request);
-    response.then(r => {console.log('!!!', r); return r;})
+    response.then(r => {
+      console.log('!!!', r);
+      return r;
+    });
     event.respondWith(response);
   } catch (e: any) {
     console.error(e.message || e.toString());
@@ -22,7 +25,7 @@ self.addEventListener('fetch', (event: any) => {
       return event.respondWith(
         new Response(e.message || e.toString(), {
           status: 501,
-        }),
+        })
       );
     }
     event.respondWith(new Response('Internal Error', { status: 502 }));

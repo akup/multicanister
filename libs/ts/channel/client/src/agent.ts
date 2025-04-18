@@ -1,17 +1,16 @@
-import {HttpAgent} from '@dfinity/agent';
+import { HttpAgent } from '@dfinity/agent';
 import * as mobx from 'mobx';
 
 export class AgentController {
-	agent: HttpAgent | null = null;
+  agent: HttpAgent | null = null;
 
   constructor() {
-		mobx.makeObservable(this, {
-			agent: mobx.observable,
-		});
+    mobx.makeObservable(this, {
+      agent: mobx.observable,
+    });
   }
 
-	setAgent = (agent: HttpAgent) => {
-		this.agent = agent;
-	};
+  setAgent = (agent: HttpAgent) => {
+    this.agent = agent;
+  };
 }
-

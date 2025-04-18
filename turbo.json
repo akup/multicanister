@@ -10,8 +10,17 @@
     "lint": {
       "dependsOn": ["^lint"]
     },
+    "lint:fix": {
+      "dependsOn": ["^lint:fix"]
+    },
+    "format": {
+      "dependsOn": ["^format"]
+    },
     "check-types": {
       "dependsOn": ["^check-types"]
+    },
+    "lint-staged": {
+      "cache": false
     },
     "dev": {
       "cache": false,

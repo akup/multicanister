@@ -5,10 +5,9 @@ export interface AuthCanisterControllerProps extends Omit<CanisterControllerProp
 
 export class AuthCanisterController<T, Children = T> extends CanisterController<T, Children> {
   constructor(props: AuthCanisterControllerProps) {
-		super({
-			...props,
-			agent: authClient.agent,
-		});
+    super({
+      ...props,
+      agent: authClient.agent,
+    });
   }
 }
-

@@ -1,6 +1,6 @@
 [workspace]
 members = [
-    "projects/factory",
-    "projects/debug",
+    "canisters/factory",
+    "canisters/debug",
     "rust-libs/storable_derive"
 ]

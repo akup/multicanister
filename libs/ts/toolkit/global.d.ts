@@ -1,9 +1,8 @@
 declare type IClassName = {
-	className?: string;
-	style?: React.CSSProperties;
+  className?: string;
+  style?: React.CSSProperties;
 };
 
 declare const discovery: {
-	env: {
-	};
+  env: {};
 };

@@ -1,5 +1,4 @@
 packages:
-  - 'projects/*'
-  - 'rust-libs/*'
+  - 'typescript/*'
   - '!**/node_modules/**'
   - '!**/target/**' 

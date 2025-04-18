@@ -1,42 +1,41 @@
 export type Entrypoint = EntrypointFabric | EntrypointInstance | EntrypointApplication;
 
 type EntrypointBase = {
-	name: string;
-	canisterId: string;
-	alias: string;
+  name: string;
+  canisterId: string;
+  alias: string;
 };
 
 export type EntrypointFabric = EntrypointBase & {
-	protocol: Protocol.Fabric;
-	type: ProtocolType;
+  protocol: Protocol.Fabric;
+  type: ProtocolType;
 };
 export type EntrypointInstance = EntrypointBase & {
-	protocol: Protocol.Instance;
-	type: ProtocolType;
-	fabricCanisterId: string;
+  protocol: Protocol.Instance;
+  type: ProtocolType;
+  fabricCanisterId: string;
 };
 export type EntrypointApplication = EntrypointBase & {
-	protocol: Protocol.Application;
+  protocol: Protocol.Application;
 };
 
-
 export enum Protocol {
-	Fabric,
-	Instance,
-	Application
+  Fabric,
+  Instance,
+  Application,
 }
 
 export enum ProtocolType {
-	Person,
-	Company,
-	Template,
-	AnyContract
+  Person,
+  Company,
+  Template,
+  AnyContract,
 }
 
 export interface Role {
-	id: string;
-	name: string;
-	instance: Entrypoint;
+  id: string;
+  name: string;
+  instance: Entrypoint;
 }
 
 // TODO вынести в отдельный файл, это про шину
