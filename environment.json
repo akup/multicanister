@@ -1,0 +1,72 @@
+{
+  "actors":{
+    "privacy_policy": {
+      "privacy_policy_back": {
+        "id": "pp"
+      },
+      "pp_assets": {
+        "id": "pp"
+      }
+    },
+    "smart_template": {
+      "smart_template_back": {
+        "id": "template"
+      },
+      "template_assets": {
+        "id": "template"
+      }
+    }
+  },
+  "create":[
+    {
+      "app": "smart_template",
+      "constructors": {
+        "template": {}
+      }
+    },
+    {
+      "app": "smart_template",
+      "constructors": {
+        "template": "./test-templates/1615989188.json"
+      }
+    },
+    {
+      "app": "smart_template",
+      "constructors": {
+        "template": "./test-templates/1615989189.json"
+      }
+    },
+    {
+      "app": "smart_template",
+      "constructors": {
+        "template": {}
+      }
+    }
+  ],
+  "ii_users":["user1", "user2"],
+  "init":{
+    "privacy_policy__privacy_policy": ["env1/pp_init.ts"],
+    "doc_template__template": ["env1/templ_init.ts"]
+  },
+  "e2e": ["test/e2e_1.ts"],
+  "apps": {
+    "privacy_policy":{
+      "wizard":{
+        "package": "projects/privacy_policy/pp_wizard/",
+        "assets_src": [
+          "projects/privacy_policy/pp_wizard/assets",
+          "projects/privacy_policy/pp_wizard/dist"
+        ]
+      },
+      "ac_actor": null,
+      "name": {
+        "ru": "ПП",
+        "en": "PP"
+      },
+      "description": {
+        "ru": ""
+      },
+      "icon": null
+    }
+  }
+}

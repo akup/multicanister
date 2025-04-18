@@ -1,0 +1,12 @@
+[package]
+name = "utils"
+version = "0.1.0"
+authors = ["Александр Втюрин <senior.joinu@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+candid = "0.10"
+ic-cdk = "0.17.1"
+serde = "1.0.219"
+async-trait = "0.1.88"
+chrono = "0.4.40"

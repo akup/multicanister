@@ -1,0 +1,22 @@
+{
+  "name": "@validation-poc/channel-base",
+  "version": "0.0.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "../../check.sh check --silent || (npm run build:source && ../../check.sh save)",
+    "build:source": "npm run clean && npm run build:pre && npm run build:lib && npm run build:post",
+    "build:pre": "./build_scripts/pre_copy_deps.sh",
+    "build:lib": "tsc --build tsconfig.json",
+    "build:post": "./build_scripts/post_copy_deps.sh",
+    "clean": "rimraf dist/*"
+  },
+  "dependencies": {
+    "json-rpc-2.0": "^0.2.10"
+  },
+  "devDependencies": {
+    "esbuild": "^0.13.10",
+    "rimraf": "^3.0.2",
+    "typescript": "^4.2.4"
+  }
+}

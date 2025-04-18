@@ -1,0 +1,25 @@
+[package]
+name = "factory"
+authors = ["Александр Куприн <a.kuprin@midhub.io>"]
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+path = "src/actor.rs"
+
+[dependencies]
+base64 = "0.22.1"
+hex = "0.4.3"
+candid = "0.10"
+ic-cdk = "0.17.1"
+ic-cdk-macros = "0.17.1"
+ic-cdk-timers = "0.11.0"
+ic-stable-structures = "0.6.8"
+ic-certified-map = "0.4.0"
+num-traits = "0.2.14"
+serde_bytes = "0.11.17"
+sha2 = "0.10.8"
+serde = { version = "1.0.219", features = ["derive"] }
+utils = { path = "../../libs/rust/utils" }
+storable_derive = { path = "../../rust-libs/storable_derive" }

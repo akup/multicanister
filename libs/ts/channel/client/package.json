@@ -1,0 +1,23 @@
+{
+  "name": "@validation-poc/channel-client",
+  "version": "0.0.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "npm run build:pre && ../../check.sh check --silent || (npm run build:source && ../../check.sh save)",
+    "build:source": "npm run clean && npm run build:lib",
+    "build:pre": "./build_scripts/build_deps.sh",
+    "build:lib": "tsc --build tsconfig.json",
+    "clean": "rimraf dist/*"
+  },
+  "dependencies": {
+    "@validation-poc/toolkit": "^0.0.0",
+    "@validation-poc/channel-base": "^0.0.0",
+    "@validation-poc/protocol": "^0.0.0",
+    "mobx": "^6.3.5"
+  },
+  "devDependencies": {
+    "rimraf": "^3.0.2",
+    "typescript": "^4.2.4"
+  }
+}

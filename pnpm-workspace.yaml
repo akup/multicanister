@@ -1,0 +1,5 @@
+packages:
+  - 'projects/*'
+  - 'rust-libs/*'
+  - '!**/node_modules/**'
+  - '!**/target/**' 

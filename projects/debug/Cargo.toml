@@ -1,0 +1,13 @@
+[package]
+name = "debug"
+authors = ["Александр Куприн <a.kuprin@midhub.io>"]
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+path = "src/actor.rs"
+
+[dependencies]
+ic-stable-structures = "0.6.8"
+storable_derive = { path = "../../rust-libs/storable_derive" }
