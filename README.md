@@ -1,10 +1,22 @@
-# Monorepo DEX Project
+# Monorepo Multicanister Orchestration Project
 
-Project contains monorepository with rust and typescript.
-Typescript includes tool for deploying.
+Project helps to deploy and orchestrate multicanister environment for IC.
+
+This monorepo provides a comprehensive multicanister orchestration framework for the [Internet Computer](https://github.com/DFINITY): it bundles a TypeScript-based Pocket IC Core Service that wraps [Pocket IC](https://github.com/dfinity/pocketic) exposes REST endpoints to upload, list, and manage WASM binaries with full metadata (branch, tag, commit, hash, and corruption state), and an ICR CLI tool that leverages DFX to build canisters, calculate SHA-256 checksums, and automate fresh installs, upgrades, or reinstallations via the Pocket IC Core API. Together, these components enable robust version tracking, integrity validation, and seamless deployment workflows for complex multi-canister applications.
+
+### Pocket IC Core Service
+It uses 'core' word because multicanister orchestration framework consists of core canisters and environment, that are specified at core.json and environment.json.
+Core canisters are:
+ - registry-factory - it contains registry of deployed canisters and orchestrate them taking care of scaling by sharding and replicating. Moreover it provides routing framework that helps canisters to communicate in a location transparancy style: canisters should know only service names, but not the canisterId to communicate.
+ - internet-identity - is default ii canister
+ - candid ui - is a default [CandidUI Canister](https://github.com/dfinity/candid/tree/master/tools/ui) that helps to rapidly test deployed canisters with a simple UI
+
+Pocket IC Core Service helps to manage core canisters, that are deployed to a wrapped Pocket IC. All other canisters that are listed in environment.json will be managed and deployed via registry-factory, that is part of the core canisters.
+
+This workflow makes seemless inhouse development and production environments.
 
 
-## How to start project
+## Installation
 
 Install pnpm
 ```sh
