@@ -2,10 +2,16 @@
   "$schema": "https://turbo.build/schema.json",
   "ui": "tui",
   "tasks": {
+    "dev-start": {
+      "dependsOn": ["^dev-start"]
+    },
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": [".next/**", "!.next/cache/**"]
+    },
+    "turbo-install": {
+      "dependsOn": ["^turbo-install"]
     },
     "lint": {
       "dependsOn": ["^lint"]

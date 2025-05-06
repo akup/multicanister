@@ -1,0 +1,6 @@
+{
+  "watch": ["src"],
+  "ext": ".ts,.js",
+  "ignore": [],
+  "exec": "node --inspect --loader ts-node/esm --experimental-specifier-resolution=node -r tsconfig-paths/register"
+} 

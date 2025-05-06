@@ -1,0 +1,9 @@
+{
+  "canisterIds": [
+    "7goty-oh777-77776-qaadq-cai"
+  ],
+  "wasmHash": "ca7eddc2bfaa62df0026068634a84719350e513b843500ef33a6828b2869747a",
+  "branch": "main",
+  "tag": "latest",
+  "commit": "latest"
+}

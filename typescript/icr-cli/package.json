@@ -1,0 +1,51 @@
+{
+  "extends": "@repo/eslint-config/package-scripts.json",
+  "name": "@repo/uploader-test",
+  "version": "0.1.0",
+  "main": "./src/index.ts",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev-start": "nodemon --config nodemon.json ./src/index.ts deploy --d ../../",
+    "turbo-install": "pnpm install",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write \"**/*.{ts,tsx}\"",
+    "generate:component": "turbo gen react-component",
+    "check-types": "tsc --noEmit",
+    "lint-staged": "lint-staged"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "workspace:*",
+    "@repo/prettier-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@turbo/gen": "^1.12.4",
+    "@types/node": "^20.11.24",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "chalk": "^4.1.2",
+    "eslint": "^9.0.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.1.3",
+    "lint-staged": "^15.5.1",
+    "nodemon": "^3.1.10",
+    "prettier": "^3.2.5",
+    "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.3.3"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "prettier --write",
+      "eslint --fix"
+    ]
+  },
+  "prettier": "@repo/prettier-config",
+  "dependencies": {
+    "undici": "^6.6.2",
+    "node-fetch": "^3.3.2",
+    "glob": "^10.3.10",
+    "rimraf": "^5.0.5"
+  }
+}

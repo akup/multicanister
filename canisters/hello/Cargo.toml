@@ -1,0 +1,17 @@
+[package]
+name = "hello"
+authors = ["Александр Куприн <a.kuprin@midhub.io>"]
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+path = "src/actor.rs"
+
+[dependencies]
+candid = "0.10"
+ic-cdk = "0.17.1"
+ic-cdk-macros = "0.17.1"
+ic-cdk-timers = "0.11.0"
+ic-stable-structures = "0.6.8"
+ic-certified-map = "0.4.0"

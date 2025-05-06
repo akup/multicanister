@@ -13,10 +13,18 @@
     },
     "factory": {
       "build": "cargo build --target wasm32-unknown-unknown --package factory --release",
-      "candid": "projects/factory/can.did",
+      "candid": "canisters/factory/can.did",
       "wasm": "target/wasm32-unknown-unknown/release/factory.wasm",
       "type": "custom",
       "optimize": "cycles"
+    },
+    "hello": {
+      "build": "cargo build --target wasm32-unknown-unknown --package hello --release",
+      "candid": "canisters/hello/can.did",
+      "wasm": "target/wasm32-unknown-unknown/release/hello.wasm",
+      "type": "custom",
+      "optimize": "cycles",
+      "gzip": true
     }
   },
   "defaults": {

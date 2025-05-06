@@ -3,6 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "license": "MIT",
+  "dependencies": {
+    "@types/node": "^20.11.24"
+  },
   "publishConfig": {
     "access": "public"
   }

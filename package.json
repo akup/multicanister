@@ -1,5 +1,7 @@
 {
   "devDependencies": {
+    "@types/figlet": "^1.7.0",
+    "@types/node": "^20.11.24",
     "@typescript-eslint/eslint-plugin": "^8.30.1",
     "@typescript-eslint/parser": "^8.30.1",
     "eslint": "^9.24.0",
@@ -19,7 +21,9 @@
     "turbo-darwin-64": "^2.5.0"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev-uploader": "cd typescript/uploader-test && pnpm dev-start",
+    "dev-pocket-ic-core": "cd typescript/pocket-ic-core && pnpm dev-start",
+    "install-all": "pnpm turbo run turbo-install",
     "prepare": "husky install",
     "lint": "pnpm turbo run lint",
     "lint:fix": "pnpm turbo run lint:fix",
@@ -29,7 +33,7 @@
   "lint-staged": {
     "*.{ts,tsx}": [
       "pnpm turbo run format",
-      "pnpm turbo run lint:fix --filter=./..."
+      "pnpm turbo run lint:fix"
     ]
   },
   "keywords": [],

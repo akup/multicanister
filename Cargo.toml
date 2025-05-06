@@ -2,5 +2,6 @@
 members = [
     "canisters/factory",
     "canisters/debug",
+    "canisters/hello",
     "rust-libs/storable_derive"
 ]

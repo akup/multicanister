@@ -87,3 +87,6 @@ out/
 
 # TypeScript
 *.tsbuildinfo 
+
+# Dfx
+.dfx
