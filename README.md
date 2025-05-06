@@ -38,7 +38,7 @@ Then you can run in terminal in any folder:
 $POCKET_IC_BIN --help
 ```
 
-Also it uses [pic-js](https://github.com/dfinity/pic-js) [modified to use live mode](https://github.com/akup/picjs-fork). This changes are subject for PR.
+Also it uses [pic-js](https://github.com/dfinity/pic-js) modified to [use live mode](https://github.com/akup/picjs-fork). This changes are subject for PR.
 It is referenced from `typescript/pic` and should be submodule (TODO).
 
 ## Submodules
