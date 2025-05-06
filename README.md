@@ -37,3 +37,8 @@ Then you can run in terminal in any folder:
 ```sh
 $POCKET_IC_BIN --help
 ```
+
+## Submodules
+innerDfxProjects folder contains [Candid](https://github.com/dfinity/candid) submodule that is configured to sparse tools/ui folder. So only [CandidUI Canister](https://github.com/dfinity/candid/tree/master/tools/ui) is cloned.
+
+During build ICR CLI tool will go throwgh all faolders to find dfx.json files, all of them will be applyed in the build from folder leafs, to the root. Core canisters can be used from inner dfx projects, so submodules can be added and deployed as part of core or environment like it is done with CandidUI Canister.
