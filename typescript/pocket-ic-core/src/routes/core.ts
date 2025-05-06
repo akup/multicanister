@@ -197,6 +197,10 @@ const cleanupIncompleteUploads = async () => {
   }
 };
 
+//Можно посмотреть Candid UI так (поставить соответмствующие canisterId)
+//http://6laxw-bp777-77776-qaaea-cai.localhost:4944/?id=7goty-oh777-77776-qaadq-cai
+//http://${candidUiCanisterId}.localhost:${gatewayPort}/?id=${canisterId}
+
 // Run cleanup on server start
 cleanupIncompleteUploads().catch(console.error);
 
