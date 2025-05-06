@@ -4,8 +4,7 @@ import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import { DfxProject, DfxProjectCanister, prepareDfx } from './components/dfxProject';
 import { CoreInfo, readCoreFile } from './components/coreInfo';
-import { buildCanisterWithDfx } from './components/buildCanister';
-import { startDfx } from './components/startDfx';
+import { buildCanister } from './components/buildCanister';
 import { deployCoreCanisterToPocketIC } from './components/deployCanister';
 
 type Command = 'deploy' | 'build';
@@ -26,6 +25,10 @@ const argv = yargs(hideBin(process.argv))
         description:
           'set pocket core server url, see: https://github.com/pocket-core/pocket-core/wiki/Pocket-Core-Server',
         type: 'string',
+      }).option('skip-build', {
+        alias: 'skipb',
+        description: 'Skips building canisters',
+        type: 'boolean',
       });
     },
     args => {
@@ -98,19 +101,21 @@ const startICRCli = async () => {
     if (argv.dir) {
       process.chdir(argv.dir);
     }
-    let dfxProject = prepareDfx();
+    let dfxProjects = prepareDfx();
 
-    if (dfxProject) {
+    if (dfxProjects) {
       let coreInfo = readCoreFile(argv.core);
       if (coreInfo) {
         //await startDfx()
 
         //Building for every command
-        //await buildCore(coreInfo, dfxProject)
+        if (!argv.skipBuild) {
+          await buildCore(coreInfo, dfxProjects);
+        }
 
         //Deploying for deploy command
         if (commandHandled === 'deploy') {
-          await deployCore(coreInfo, dfxProject, picCoreUrl as URL);
+          await deployCore(coreInfo, dfxProjects, picCoreUrl as URL);
           return;
         }
       }
@@ -135,9 +140,17 @@ const buildCore = async (
     throw new Error(`There is no required factory canister '${coreInfo.factory}' in dfx json`);
   }
 
-  //Build factory
-  console.log(chalk.white(` - Building factory core canister '${coreInfo.factory}'...`));
-  await buildCanisterWithDfx(coreInfo.factory, dfxProjectsByActorName[coreInfo.factory][0]);
+  //Build core canisters
+  for (const [key, value] of Object.entries(coreInfo)) {
+    if (key === 'modules' || !value) {
+      continue;
+    }
+    const [dfxCanister, dfxProject] = dfxProjectsByActorName[value];
+    //Последовательная сборка канистр
+    await buildCanister(value, dfxCanister, dfxProject.root, () => {
+      console.log(chalk.white(` - Building ${key} core canister '${value}'...`));
+    });
+  }
 };
 
 //Здесь мы разворачиваем ядро: создаём и инсталируем все actor из core.json,
@@ -154,13 +167,16 @@ const deployCore = async (
   const cores = await pocketIcCoreService.listCores();
   console.log(cores);
 
-  //Deploy factory
-  await deployCoreCanisterToPocketIC(
-    'factory',
-    coreInfo.factory,
-    dfxProjectsByActorName[coreInfo.factory][0],
-    cores
-  );
+  //Deploy core canisters
+  for (const [key, value] of Object.entries(coreInfo)) {
+    if (key === 'modules' || !value) {
+      continue;
+    }
+    const [dfxCanister, dfxProject] = dfxProjectsByActorName[value];
+    const wasmPath = dfxProject.root + dfxCanister.wasm;
+    const coreCanisterData = cores[key];
+    await deployCoreCanisterToPocketIC(key, value, wasmPath, coreCanisterData);
+  }
 };
 
 startICRCli();

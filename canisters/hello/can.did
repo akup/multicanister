@@ -1,5 +1,3 @@
 service: {
-  get: (record {}) -> (record {
-    message: text;
-  }) query;
+  get: () -> (text) query;
 }

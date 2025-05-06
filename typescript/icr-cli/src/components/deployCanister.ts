@@ -10,10 +10,9 @@ const CHUNK_SIZE = 1024 * 1024; // 1MB chunks
 export const deployCoreCanisterToPocketIC = async (
   canisterName: string,
   wasmName: string,
-  dfxProjectCanister: DfxProjectCanister,
-  cores: Record<string, CoreMetadata>
+  wasmPath: string,
+  coreCanisterData: CoreMetadata | undefined
 ) => {
-  const wasmPath = dfxProjectCanister.wasm;
   const hash = crypto.createHash('sha256');
   //Calculate sha256 hash of canister wasm file
   const wasmSha256 = await new Promise<string>((resolve, reject) => {
@@ -23,13 +22,12 @@ export const deployCoreCanisterToPocketIC = async (
     stream.on('error', err => reject(err));
   });
 
-  const coreCanister = cores[canisterName];
-  if (coreCanister) {
-    if (coreCanister.corrupted) {
+  if (coreCanisterData) {
+    if (coreCanisterData.corrupted) {
       console.log(
         chalk.yellow(` - ${canisterName} is corrupted. Reinstalling ${canisterName} canister...`)
       );
-    } else if (coreCanister.wasmHash === wasmSha256) {
+    } else if (coreCanisterData.wasmHash === wasmSha256) {
       console.log(chalk.green(` - ${canisterName} is already installed. Skipping...`));
       return;
     } else {

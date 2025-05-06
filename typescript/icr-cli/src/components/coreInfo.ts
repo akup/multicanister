@@ -4,8 +4,9 @@ import chalk from 'chalk';
 export const CORE_JSON = 'core.json';
 
 export class CoreInfo {
-  ii?: string;
   factory: string = '';
+  ii?: string;
+  candid_ui?: string;
   modules: Array<string> = [];
 }
 

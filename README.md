@@ -5,13 +5,13 @@ Project helps to deploy and orchestrate multicanister environment for IC.
 This monorepo provides a comprehensive multicanister orchestration framework for the [Internet Computer](https://github.com/DFINITY): it bundles a TypeScript-based Pocket IC Core Service that wraps [Pocket IC](https://github.com/dfinity/pocketic) exposes REST endpoints to upload, list, and manage WASM binaries with full metadata (branch, tag, commit, hash, and corruption state), and an ICR CLI tool that leverages DFX to build canisters, calculate SHA-256 checksums, and automate fresh installs, upgrades, or reinstallations via the Pocket IC Core API. Together, these components enable robust version tracking, integrity validation, and seamless deployment workflows for complex multi-canister applications.
 
 ### Pocket IC Core Service
-It uses 'core' word because multicanister orchestration framework consists of core canisters and environment, that are specified at core.json and environment.json.
+It uses 'core' word because multicanister orchestration framework consists of core canisters and environment, that are specified at `core.json` and `environment.json`.
 Core canisters are:
  - registry-factory - it contains registry of deployed canisters and orchestrate them taking care of scaling by sharding and replicating. Moreover it provides routing framework that helps canisters to communicate in a location transparancy style: canisters should know only service names, but not the canisterId to communicate.
  - internet-identity - is default ii canister
  - candid ui - is a default [CandidUI Canister](https://github.com/dfinity/candid/tree/master/tools/ui) that helps to rapidly test deployed canisters with a simple UI
 
-Pocket IC Core Service helps to manage core canisters, that are deployed to a wrapped Pocket IC. All other canisters that are listed in environment.json will be managed and deployed via registry-factory, that is part of the core canisters.
+Pocket IC Core Service helps to manage core canisters, that are deployed to a wrapped Pocket IC. All other canisters that are listed in `environment.json` will be managed and deployed via registry-factory, that is part of the core canisters.
 
 This workflow makes seemless inhouse development and production environments.
 
@@ -41,7 +41,13 @@ $POCKET_IC_BIN --help
 ## Submodules
 innerDfxProjects folder contains [Candid](https://github.com/dfinity/candid) submodule that is configured to sparse tools/ui folder. So only [CandidUI Canister](https://github.com/dfinity/candid/tree/master/tools/ui) is cloned.
 
-During build ICR CLI tool will go throwgh all faolders to find dfx.json files, all of them will be applyed in the build from folder leafs, to the root. Core canisters can be used from inner dfx projects, so submodules can be added and deployed as part of core or environment like it is done with CandidUI Canister.
+> **Important Note:** It will fail to build unless you remove or comment out the `candid` patch in your root `Cargo.toml`. For example:
+> ```toml
+> # [patch.crates-io.candid]
+> # path = "../../rust/candid"
+> ```
+
+During build ICR CLI tool will go throwgh all folders to find `dfx.json` files, all of them will be applyed in the build from folder leafs, to the root. Core canisters can be used from inner dfx projects, so submodules can be added and deployed as part of core or environment like it is done with CandidUI Canister.
 
 
 ## Starting the Services

@@ -77,7 +77,7 @@ Required form fields:
 - `branch`: Git branch name (defaults to 'main')
 - `tag`: Version tag (defaults to 'latest')
 - `commit`: Git commit hash (defaults to 'latest')
-- `uncorrupt`: Install mode for corrupted canisters ('upgrade' or 'reinstall', defaults to 'upgrade')
+- `updateStrategy`: Install mode for corrupted canisters ('upgrade' or 'reinstall', defaults to 'upgrade')
 
 Installation behavior:
 - If canister doesn't exist: Performs a fresh install

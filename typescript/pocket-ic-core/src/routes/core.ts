@@ -5,8 +5,7 @@ import { CoreModel } from '~/models/CoreModel';
 import crypto from 'crypto';
 import fs from 'fs';
 import { pocketICService } from '~/index';
-import { Principal } from '@dfinity/principal';
-import { Uncorrupt } from '~/services/PocketICService';
+import { CanisterStatus, UpdateStrategy } from '~/services/PocketICService';
 
 const router = Router();
 const coreModel = CoreModel.getInstance();
@@ -74,15 +73,15 @@ router.post('/upload', upload.single('file'), async (req: UploadRequest, res: Re
 
     uploadedFilePath = req.file.path;
 
-    let { name, sha256, branch, tag, commit, uncorrupt } = req.body;
+    let { name, sha256, branch, tag, commit, updateStrategy } = req.body;
 
     if (!branch) {
       branch = 'main';
       tag = 'latest';
       commit = 'latest';
     }
-    if (!uncorrupt || !['upgrade', 'reinstall'].includes(uncorrupt)) {
-      uncorrupt = 'upgrade' as Uncorrupt;
+    if (!updateStrategy || !['upgrade', 'reinstall'].includes(updateStrategy)) {
+      updateStrategy = 'upgrade' as UpdateStrategy;
     }
 
     if (!name || !sha256) {
@@ -106,9 +105,14 @@ router.post('/upload', upload.single('file'), async (req: UploadRequest, res: Re
       });
     }
 
-    var isCanisterCorrupted = false;
+    var canisterStatus: CanisterStatus | undefined = undefined;
     const existingCanisterDetails = await coreModel.get(name);
     if (existingCanisterDetails && existingCanisterDetails.canisterIds.length > 0) {
+      canisterStatus = await pocketICService.checkCanisterHashAndRunning(
+        existingCanisterDetails.canisterIds[0],
+        existingCanisterDetails.wasmHash
+      );
+      /*
       const canisterStatus = await pocketICService
         .getManagementCanisterAgent()
         ?.canisterStatus(Principal.fromText(existingCanisterDetails.canisterIds[0]));
@@ -116,8 +120,9 @@ router.post('/upload', upload.single('file'), async (req: UploadRequest, res: Re
         ? Buffer.from(canisterStatus.module_hash[0]).toString('hex')
         : undefined;
       isCanisterCorrupted = deployedModuleHash !== existingCanisterDetails.wasmHash;
+      */
 
-      if (existingCanisterDetails.wasmHash === wasmHash && !isCanisterCorrupted) {
+      if (canisterStatus === 'running') {
         return res.status(200).json({
           message: 'Canister with same hash already exists and deployed',
         });
@@ -134,7 +139,12 @@ router.post('/upload', upload.single('file'), async (req: UploadRequest, res: Re
           : undefined,
       wasmPath: uploadedFilePath,
       wasmModuleHash: wasmHash,
-      uncorrupt: isCanisterCorrupted ? uncorrupt : existingCanisterDetails ? 'upgrade' : undefined,
+      updateStrategy:
+        canisterStatus === 'corrupted'
+          ? (updateStrategy as UpdateStrategy)
+          : existingCanisterDetails
+            ? 'upgrade'
+            : undefined,
     });
 
     // Create core record

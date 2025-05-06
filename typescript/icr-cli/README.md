@@ -18,14 +18,12 @@ This tool helps to build, deploy and orchestrate multi-canister environments. It
 pnpm install
 ```
 
-## Starting the Service
-
-Before start dfx should be installed. See [Installation Guide](https://internetcomputer.org/docs/building-apps/getting-started/install)
-
-Also to package wasm for deployment [ic-wasm](https://github.com/dfinity/ic-wasm) is used and should be installed:
+Also to add candid metadata to builded wasm and optimize it, [ic-wasm](https://github.com/dfinity/ic-wasm) is used and should be installed:
 ```bash
 cargo install ic-wasm
 ```
+
+## Starting the Service
 
 On deploy and test it connects to [pocket ic core server](https://github.com/link). It should be started, and it's url should be provided in --pics, --pocket-server option or in $POCKET_IC_CORE_URL environment varable
 For example change dev-start command int package.json to:

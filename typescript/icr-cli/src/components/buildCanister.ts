@@ -9,11 +9,29 @@ class CanisterNotCreatedError extends Error {
   }
 }
 
-export const buildCanisterWithDfx = async (
+export const buildCanister = async (
   canisterName: string,
-  dfxProjectCanister: DfxProjectCanister
+  dfxProjectCanister: DfxProjectCanister,
+  dfxProjectRoot?: string,
+  onBuildStart?: () => void
 ) => {
+  if (onBuildStart) {
+    onBuildStart();
+  } else {
+    console.log(chalk.white(` - Building canister '${canisterName}'...`));
+  }
+  const processWorkingDirectory = process.cwd();
+  if (!dfxProjectRoot) {
+    dfxProjectRoot = processWorkingDirectory;
+  }
+
+  //Change working directory to the dfx project root
+  process.chdir(dfxProjectRoot);
+
+  await _buildCanisterWithoutDfx(canisterName, dfxProjectCanister);
+
   //Building canister
+  /*
   try {
     await _buildCanister(canisterName);
   } catch (e) {
@@ -22,6 +40,9 @@ export const buildCanisterWithDfx = async (
       await _buildCanister(canisterName);
     } else throw e;
   }
+  */
+
+  console.log('Optimizing wasm code:', dfxProjectCanister.wasm);
 
   //Optimizing wasm code
   await spawnProcessWithOutput({
@@ -37,6 +58,53 @@ export const buildCanisterWithDfx = async (
   console.log('');
 
   //TODO: Gzip wasm code ?
+
+  //Change working directory back to the original one
+  process.chdir(processWorkingDirectory);
+};
+
+const _buildCanisterWithoutDfx = async (
+  canisterName: string,
+  dfxProjectCanister: DfxProjectCanister
+) => {
+  if (dfxProjectCanister.type === 'custom') {
+    if (typeof dfxProjectCanister.build === 'string') {
+      dfxProjectCanister.build = [dfxProjectCanister.build];
+    }
+
+    for (const buildCommand of dfxProjectCanister.build) {
+      console.log(chalk.bold.whiteBright(buildCommand + '\n'));
+      const args = buildCommand.split(' ').map(arg => arg.trim());
+      const command = args[0];
+      args.shift();
+
+      await spawnProcessWithOutput({
+        command,
+        args,
+        stdErrToConsole: stdErrData => {
+          console.log(
+            ` ${chalk.gray(
+              stdErrData
+                .split('\n')
+                .map(line => ` ${line}`)
+                .join('\n')
+            )}`
+          );
+        },
+        onClose: (code, resolve, reject) => {
+          if (code == 0) {
+            console.log(chalk.bold.green(`'${command}' successfully executed`));
+            resolve();
+          } else {
+            reject(new Error(`Canister '${canisterName}' build unsuccessfully`));
+          }
+        },
+      });
+    }
+    console.log(chalk.bold.green(`\nCanister '${canisterName}' build done`));
+  } else {
+    console.log(chalk.bold.yellow(`Canister '${canisterName}' is not a custom canister`));
+  }
 };
 
 const _buildCanister = async (canisterName: string) => {

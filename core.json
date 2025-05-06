@@ -1,3 +1,4 @@
 {
-  "factory": "hello"
+  "factory": "hello",
+  "candid_ui": "didjs"
 }

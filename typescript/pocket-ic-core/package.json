@@ -6,7 +6,7 @@
   "type": "commonjs",
   "private": true,
   "scripts": {
-    "dev-start": "nodemon -r tsconfig-paths/register ./src/index.ts -p 8092",
+    "dev-start": "nodemon --config nodemon.json -r tsconfig-paths/register ./src/index.ts -p 8092",
     "turbo-install": "pnpm install",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",

@@ -1,0 +1,9 @@
+{
+  "canisterIds": [
+    "6laxw-bp777-77776-qaaea-cai"
+  ],
+  "wasmHash": "b07c0258fad470be5e364ebf28e3ad5c7a59d8bf0e5820481fa8c3cc6c6cb565",
+  "branch": "main",
+  "tag": "latest",
+  "commit": "latest"
+}

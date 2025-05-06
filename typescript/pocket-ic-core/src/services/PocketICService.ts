@@ -12,7 +12,7 @@ import { Ed25519KeyIdentity } from '@dfinity/identity';
 
 const POCKET_IC_TIMEOUT = 10000;
 
-export type Uncorrupt = 'upgrade' | 'reinstall';
+export type UpdateStrategy = 'upgrade' | 'reinstall';
 export type CanisterStatus = 'stopped' | 'stopping' | 'running' | 'corrupted' | 'unexisting';
 
 export class PocketICService {
@@ -108,7 +108,7 @@ export class PocketICService {
       stateDir: !process.env.POCKET_IC_STATE_DIR ? undefined : process.env.POCKET_IC_STATE_DIR,
       ...subnetCreateConfigs,
     });
-    await this.pocketIC.makeLive(gwPort);
+    const gatewayUrl = await this.pocketIC.makeLive(gwPort);
     console.log('PocketIC gateway started on port', gwPort);
 
     // Use default IC Management via IC Agent
@@ -119,6 +119,7 @@ export class PocketICService {
       identity,
       host: ICGatewayAPIHost,
     });
+    agent.call;
     // Fetch root key as we are talking to the Pocket IC and not the mainnet
     await agent.fetchRootKey();
     this.managementCanisterAgent = ICManagementCanister.create({
@@ -152,7 +153,7 @@ export class PocketICService {
             canisterId,
             record.wasmHash
           );
-          console.log(`Canister ${canisterId} from core ${name} status:`, canisterStatus);
+          console.log(`Canister '${name}' from core with id ${canisterId} status:`, canisterStatus);
 
           if (canisterStatus === 'corrupted') {
             console.warn(`Canister ${canisterId} from core ${name} is corrupted.`);
@@ -167,6 +168,7 @@ export class PocketICService {
           //TODO: check if the canister is started and running
         } catch (error) {
           console.error(`Error checking canister ${canisterId} from core ${name}:`, error);
+          throw error;
         }
       }
     }
@@ -221,18 +223,18 @@ export class PocketICService {
     canisterId,
     wasmPath,
     wasmModuleHash,
-    uncorrupt,
+    updateStrategy,
   }: {
     canisterId?: string;
     wasmPath: string;
     wasmModuleHash: string;
-    uncorrupt?: Uncorrupt;
+    updateStrategy?: UpdateStrategy;
   }): Promise<string> {
     if (!this.managementCanisterAgent) {
       throw new Error('PocketIC client is not initialized');
     }
 
-    if (canisterId) {
+    if (canisterId && !updateStrategy) {
       try {
         const canisterStatus = await this.managementCanisterAgent.canisterStatus(
           Principal.fromText(canisterId)
@@ -247,43 +249,51 @@ export class PocketICService {
     }
 
     const identity = IdentityModel.getInstance().getIdentity();
-    console.log('creating canister with identity', identity.getPrincipal().toText());
-    // Create canister with initial cycles (1T cycles = 1_000_000_000_000)
-    const settings = {
-      controllers: [identity.getPrincipal().toText()], // You can customize controllers as needed
-      compute_allocation: [], // Optional: Set compute allocation
-      memory_allocation: [], // Optional: Set memory allocation
-      freezing_threshold: [], // Optional: Set freezing threshold
-    };
 
-    //Creating canister with cycles
-    const createCanisterResponse =
-      await this.managementCanisterAgent.provisionalCreateCanisterWithCycles({
-        settings,
-        amount: 1_000_000_000_000_000_000n,
-      });
-    const newCanisterId = createCanisterResponse.toString();
-    console.log(`Canister ${newCanisterId} created with 1T cycles`);
+    if (!updateStrategy) {
+      // Create canister with initial cycles (1T cycles = 1_000_000_000_000)
+      const settings = {
+        controllers: [identity.getPrincipal().toText()], // You can customize controllers as needed
+        compute_allocation: [], // Optional: Set compute allocation
+        memory_allocation: [], // Optional: Set memory allocation
+        freezing_threshold: [], // Optional: Set freezing threshold
+      };
+
+      //Creating canister with cycles
+      const createCanisterResponse =
+        await this.managementCanisterAgent.provisionalCreateCanisterWithCycles({
+          settings,
+          amount: 1_000_000_000_000_000_000n,
+        });
+      canisterId = createCanisterResponse.toString();
+      console.log(`Canister ${canisterId} created with 1T cycles`);
+    } else {
+      //TODO: add cycles to the canister
+    }
+
+    if (!canisterId) {
+      throw new Error('Canister ID is not defined');
+    }
 
     const canisterStatus = await this.managementCanisterAgent.canisterStatus(
-      Principal.fromText(newCanisterId)
+      Principal.fromText(canisterId)
     );
     console.log('canister status', canisterStatus);
 
     // Read and upload the wasm code in chunks
     const wasmModule = await fs.promises.readFile(wasmPath);
-    const uploadedChunks = await this.uploadWasmInChunks(wasmModule, newCanisterId);
+    const uploadedChunks = await this.uploadWasmInChunks(wasmModule, canisterId);
 
     // Install the wasm code
     await this.managementCanisterAgent.installChunkedCode({
-      targetCanisterId: Principal.fromText(newCanisterId),
+      targetCanisterId: Principal.fromText(canisterId),
       chunkHashesList: uploadedChunks,
       wasmModuleHash: wasmModuleHash,
       arg: new Uint8Array(), // Empty initialization arguments
       mode: (() => {
-        if (uncorrupt === 'reinstall') {
+        if (updateStrategy === 'reinstall') {
           return { reinstall: null };
-        } else if (uncorrupt === 'upgrade') {
+        } else if (updateStrategy === 'upgrade') {
           return { upgrade: [] };
         } else {
           return { install: null };
@@ -291,15 +301,25 @@ export class PocketICService {
       })(), // Install mode
     });
 
-    console.log(`Wasm code installed for canister ${newCanisterId}`);
+    console.log(`Wasm code installed for canister ${canisterId}`);
 
     const canisterStatusAfterInstall = await this.managementCanisterAgent.canisterStatus(
-      Principal.fromText(newCanisterId)
+      Principal.fromText(canisterId)
     );
+
+    if (canisterStatusAfterInstall.module_hash?.[0]) {
+      const moduleHash = Buffer.from(canisterStatusAfterInstall.module_hash[0]).toString('hex');
+      if (moduleHash !== wasmModuleHash) {
+        //TODO: delete the canister
+        throw new Error('Wasm module hash does not match uploaded file');
+      }
+    } else {
+      throw new Error('Wasm module was not installed. Module hash not found');
+    }
 
     console.log('canister status after install', canisterStatusAfterInstall);
 
-    return newCanisterId;
+    return canisterId;
   }
 
   public async checkCanisterHashAndRunning(
@@ -331,6 +351,12 @@ export class PocketICService {
       if (
         error instanceof AgentCallError &&
         error.message.match(/.*?does not belong to any subnet.*/i)
+      ) {
+        return 'unexisting';
+      }
+      if (
+        typeof (error as any).reject_message === 'string' &&
+        (error as any).reject_message.match(/.*?not found.*/i)
       ) {
         return 'unexisting';
       }
