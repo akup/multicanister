@@ -21,8 +21,8 @@
     "turbo-darwin-64": "^2.5.0"
   },
   "scripts": {
-    "dev-uploader": "cd typescript/uploader-test && pnpm dev-start",
     "dev-pocket-ic-core": "cd typescript/pocket-ic-core && pnpm dev-start",
+    "dev-icr-cli": "cd typescript/icr-cli && pnpm dev-start",
     "install-all": "pnpm turbo run turbo-install",
     "prepare": "husky install",
     "lint": "pnpm turbo run lint",

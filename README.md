@@ -42,3 +42,19 @@ $POCKET_IC_BIN --help
 innerDfxProjects folder contains [Candid](https://github.com/dfinity/candid) submodule that is configured to sparse tools/ui folder. So only [CandidUI Canister](https://github.com/dfinity/candid/tree/master/tools/ui) is cloned.
 
 During build ICR CLI tool will go throwgh all faolders to find dfx.json files, all of them will be applyed in the build from folder leafs, to the root. Core canisters can be used from inner dfx projects, so submodules can be added and deployed as part of core or environment like it is done with CandidUI Canister.
+
+
+## Starting the Services
+
+Before start follow instructions of preparing [Pocket IC Core Service](https://github.com/akup/multicanister/tree/main/typescript/pocket-ic-core) and [ICR CLI](https://github.com/akup/multicanister/tree/main/typescript/icr-cli)
+
+You can start services for development from the root folder.
+First start the Pocket IC Core service locally, or deploy it to your clowd according to instructions
+```bash
+pnpm dev-pocket-ic-core
+```
+
+Then you can start ICR CLI and point it to your Core Service (--pics, --pocket-server option or in POCKET_IC_CORE_URL environment varable)
+```bash
+pnpm dev-icr-cli
+```
