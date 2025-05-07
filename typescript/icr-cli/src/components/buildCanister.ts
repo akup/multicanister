@@ -54,6 +54,7 @@ export const buildCanister = async (
   console.log(chalk.bold.green(`Wasm of canister '${canisterName}' optimized with O3`));
 
   //Adding data to metadata
+  //TODO: check candid syntax
   await _addCandidToMetadata(canisterName, dfxProjectCanister);
   console.log('');
 

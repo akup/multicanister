@@ -1,11 +1,11 @@
 use candid::Nat;
-use ic_cdk_macros::query;
-use ic_cdk::println;
+use ic_cdk_macros::{query, update};
 
-#[query]
+#[update]
 fn get(i: Nat) -> String {
-  println!("Hello, world ! {}", i);
-  "Hello, world!".to_string()
+  let i_u64 = i.0.to_string();
+  ic_cdk::println!("Hello, world! {}", i_u64);
+  format!("Hello, world! {}", i_u64)
 }
 
 

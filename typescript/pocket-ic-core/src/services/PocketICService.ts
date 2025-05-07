@@ -101,9 +101,16 @@ export class PocketICService {
     proc.stdout.on('data', chunk => {
       console.log('PIC: ' + chunk.toString().trim());
     });
-    proc.stderr.on('data', chunk => {
-      console.error('PIC: ' + chunk.toString().trim());
-    });
+    var collectedStdErr = '';
+    const stdErrChunkListener = (chunk: Buffer) => {
+      collectedStdErr += chunk.toString();
+      if (collectedStdErr.includes('\n')) {
+        console.error('PIC: ' + collectedStdErr.trim());
+        collectedStdErr = '';
+      }
+      proc.stderr.once('data', stdErrChunkListener);
+    };
+    proc.stderr.once('data', stdErrChunkListener);
 
     const pocketICHost = `http://localhost:${port}`;
     const gwPort = gatewayPort ?? port + 1;
@@ -169,9 +176,9 @@ export class PocketICService {
     if (this.pocketICProcess) {
       this.pocketICProcess.kill();
       this.pocketICProcess = null;
-      this.pocketIC = null;
-      this.managementCanisterAgent = null;
     }
+    this.pocketIC = null;
+    this.managementCanisterAgent = null;
   }
 
   private async checkExistingCanisters(): Promise<void> {

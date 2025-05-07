@@ -1,3 +1,3 @@
 service: {
-  get: (nat) -> (text) query;
+  get: (nat) -> (text);
 }
