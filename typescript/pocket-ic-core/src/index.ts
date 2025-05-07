@@ -45,7 +45,11 @@ export const pocketICService = PocketICService.getInstance();
 pocketICService
   .start({ port: picPort, gatewayPort })
   .then(() => {
-    console.log(chalk.bold(`PocketIC started on port ${picPort}`));
+    console.log(
+      chalk.bold(
+        `PocketIC started on port ${picPort}, process id: ${pocketICService.getPocketICProcessId()}`
+      )
+    );
     const server = app.listen(port, () => {
       console.log(chalk.bold(`Server is running on port ${port}`));
     });

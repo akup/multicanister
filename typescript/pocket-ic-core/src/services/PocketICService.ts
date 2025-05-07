@@ -9,6 +9,7 @@ import { IdentityModel } from '~/models/IdentityModel';
 import * as fs from 'fs';
 import { AgentCallError, CanisterStatus } from '@dfinity/agent';
 import { Ed25519KeyIdentity } from '@dfinity/identity';
+import { resolve } from 'path';
 
 const POCKET_IC_TIMEOUT = 10000;
 
@@ -40,26 +41,35 @@ export class PocketICService {
     }
 
     // Start PocketIC process
-    const proc = spawn(process.env.POCKET_IC_BIN || 'pocket-ic', ['-p', port.toString()], {
-      stdio: 'pipe',
-    });
+    const proc = spawn(
+      process.env.POCKET_IC_BIN || 'pocket-ic',
+      ['-p', port.toString(), '--ttl', '120'],
+      {
+        stdio: 'pipe',
+      }
+    );
     if (!proc.pid) {
       throw new Error('Failed to spawn PocketIC process');
     }
     proc.on('error', error => {
       throw new Error(`PocketIC process error: ${error.message}`);
     });
-    process.on('uncaughtException', () => {
+    proc.on('exit', async () => {
+      console.error('PocketIC process exited!!!');
+      await this.stop();
+      process.exit(1);
+    });
+    process.on('uncaughtException', async () => {
       console.error('Uncaught exception');
-      this.stop();
+      await this.stop();
     });
-    process.on('SIGINT', () => {
+    process.on('SIGINT', async () => {
       console.error('SIGINT');
-      this.stop();
+      await this.stop();
     });
-    process.on('SIGTERM', () => {
+    process.on('SIGTERM', async () => {
       console.error('SIGTERM');
-      this.stop();
+      await this.stop();
     });
 
     // Wait for PocketIC to be ready
@@ -87,6 +97,14 @@ export class PocketICService {
     });
     this.pocketICProcess = proc;
 
+    //Redirecting stdout and stderr for logging of PocketIC
+    proc.stdout.on('data', chunk => {
+      console.log('PIC: ' + chunk.toString().trim());
+    });
+    proc.stderr.on('data', chunk => {
+      console.error('PIC: ' + chunk.toString().trim());
+    });
+
     const pocketICHost = `http://localhost:${port}`;
     const gwPort = gatewayPort ?? port + 1;
     const ICGatewayAPIHost = `http://localhost:${gwPort}`;
@@ -108,7 +126,7 @@ export class PocketICService {
       stateDir: !process.env.POCKET_IC_STATE_DIR ? undefined : process.env.POCKET_IC_STATE_DIR,
       ...subnetCreateConfigs,
     });
-    const gatewayUrl = await this.pocketIC.makeLive(gwPort);
+    await this.pocketIC.makeLive(gwPort);
     console.log('PocketIC gateway started on port', gwPort);
 
     // Use default IC Management via IC Agent
@@ -125,6 +143,23 @@ export class PocketICService {
     this.managementCanisterAgent = ICManagementCanister.create({
       agent,
     });
+
+    const logPocketICTime = async () => {
+      try {
+        const getTimeStart = Date.now();
+        const time = await this.pocketIC!.getTime();
+        const getTimeEnd = Date.now();
+        console.log('PocketIC time', time);
+        console.log('PocketIC getTime took', getTimeEnd - getTimeStart, 'ms');
+      } catch (error) {
+        console.error('Error fetching PocketIC time:', error);
+      }
+    };
+
+    // Initial invocation
+    logPocketICTime();
+    // Schedule to run every minute
+    setInterval(logPocketICTime, 60 * 1000);
 
     // Check existing canisters
     await this.checkExistingCanisters();
@@ -183,7 +218,11 @@ export class PocketICService {
   }
 
   public isRunning(): boolean {
-    return this.pocketICProcess !== null;
+    return this.pocketICProcess !== null && this.pocketICProcess.pid !== null;
+  }
+
+  public getPocketICProcessId(): number | undefined {
+    return this.pocketICProcess?.pid;
   }
 
   private async uploadWasmInChunks(wasmModule: Buffer, canisterId: string): Promise<chunk_hash[]> {

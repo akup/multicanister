@@ -4,8 +4,9 @@ A service for managing Internet Computer (IC) core components, including version
 
 ## Features
 
-- Store and manage IC core components
-- Track core versions with branch, tag, and commit information
+- Wrap PocketIC server and keep it alive
+- Store and manage [ICR (internet computer registry)](https://github.com/akup/multicanister) core components
+- Track core canisters versions with branch, tag, and commit information
 - Calculate and store WASM file hashes
 - REST API for core management
 

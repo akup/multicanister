@@ -1,4 +1,4 @@
-# Monorepo Multicanister Orchestration Project
+# ICR (internet computer registry). <Monorepo Multicanister Orchestration Project>
 
 Project helps to deploy and orchestrate multicanister environment for IC.
 

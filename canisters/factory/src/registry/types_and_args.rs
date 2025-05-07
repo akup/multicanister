@@ -32,5 +32,3 @@ pub struct WasmAssetChunk {
   pub content: [u8; CHUNK_SIZE],
   pub length: usize,
 }
-
-//TODO: проверить сериализацию и десериализацию и размер

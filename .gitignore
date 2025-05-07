@@ -85,3 +85,6 @@ out/
 
 # Dfx
 .dfx
+
+#ICR PocketIC
+ic-data/

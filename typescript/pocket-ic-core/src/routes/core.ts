@@ -122,7 +122,7 @@ router.post('/upload', upload.single('file'), async (req: UploadRequest, res: Re
       isCanisterCorrupted = deployedModuleHash !== existingCanisterDetails.wasmHash;
       */
 
-      if (canisterStatus === 'running') {
+      if (canisterStatus === 'running' && existingCanisterDetails.wasmHash === wasmHash) {
         return res.status(200).json({
           message: 'Canister with same hash already exists and deployed',
         });
