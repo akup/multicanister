@@ -27,7 +27,7 @@ pnpm install
 ```
 
 Install PocketIc, according to instruction for your platform
-https://github.com/dfinity/pocketic
+[https://github.com/dfinity/pocketic](https://github.com/dfinity/pocketic)
 
 Add it to your .profile
 

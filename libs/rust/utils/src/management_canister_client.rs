@@ -42,9 +42,9 @@ pub struct DeployCanisterSettings {
 
 #[derive(Clone, CandidType, Deserialize)]
 pub enum CanisterInstallMode {
-  install,
-  reinstall,
-  upgrade,
+  Install,
+  Reinstall,
+  Upgrade,
 }
 
 #[derive(Clone, CandidType, Deserialize)]

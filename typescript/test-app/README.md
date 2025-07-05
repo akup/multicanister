@@ -56,4 +56,4 @@ The application will be available at `http://localhost:3000`
 - `npm run dev` - Start development server with hot reload
 - `npm run build` - Build the TypeScript application
 - `npm start` - Start the production server
-- `npm run clean` - Remove the dist folder 
+- `npm run clean` - Remove the dist folder

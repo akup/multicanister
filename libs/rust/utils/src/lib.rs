@@ -69,7 +69,7 @@ pub async fn deploy_canister_install_code_update_settings(
     .install_code(InstallCodeRequest {
       wasm_module: wasm,
       canister_id: resp.canister_id,
-      mode: CanisterInstallMode::install,
+      mode: CanisterInstallMode::Install,
       arg: args_raw,
     })
     .await
