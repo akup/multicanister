@@ -10,14 +10,17 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN pnpm install --prod
+# Install all dependencies (including dev dependencies for build)
+RUN pnpm install
 
 # Copy source code
 COPY . .
 
 # Build the TypeScript application
 RUN pnpm run build
+
+# Remove dev dependencies to reduce image size
+RUN pnpm prune --prod
 
 # Expose port
 EXPOSE 3000
