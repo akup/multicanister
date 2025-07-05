@@ -8,8 +8,6 @@ import { CreateInstanceRequest } from '@repo/pic/src/pocket-ic-client-types';
 import { IdentityModel } from '~/models/IdentityModel';
 import * as fs from 'fs';
 import { AgentCallError, CanisterStatus } from '@dfinity/agent';
-import { Ed25519KeyIdentity } from '@dfinity/identity';
-import { resolve } from 'path';
 
 const POCKET_IC_TIMEOUT = 10000;
 
@@ -76,7 +74,7 @@ export class PocketICService {
     await new Promise<void>((resolve, reject) => {
       // Capture stdout from the spawned PocketIC process
       if (proc.stdout && proc.stderr) {
-        const cleanup = () =>
+        const cleanup = (): void =>
           [proc.stdout, proc.stderr].forEach(s => s?.removeAllListeners('data'));
         proc.stdout.once('data', chunk => {
           const stdOutData = chunk.toString().trim();
@@ -98,11 +96,9 @@ export class PocketICService {
     this.pocketICProcess = proc;
 
     //Redirecting stdout and stderr for logging of PocketIC
-    proc.stdout.on('data', chunk => {
-      console.log('PIC: ' + chunk.toString().trim());
-    });
+    //For some reason .on('data') is not working, so we are using .once('data') and re-add listener for the stderr
     var collectedStdErr = '';
-    const stdErrChunkListener = (chunk: Buffer) => {
+    const stdErrChunkListener = (chunk: Buffer): void => {
       collectedStdErr += chunk.toString();
       if (collectedStdErr.includes('\n')) {
         console.error('PIC: ' + collectedStdErr.trim());
@@ -151,7 +147,7 @@ export class PocketICService {
       agent,
     });
 
-    const logPocketICTime = async () => {
+    const logPocketICTime = async (): Promise<void> => {
       try {
         const getTimeStart = Date.now();
         const time = await this.pocketIC!.getTime();
@@ -289,7 +285,7 @@ export class PocketICService {
           console.log(`Canister ${canisterId} already exists`);
           return canisterId;
         }
-      } catch (error) {
+      } catch {
         console.log(`Canister ${canisterId} does not exist, creating new one`);
       }
     }
@@ -401,8 +397,8 @@ export class PocketICService {
         return 'unexisting';
       }
       if (
-        typeof (error as any).reject_message === 'string' &&
-        (error as any).reject_message.match(/.*?not found.*/i)
+        typeof (error as { reject_message?: string }).reject_message === 'string' &&
+        (error as { reject_message: string }).reject_message.match(/.*?not found.*/i)
       ) {
         return 'unexisting';
       }

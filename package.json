@@ -32,8 +32,8 @@
   },
   "lint-staged": {
     "*.{ts,tsx}": [
-      "pnpm turbo run format",
-      "pnpm turbo run lint:fix"
+      "prettier --write",
+      "eslint --fix"
     ]
   },
   "keywords": [],

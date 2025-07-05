@@ -1,0 +1,97 @@
+name: Build and Deploy TypeScript Applications
+
+on:
+  push:
+    branches: [ main, dev-* ]
+    paths:
+      - 'typescript/**'
+      - '.github/workflows/deploy-ts.yaml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'typescript/**'
+      - '.github/workflows/deploy-ts.yaml'
+  workflow_dispatch:
+    inputs:
+      application:
+        description: 'Application to deploy (leave empty for all)'
+        required: false
+        type: string
+        default: ''
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    
+    strategy:
+      matrix:
+        app:
+          - name: test-app
+            path: typescript/test-app
+            dockerfile: Dockerfile
+            context: typescript/test-app
+          # Add more applications here as needed
+          # - name: another-app
+          #   path: typescript/another-app
+          #   dockerfile: Dockerfile
+          #   context: typescript/another-app
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set app configuration for manual dispatch
+        if: github.event.inputs.application != ''
+        run: |
+          echo "APP_NAME=${{ github.event.inputs.application }}" >> $GITHUB_ENV
+          echo "APP_PATH=${{ github.event.inputs.application }}" >> $GITHUB_ENV
+          echo "APP_CONTEXT=${{ github.event.inputs.application }}" >> $GITHUB_ENV
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{ github.event.inputs.application != '' && env.APP_NAME || matrix.app.name }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ github.event.inputs.application != '' && env.APP_CONTEXT || matrix.app.context }}
+          file: ${{ github.event.inputs.application != '' && env.APP_CONTEXT || matrix.app.context }}/${{ matrix.app.dockerfile }}
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
+
+      - name: Output image info
+        if: github.event_name != 'pull_request'
+        run: |
+          echo "Built and pushed image: ${{ steps.meta.outputs.tags }}"
+          echo "Application: ${{ github.event.inputs.application != '' && env.APP_NAME || matrix.app.name }}"
+          echo "Registry: ${{ env.REGISTRY }}"
