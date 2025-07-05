@@ -18,6 +18,7 @@ A service for managing Internet Computer (IC) core components, including version
 ## Installation
 
 1. Install dependencies:
+
 ```bash
 pnpm install
 ```
@@ -25,20 +26,24 @@ pnpm install
 ## Starting the Service
 
 Before start set bin pocket-ic path at environment variable
+
 ```bash
 export POCKET_IC_BIN=${YOUR_PATH_TO_POCKET_IC}
 ```
+
 Or put POCKET_IC_BIN variable into project root .env file
 
 Also set the POCKET_IC_STATE_DIR environment variable with a full path for state directory.
 If this directory doesn't exist it will be created and will store network topology and subnets states: deployed canisters and memory state.
 
 Run the development server:
+
 ```bash
 pnpm dev-start
 ```
 
 The server will start on port 8092, pocketIC on 4943 and pocketIC live gateway on 4944 ports by default. You can specify a different ports using the `-p`, `pic-p`, `gw-p` flags:
+
 ```bash
 pnpm dev-start -p 8080 -pic-p 4944 -gw-p 4945
 ```
@@ -46,12 +51,15 @@ pnpm dev-start -p 8080 -pic-p 4944 -gw-p 4945
 ## API Endpoints
 
 ### List Cores
-```
+
+```http
 GET /api/list-core
 ```
+
 Returns a list of all registered cores with their metadata.
 
 Example response:
+
 ```json
 {
   "core1": {
@@ -66,12 +74,15 @@ Example response:
 ```
 
 ### Upload Core
-```
+
+```http
 POST /api/upload
 ```
+
 Upload a new core component with its metadata.
 
 Required form fields:
+
 - `file`: The WASM file to upload
 - `sha256`: Sha256 of a wasm file
 - `name`: Core component name
@@ -81,6 +92,7 @@ Required form fields:
 - `updateStrategy`: Install mode for corrupted canisters ('upgrade' or 'reinstall', defaults to 'upgrade')
 
 Installation behavior:
+
 - If canister doesn't exist: Performs a fresh install
 - If canister exists and matches stored hash: Performs an upgrade
 - If canister exists but hash doesn't match (corrupted): Uses the `uncorrupt` parameter to determine install mode
@@ -88,6 +100,7 @@ Installation behavior:
   - `reinstall`: Reinstalls the canister
 
 Example using curl:
+
 ```bash
 curl -X POST -F "file=@path/to/your/file.wasm" \
   # Dynamically calculate the sha256 checksum of the wasm file
@@ -101,6 +114,7 @@ curl -X POST -F "file=@path/to/your/file.wasm" \
 ```
 
 Example response:
+
 ```json
 {
   "message": "File uploaded successfully",
@@ -123,6 +137,7 @@ Example response:
 ## Error Handling
 
 The service includes automatic cleanup of incomplete uploads and proper error handling for:
+
 - Missing required parameters
 - File upload failures
 - Invalid file formats
@@ -133,4 +148,4 @@ The service includes automatic cleanup of incomplete uploads and proper error ha
 - Run linting: `pnpm lint`
 - Fix linting issues: `pnpm lint:fix`
 - Format code: `pnpm format`
-- Type checking: `pnpm check-types` 
+- Type checking: `pnpm check-types`
