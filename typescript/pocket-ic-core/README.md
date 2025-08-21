@@ -149,3 +149,11 @@ The service includes automatic cleanup of incomplete uploads and proper error ha
 - Fix linting issues: `pnpm lint:fix`
 - Format code: `pnpm format`
 - Type checking: `pnpm check-types`
+
+## Accessing canister
+
+Pocket IC is started on 4943 port by default, if `-pic-p` is not specified. And Pocket IC gateway is started on 4944 port if `-gw-p` is not specified.
+
+You can access canisters at
+
+`http://localhost:4944/?canisterId=${your_canister_id}`

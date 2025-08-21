@@ -14,11 +14,13 @@ This tool helps to build, deploy and orchestrate multi-canister environments. It
 ## Installation
 
 1. Install dependencies:
+
 ```bash
 pnpm install
 ```
 
 Also to add candid metadata to builded wasm and optimize it, [ic-wasm](https://github.com/dfinity/ic-wasm) is used and should be installed:
+
 ```bash
 cargo install ic-wasm
 ```
@@ -27,6 +29,7 @@ cargo install ic-wasm
 
 On deploy and test it connects to [pocket ic core server](https://github.com/link). It should be started, and it's url should be provided in --pics, --pocket-server option or in $POCKET_IC_CORE_URL environment varable
 For example change dev-start command int package.json to:
+
 ```bash
 nodemon -r tsconfig-paths/register ./src/index.ts deploy --d ../../ --pics http://localhost:8092
 ```
@@ -34,6 +37,7 @@ nodemon -r tsconfig-paths/register ./src/index.ts deploy --d ../../ --pics http:
 Privide the --d, --dir option to set working dir, where root dfx.json file is located.
 
 Then run the ICR Cli tool:
+
 ```bash
 pnpm dev-start
 ```
@@ -43,10 +47,11 @@ When factory is deployed to Pocket IC Core Service, ICR Cli will upload canister
 
 ## Cli commands help
 
+--pics, --pocket-server options set the [Pocket IC core](https://github.com/akup/multicanister/tree/main/typescript/pocket-ic-core) url
 
 ## Development
 
 - Run linting: `pnpm lint`
 - Fix linting issues: `pnpm lint:fix`
 - Format code: `pnpm format`
-- Type checking: `pnpm check-types` 
+- Type checking: `pnpm check-types`
