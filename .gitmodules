@@ -1,3 +1,4 @@
 [submodule "innerDfxProjects/candidUi"]
 	path = innerDfxProjects/candidUi
 	url = https://github.com/dfinity/candid.git
+	branch = master
