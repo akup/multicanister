@@ -39,6 +39,7 @@
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
     "tsconfig-paths": "^4.2.0",
+    "tsx": "^4.20.4",
     "typescript": "^5.3.3"
   },
   "lint-staged": {
@@ -49,9 +50,9 @@
   },
   "prettier": "@repo/prettier-config",
   "dependencies": {
-    "undici": "^6.6.2",
-    "node-fetch": "^3.3.2",
     "glob": "^10.3.10",
-    "rimraf": "^5.0.5"
+    "node-fetch": "^3.3.2",
+    "rimraf": "^5.0.5",
+    "undici": "^6.6.2"
   }
 }
