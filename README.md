@@ -26,6 +26,15 @@ npm i pnpm -g
 pnpm install
 ```
 
+### Load submodules
+
+Before you start to develop load submodules:
+
+```bash
+git submodule sync
+git submodule update --init --recursive
+```
+
 ### Install PocketIc
 
 According to instruction for your platform
@@ -46,7 +55,7 @@ $POCKET_IC_BIN --help
 ```
 
 Also it uses [pic-js](https://github.com/dfinity/pic-js) modified to [use live mode](https://github.com/akup/picjs-fork). This changes are subject for PR.
-It is referenced from `typescript/pic` and should be submodule (TODO).
+It is referenced by gitsubmodule `picjs`.
 
 ### Install didc
 
@@ -109,6 +118,8 @@ didc --version
 > # [patch.crates-io.candid]
 > # path = "../../rust/candid"
 > ```
+
+`picjs` folder contains [pic-js](https://github.com/dfinity/pic-js) modified to [use live mode](https://github.com/akup/picjs-fork). This changes are subject for PR.
 
 During build ICR CLI tool will go throwgh all folders to find `dfx.json` files, all of them will be applyed in the build from folder leafs, to the root. Core canisters can be used from inner dfx projects, so submodules can be added and deployed as part of core or environment like it is done with CandidUI Canister.
 
