@@ -11,7 +11,7 @@ export const deployCoreCanisterToPocketIC = async (
   wasmName: string,
   wasmPath: string,
   coreCanisterData: CoreMetadata | undefined
-) => {
+): Promise<void> => {
   const hash = crypto.createHash('sha256');
   //Calculate sha256 hash of canister wasm file
   const wasmSha256 = await new Promise<string>((resolve, reject) => {

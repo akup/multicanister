@@ -5,6 +5,7 @@ import { defaultConfig } from '../configs';
 
 export class DfxProject {
   root: string = './';
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   dfxJson: Record<string, any> = {};
   actors: Record<string, DfxProjectCanister> = {};
 }
@@ -25,7 +26,7 @@ export function prepareDfx(): Record<string, [DfxProjectCanister, DfxProject]> |
 
   // Recursively find all dfx.json files in subdirectories (excluding the root one)
   const dfxFiles: string[] = [];
-  function findDfxFiles(dir: string) {
+  function findDfxFiles(dir: string): void {
     for (const name of fs.readdirSync(dir)) {
       const fullPath = path.join(dir, name);
       const stat = fs.statSync(fullPath);

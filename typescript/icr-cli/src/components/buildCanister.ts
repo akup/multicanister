@@ -2,19 +2,12 @@ import chalk from 'chalk';
 import { spawnProcessWithOutput } from './spawnProcess';
 import { DfxProjectCanister } from './dfxProject';
 
-class CanisterNotCreatedError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'CanisterNotCreatedError';
-  }
-}
-
 export const buildCanister = async (
   canisterName: string,
   dfxProjectCanister: DfxProjectCanister,
   dfxProjectRoot?: string,
   onBuildStart?: () => void
-) => {
+): Promise<void> => {
   if (onBuildStart) {
     onBuildStart();
   } else {
@@ -67,7 +60,7 @@ export const buildCanister = async (
 const _buildCanisterWithoutDfx = async (
   canisterName: string,
   dfxProjectCanister: DfxProjectCanister
-) => {
+): Promise<void> => {
   if (dfxProjectCanister.type === 'custom') {
     if (typeof dfxProjectCanister.build === 'string') {
       dfxProjectCanister.build = [dfxProjectCanister.build];
@@ -108,57 +101,10 @@ const _buildCanisterWithoutDfx = async (
   }
 };
 
-const _buildCanister = async (canisterName: string) => {
-  console.log(chalk.bold.whiteBright(`\nBuilding canister '${canisterName}'...`));
-  let canisterNotCreated = false;
-  await spawnProcessWithOutput({
-    command: 'dfx',
-    args: ['build', canisterName],
-    errorMatcher: stdErr => {
-      const matched = stdErr.match(/.*?Please issue 'dfx canister create.*/);
-      if (matched) {
-        canisterNotCreated = true;
-      }
-    },
-    stdErrToConsole: stdErrData => {
-      console.log(` ${chalk.gray(stdErrData)}`);
-    },
-    onClose: (code, resolve, reject) => {
-      if (code == 0) {
-        console.log(chalk.bold.green(`\nCanister '${canisterName}' build done`));
-        resolve();
-      } else {
-        if (canisterNotCreated)
-          reject(new CanisterNotCreatedError(`Canister '${canisterName}' not created`));
-        else reject(new Error(`Canister '${canisterName}' build unsuccessfully`));
-      }
-    },
-  });
-};
-
-const _createCanister = async (canisterName: string) => {
-  console.log(chalk.bold.whiteBright(`\nCreating canister '${canisterName}'...`));
-  await spawnProcessWithOutput({
-    command: 'dfx',
-    args: ['canister', 'create', canisterName],
-    stdErrToConsole: stdErrData => {
-      console.log(` ${chalk.gray(stdErrData)}`);
-    },
-    onClose: (code, resolve, reject) => {
-      if (code == 0) {
-        console.log(chalk.bold.green(`\nCanister '${canisterName}' creation done`));
-        resolve();
-      } else {
-        reject(new Error(`Canister '${canisterName}' creation unsuccessfull`));
-      }
-    },
-  });
-};
-
 const _addCandidToMetadata = async (
   canisterName: string,
   dfxProjectCanister: DfxProjectCanister
-) => {
+): Promise<void> => {
   console.log(
     chalk.bold.whiteBright(
       `\nChecking candid was added to metadata for wasm of canister '${canisterName}'...`

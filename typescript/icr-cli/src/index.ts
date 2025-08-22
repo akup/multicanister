@@ -19,10 +19,11 @@ type Command = 'deploy' | 'build' | 'create-user' | 'gen-factory-idl';
 var commandHandled: Command | undefined = undefined;
 
 //Список команд
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let commandArgs: any = {};
 
 // Common options for build and deploy commands
-const getCommonBuildAndDeployOptions = (y: any) => {
+const getCommonBuildAndDeployOptions = (y: ReturnType<typeof yargs>): ReturnType<typeof yargs> => {
   return y
     .option('core', {
       alias: 'c',
@@ -88,7 +89,7 @@ yargs(hideBin(process.argv))
   .command(
     'gen-factory-idl',
     'Generate recent factory idl',
-    _y => {},
+    () => {},
     args => {
       commandHandled = 'gen-factory-idl';
       commandArgs = args;
@@ -136,7 +137,7 @@ console.log(chalk.green(figlet.textSync('ICR Cli', { horizontalLayout: 'full' })
 
 console.log(chalk.bold.whiteBright('Starting ICR (internet computer registry) Cli...'));
 
-const startICRCli = async () => {
+const startICRCli = async (): Promise<void> => {
   if (!commandHandled) {
     console.log(chalk.red('No command. See help: icr-cli -h'));
     return;

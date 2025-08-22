@@ -1,7 +1,12 @@
 import chalk from 'chalk';
 import { spawnProcessWithOutput } from './spawnProcess';
 
-export const startDfx = async () => {
+// This file is deprecated and should not be used.
+
+/**
+ * @deprecated This function is deprecated and should not be used.
+ */
+export const startDfx = async (): Promise<void> => {
   console.log(chalk.bold.whiteBright(`Starting dfx...`));
 
   let dfxIsAlreadyRunning = false;

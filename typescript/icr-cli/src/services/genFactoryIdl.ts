@@ -13,7 +13,7 @@ export const genFactoryIdl = ({
   coreInfo: CoreInfo;
   dfxProjectsByActorName: Record<string, [DfxProjectCanister, DfxProject]>;
   projectRoot: string;
-}) => {
+}): void => {
   const [dfxCanister] = dfxProjectsByActorName[coreInfo.factory];
   const candidFile = dfxCanister.candid;
   let candidContent: string | undefined;

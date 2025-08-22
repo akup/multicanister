@@ -15,23 +15,25 @@ export const spawnProcessWithOutput = async ({
   outMatcher?: (
     stdOutToConsole: string,
     resolve: (value: void | PromiseLike<void>) => void,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     reject: (reason?: any) => void
   ) => void;
   errorMatcher?: (
     stdErr: string,
     resolve: (value: void | PromiseLike<void>) => void,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     reject: (reason?: any) => void
   ) => void;
   onClose?: (
     code: number | null,
     resolve: (value: void | PromiseLike<void>) => void,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     reject: (reason?: any) => void
   ) => void;
   stdOutToConsole?: (stdOut: string) => void;
   stdErrToConsole?: (stdOut: string) => void;
 }) => {
   return new Promise<void>((resolve, reject) => {
-    let canisterNotCreated = false;
     const dfxBuildProc = spawn(command, args, { stdio: 'pipe' });
     dfxBuildProc.stdout.on('data', chunk => {
       const stdOutData: string = chunk.toString().trim();

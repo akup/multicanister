@@ -26,6 +26,7 @@ export function readCoreFile(coreFilePath: string = defaultConfig.coreFile): Cor
 
           let field = coreJson[key];
           if (field) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             if (typeof field === 'string') coreInfo[key as keyof CoreInfo] = field as any;
             else {
               console.error(chalk.red(`Invalid '${key}' field at ${coreFilePath}`));
