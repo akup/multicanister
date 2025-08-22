@@ -7,6 +7,10 @@
   "private": true,
   "scripts": {
     "dev-start": "nodemon --config nodemon.json -r tsconfig-paths/register ./src/index.ts -p 8092",
+    "docker:build": "cd ../../ && docker build . -t multicanisterops-dev",
+    "docker:up": "cd ../../ && docker compose up",
+    "docker:down": "cd ../../ && docker compose down",
+    "docker:start": "pnpm docker:build && pnpm docker:up",
     "turbo-install": "pnpm install",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
