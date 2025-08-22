@@ -1,7 +1,6 @@
 import * as fs from 'fs';
 import chalk from 'chalk';
-
-export const CORE_JSON = 'core.json';
+import { defaultConfig } from '../configs';
 
 export class CoreInfo {
   factory: string = '';
@@ -10,7 +9,7 @@ export class CoreInfo {
   modules: Array<string> = [];
 }
 
-export function readCoreFile(coreFilePath: string = CORE_JSON): CoreInfo | null {
+export function readCoreFile(coreFilePath: string = defaultConfig.coreFile): CoreInfo | null {
   if (fs.existsSync(coreFilePath)) {
     try {
       let coreInfo = new CoreInfo();

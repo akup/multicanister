@@ -1,5 +1,5 @@
 import chalk from 'chalk';
-import { spawn, SpawnOptionsWithoutStdio } from 'child_process';
+import { spawn } from 'node:child_process';
 
 export const spawnProcessWithOutput = async ({
   command,

@@ -1,8 +1,7 @@
 import * as fs from 'fs';
 import chalk from 'chalk';
 import * as path from 'path';
-
-const DFX_JSON = 'dfx.json';
+import { defaultConfig } from '../configs';
 
 export class DfxProject {
   root: string = './';
@@ -42,7 +41,7 @@ export function prepareDfx(): Record<string, [DfxProjectCanister, DfxProject]> |
           continue;
         }
         findDfxFiles(fullPath);
-      } else if (stat.isFile() && name === DFX_JSON) {
+      } else if (stat.isFile() && name === defaultConfig.dfxFile) {
         dfxFiles.push(fullPath);
       }
     }
@@ -58,7 +57,8 @@ export function prepareDfx(): Record<string, [DfxProjectCanister, DfxProject]> |
       const json = JSON.parse(fs.readFileSync(filePath).toString());
       const dfxProject = new DfxProject();
       // set the root to the directory containing this dfx.json
-      dfxProject.root = filePath.slice(0, filePath.length - (DFX_JSON.length + 1)) + '/';
+      dfxProject.root =
+        filePath.slice(0, filePath.length - (defaultConfig.dfxFile.length + 1)) + '/';
       dfxProject.dfxJson = json;
       dfxProject.actors = json['canisters'] as Record<string, DfxProjectCanister>;
       for (const [canisterName, dfxCanister] of Object.entries(dfxProject.actors)) {
@@ -87,12 +87,12 @@ export function prepareDfx(): Record<string, [DfxProjectCanister, DfxProject]> |
         }
       }
     } catch (e) {
-      console.error(chalk.red(`Invalid ${DFX_JSON} at ${filePath}`));
+      console.error(chalk.red(`Invalid ${defaultConfig.dfxFile} at ${filePath}`));
       throw e;
     }
   }
   if (dfxFiles.length === 0) {
-    console.error(chalk.red(`No ${DFX_JSON} found in innerDfxProjects directory`));
+    console.error(chalk.red(`No ${defaultConfig.dfxFile} found in innerDfxProjects directory`));
     return null;
   }
 

@@ -140,7 +140,6 @@ export class PocketICService {
       identity,
       host: ICGatewayAPIHost,
     });
-    agent.call;
     // Fetch root key as we are talking to the Pocket IC and not the mainnet
     await agent.fetchRootKey();
     this.managementCanisterAgent = ICManagementCanister.create({

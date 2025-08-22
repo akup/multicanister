@@ -23,6 +23,7 @@
   "scripts": {
     "dev-pocket-ic-core": "cd typescript/pocket-ic-core && pnpm dev-start",
     "dev-icr-cli": "cd typescript/icr-cli && pnpm dev-start",
+    "dev-icr-cli-build-all": "cd typescript/icr-cli && pnpm dev-start-build-all",
     "install-all": "pnpm turbo run turbo-install",
     "prepare": "husky install",
     "lint": "pnpm turbo run lint",

@@ -1,13 +1,6 @@
 import chalk from 'chalk';
 import { spawnProcessWithOutput } from './spawnProcess';
 
-class DfxIsAlreadyRunningError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'DfxIsAlreadyRunningError';
-  }
-}
-
 export const startDfx = async () => {
   console.log(chalk.bold.whiteBright(`Starting dfx...`));
 

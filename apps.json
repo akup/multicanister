@@ -1,0 +1,14 @@
+{
+  "apps": {
+    "loginApp": {
+      "canisterServices": [{
+        "dfxName": "hello",
+        "serviceId": "hello"
+      }],
+      "offchainServices": ["test-app"],
+      "init": {
+        "hello": ["env1/login_init.ts"]
+      }
+    }
+  }
+}

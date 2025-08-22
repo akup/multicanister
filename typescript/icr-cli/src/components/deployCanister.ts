@@ -1,5 +1,4 @@
 import chalk from 'chalk';
-import { DfxProjectCanister } from './dfxProject';
 import * as crypto from 'crypto';
 import * as fs from 'fs';
 import { CoreMetadata, PocketIcCoreService } from '../services/pocketIcCoreService';

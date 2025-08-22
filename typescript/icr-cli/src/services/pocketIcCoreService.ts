@@ -23,7 +23,7 @@ export class PocketIcCoreService {
 
   private constructor() {}
 
-  public static setPicCoreUrl(picCoreUrl: URL) {
+  public static setPicCoreUrl(picCoreUrl: URL): void {
     PocketIcCoreService.picCoreUrl = picCoreUrl;
   }
 
@@ -56,8 +56,27 @@ export class PocketIcCoreService {
     });
 
     if (!response.ok) {
-      const json = (await response.json()) as { message: string };
-      throw new Error(`Failed to upload wasm file: ${json.message}`);
+      const json = await response.json();
+
+      // Check for various error message formats
+      let errorMessage = 'Unknown error';
+
+      if (json && typeof json === 'object') {
+        if ('error' in json && json.error) {
+          console.error(json.error);
+        }
+        if ('message' in json && json.message) {
+          errorMessage = String(json.message);
+        } else {
+          console.log('Full error response:', JSON.stringify(json, null, 2));
+        }
+      } else if (typeof json === 'string') {
+        errorMessage = json;
+      } else {
+        console.log('Full error response:', JSON.stringify(json, null, 2));
+      }
+
+      throw new Error(`Failed to upload canister ${canisterName} with wasm file: ${errorMessage}`);
     }
 
     return (await response.json()) as UploadResponse;
@@ -68,8 +87,28 @@ export class PocketIcCoreService {
     const response = await fetch(`${PocketIcCoreService.picCoreUrl!.origin}/api/list-core`);
 
     if (!response.ok) {
-      const json = (await response.json()) as { message: string };
-      throw new Error(`Failed to list cores: ${json.message}`);
+      const json = await response.json();
+
+      // Check for various error message formats
+      let errorMessage = 'Unknown error';
+
+      if (json && typeof json === 'object') {
+        if ('error' in json && json.error) {
+          errorMessage = String(json.error);
+        } else if ('message' in json && json.message) {
+          errorMessage = String(json.message);
+        } else if ('detail' in json && json.detail) {
+          errorMessage = String(json.detail);
+        } else {
+          console.log('Full error response:', JSON.stringify(json, null, 2));
+        }
+      } else if (typeof json === 'string') {
+        errorMessage = json;
+      } else {
+        console.log('Full error response:', JSON.stringify(json, null, 2));
+      }
+
+      throw new Error(`Failed to list cores: ${errorMessage}`);
     }
 
     return (await response.json()) as ListCoresResponse;

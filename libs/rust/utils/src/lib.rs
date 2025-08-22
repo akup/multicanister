@@ -2,7 +2,6 @@ pub mod management_canister_client;
 
 use crate::management_canister_client::*;
 use candid::Principal;
-use chrono::{DateTime, Utc};
 use ic_cdk::api::call::RejectionCode;
 use ic_cdk::api::time;
 use ic_cdk::{caller, print, trap};
@@ -100,9 +99,8 @@ pub fn log(msg: &str) {
 
 fn make_time(nanos: u64) -> String {
   let d = UNIX_EPOCH + Duration::from_nanos(nanos);
-  let datetime = DateTime::<Utc>::from(d);
-
-  datetime.format("%Y-%m-%d %H:%M:%S.%f").to_string()
+  let secs = d.duration_since(UNIX_EPOCH).unwrap().as_secs();
+  format!("{}", secs)
 }
 
 #[inline(always)]

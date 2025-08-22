@@ -1,5 +1,5 @@
 use candid::{CandidType, Deserialize, Func, Int, Nat, Principal, encode_args};
-use ic_cdk::api::{caller, data_certificate, id, set_certified_data, time, trap};
+use ic_cdk::api::{msg_caller, debug_print, data_certificate, id, set_certified_data, time, trap};
 use ic_cdk_macros::{init, post_upgrade, pre_upgrade, query, update};
 use ic_certified_map::{AsHashTree, Hash, HashTree, RbTree};
 use num_traits::ToPrimitive;
@@ -99,11 +99,11 @@ struct AssetEncodingDetails {
 }
 
 struct Chunk {
-  batch_id: BatchId,
   content: RcBytes,
 }
 
 struct Batch {
+  caller: Principal,
   chunk_ids: Vec<ChunkId>,
   expires_at: Timestamp,
 }
@@ -278,7 +278,8 @@ struct StreamingCallbackHttpResponse {
 
 #[update(guard = "is_authorized")]
 fn create_batch() -> CreateBatchResponse {
-  ic_cdk::print(format!("create_batch by {}", ic_cdk::caller()));
+  let caller = msg_caller();
+  debug_print(format!("create_batch by {}", caller));
   ASSET_STATE.with(|s| {
     let batch_id = s.next_batch_id.borrow().clone();
     *s.next_batch_id.borrow_mut() += Nat::from(1u64); //+1 increment
@@ -298,14 +299,17 @@ fn create_batch() -> CreateBatchResponse {
     });
     //Создаём новый батч
     batches.insert(batch_id.clone(), Batch {
+      caller,
       chunk_ids: vec![],
       expires_at: Int::from(now + BATCH_EXPIRY_NANOS),
     });
 
-    //Чистим чанки из устаревшего батча
-    s.chunks
-      .borrow_mut()
-      .retain(|chunk_id, _| !expired_chunk_ids.contains(chunk_id));
+    if !expired_chunk_ids.is_empty() {
+      //Чистим чанки из устаревшего батча
+      s.chunks
+        .borrow_mut()
+        .retain(|chunk_id, _| !expired_chunk_ids.contains(chunk_id));
+    }
 
     CreateBatchResponse { batch_id }
   })
@@ -322,6 +326,9 @@ fn create_chunk(arg: CreateChunkArg) -> CreateChunkResponse {
     let batch = batches
       .get_mut(&arg.batch_id)
       .unwrap_or_else(|| trap("batch not found"));
+    if batch.caller != msg_caller() {
+      trap("other caller started this batch uploading");
+    }
     batch.expires_at = Int::from(now + BATCH_EXPIRY_NANOS);
 
     let chunk_id = s.next_chunk_id.borrow().clone();
@@ -335,7 +342,7 @@ fn create_chunk(arg: CreateChunkArg) -> CreateChunkResponse {
     s.chunks.borrow_mut().insert(
       chunk_id.clone(),
       Chunk {
-        batch_id: arg.batch_id,
+        //batch_id: arg.batch_id,
         content: RcBytes::from(arg.content),
       },
     );
@@ -372,8 +379,8 @@ fn create_chunk(arg: CreateChunkArg) -> CreateChunkResponse {
 #[update(guard = "is_authorized")]
 fn commit_batch(arg: CommitBatchArguments) {
   let batch_id = arg.batch_id;
-  ic_cdk::print(format!("commit_batch by {}", ic_cdk::caller()));
-  ic_cdk::print(format!(
+  debug_print(format!("commit_batch by {}", msg_caller()));
+  debug_print(format!(
     "batch_id {} ops length {}",
     batch_id,
     arg.operations.len()
@@ -381,23 +388,23 @@ fn commit_batch(arg: CommitBatchArguments) {
   for op in arg.operations {
     match op {
       BatchOperation::CreateAsset(arg) => {
-        ic_cdk::print(format!("CreateAsset operation"));
+        debug_print(format!("CreateAsset operation"));
         do_create_asset(arg)
       },
       BatchOperation::SetAssetContent(arg) => {
-        ic_cdk::print(format!("SetAssetContent operation"));
+        debug_print(format!("SetAssetContent operation"));
         do_set_asset_content(arg)
       }
-      BatchOperation::UnsetAssetContent(arg) => {
-        ic_cdk::print(format!("UnsetAssetContent operation"));
+      BatchOperation::UnsetAssetContent(_arg) => {
+        debug_print(format!("UnsetAssetContent operation"));
         //do_unset_asset_content(arg)
       }
-      BatchOperation::DeleteAsset(arg) => {
-        ic_cdk::print(format!("DeleteAsset operation"));
+      BatchOperation::DeleteAsset(_arg) => {
+        debug_print(format!("DeleteAsset operation"));
         //do_delete_asset(arg)
       }
       BatchOperation::Clear(_) => {
-        ic_cdk::print(format!("Clear operation"));
+        debug_print(format!("Clear operation"));
         //do_clear()
       }
     }
@@ -644,7 +651,7 @@ fn commit_batch(arg: CommitBatchArguments) {
 // }
 
 fn do_create_asset(arg: CreateRegistryEntryArguments) {
-  ic_cdk::print("do_create_asset");
+  debug_print("do_create_asset");
   
   let wasm_metadata = WasmAssetMetadata {
     modified: time() as u64,
@@ -657,7 +664,7 @@ fn do_create_asset(arg: CreateRegistryEntryArguments) {
 }
 
 fn do_set_asset_content(arg: SetAssetContentArguments) {
-  ic_cdk::print("do_set_asset_content");
+  debug_print("do_set_asset_content");
 
   //Проверяем, что все чанки существуют и не превышают размер
   ASSET_STATE.with(|s| {
@@ -665,6 +672,9 @@ fn do_set_asset_content(arg: SetAssetContentArguments) {
     let batch = batches
       .get(&arg.batch_id)
       .unwrap_or_else(|| trap("batch not found"));
+    if batch.caller != msg_caller() {
+      trap("other caller uploaded this batch");
+    }
 
     let mut chunks = s.chunks.borrow_mut();
     let mut has_bad_chunks = false;
@@ -899,5 +909,5 @@ fn do_clear() {}
 #[init]
 fn init() {
   do_clear();
-  authorize(caller());
+  authorize(msg_caller());
 }

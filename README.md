@@ -19,14 +19,16 @@ This workflow makes seemless inhouse development and production environments.
 
 ## Installation
 
-Install pnpm
+### Install pnpm
 
 ```sh
 npm i pnpm -g
 pnpm install
 ```
 
-Install PocketIc, according to instruction for your platform
+### Install PocketIc
+
+According to instruction for your platform
 [https://github.com/dfinity/pocketic](https://github.com/dfinity/pocketic)
 
 Add it to your .profile
@@ -45,6 +47,42 @@ $POCKET_IC_BIN --help
 
 Also it uses [pic-js](https://github.com/dfinity/pic-js) modified to [use live mode](https://github.com/akup/picjs-fork). This changes are subject for PR.
 It is referenced from `typescript/pic` and should be submodule (TODO).
+
+### Install didc
+
+Copy latest `didc` release from [https://github.com/dfinity/candid/releases](https://github.com/dfinity/candid/releases) to your `~/bin/didc`. Make it executable:
+
+```bash
+chmod +x ~/bin/didc
+```
+
+and add `~/bin` to your path.
+
+Check it is already in you path:
+
+```bash
+echo $PATH | grep -o "$HOME/bin"
+```
+
+if not add it to your `~/.profile`:
+
+```bash
+export PATH="$HOME/bin:$PATH"
+```
+
+and apply it:
+
+```bash
+source ~/.profile
+```
+
+On mac give permissions to run to didc at your `System settings->Confidentaility and security->Security`
+
+Check it is installed:
+
+```bash
+didc --version
+```
 
 ## Project structure
 
@@ -123,3 +161,15 @@ For example if you start with default core.json, you will see following log of `
 ```
 
 Just use `$candid_ui_canister_id` to access default candid ui: `http://localhost:4944/?canisterId=${candid_ui_canister_id}`
+
+## Developing factory and icr-cli
+
+As factory can.did changes during development, you should update declarations at `typescript/icr-cli/src/declarations/factory`. It could be done simply by running from `typescript/icr-cli` folder:
+
+```bash
+npm run gen-factory-idl
+```
+
+It will replace `factory.did.js` `factory.did.d.ts` based on can.did file specified at `dfx.json` for factory (`canisters/factory/can.did`)
+
+`factoryService` at `typescript/icr-cli/src/services` utilizes this declarations and is also subject to change on factory interface updates.

@@ -1,5 +1,5 @@
 use candid::Principal;
-use ic_cdk::api::caller;
+use ic_cdk::api::msg_caller;
 use ic_cdk::update;
 use std::cell::RefCell;
 use ic_stable_structures::{StableVec, DefaultMemoryImpl};
@@ -24,7 +24,8 @@ thread_local! {
 
 #[update]
 pub fn authorize(new_authorized: Principal) {
-  let caller = caller();
+  //TODO: only controller (DAO) can authorize
+  let caller = msg_caller();
   AUTHORIZED_LIST.with(|authorized_list| {
     let mut contains = false;
     let mut caller_authorized = false;
@@ -43,7 +44,7 @@ pub fn authorize(new_authorized: Principal) {
 }
 
 pub fn is_authorized() -> Result<(), String> {
-  let caller = caller();
+  let caller = msg_caller();
   AUTHORIZED_LIST.with(|authorized_list| {
     authorized_list
       .borrow().iter()
