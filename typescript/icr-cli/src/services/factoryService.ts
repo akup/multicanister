@@ -23,6 +23,9 @@ export class FactoryService {
       identity,
       host: picGatewayUrl.toString(),
     });
+    // Fetch root key as we are talking to the Pocket IC and not the mainnet
+    await agent.fetchRootKey();
+
     const factoryActor: ActorSubclass<_SERVICE> = Actor.createActor(idlFactory, {
       agent: agent,
       canisterId: factoryCanisterId,
