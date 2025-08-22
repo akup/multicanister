@@ -48,6 +48,36 @@ The server will start on port 8092, pocketIC on 4943 and pocketIC live gateway o
 pnpm dev-start -p 8080 -pic-p 4944 -gw-p 4945
 ```
 
+## Docker Development 🐳
+
+You can also run the service in a containerized development environment using Docker. This is the recommended way to ensure consistency.
+
+### Prerequisites for Docker
+
+* **Docker** and **Docker Compose** must be installed on your system.
+* A `Dockerfile` and `docker-compose.yml` must be present in the project root.
+
+### Docker Commands
+
+The following commands are available from within the `typescript/pocket-ic-core` directory:
+
+* **To build and start the service:** (This is the main command you'll use)
+  ```bash
+  pnpm docker:start
+
+* **To only build the image:**
+  ```bash
+  pnpm docker:build
+
+* **To only start the existing containers:**
+  ```bash
+  pnpm docker:up
+
+* **To stop and remove the containers:**
+  ```bash
+  pnpm docker:down
+
+
 ## API Endpoints
 
 ### List Cores
