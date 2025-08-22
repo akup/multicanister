@@ -99,13 +99,13 @@ export class DeployService {
     appsInfo,
     coreInfo,
     dfxProjectsByActorName,
-    picCoreUrl,
+    picGatewayUrl,
     factoryCanisterId,
   }: {
     appsInfo: AppsInfo;
     coreInfo: CoreInfo;
     dfxProjectsByActorName: Record<string, [DfxProjectCanister, DfxProject]>;
-    picCoreUrl: URL;
+    picGatewayUrl: URL;
     factoryCanisterId: string;
   }): Promise<void> {
     console.log(chalk.whiteBright('Deploying apps to pocket IC...'));
@@ -133,10 +133,10 @@ export class DeployService {
 
     //First we prepare Agent to work with factory in remote PIC
     //TODO: reuse users
-    console.log('Host for pic gateway', picCoreUrl.toString());
+    console.log('Host for pic gateway', picGatewayUrl.toString());
     const identity = Ed25519KeyIdentity.generate();
     const factoryService = await FactoryService.getInstance(
-      picCoreUrl,
+      picGatewayUrl,
       identity,
       factoryCanisterId
     );

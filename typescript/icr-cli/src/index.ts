@@ -256,7 +256,7 @@ const startICRCli = async (): Promise<void> => {
                 appsInfo,
                 coreInfo,
                 dfxProjectsByActorName: dfxProjects,
-                picCoreUrl: picGatewayUrl,
+                picGatewayUrl: picGatewayUrl,
                 factoryCanisterId,
               });
             }

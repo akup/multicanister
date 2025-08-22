@@ -16,12 +16,12 @@ export class FactoryService {
   // Static factory method that can be async
   public static async create(
     identity: Identity,
-    picCoreUrl: URL,
+    picGatewayUrl: URL,
     factoryCanisterId: string
   ): Promise<FactoryService> {
     const agent = await createAgent({
       identity,
-      host: picCoreUrl.toString(),
+      host: picGatewayUrl.toString(),
     });
     const factoryActor: ActorSubclass<_SERVICE> = Actor.createActor(idlFactory, {
       agent: agent,
@@ -32,18 +32,18 @@ export class FactoryService {
   }
 
   public static async getInstance(
-    picCoreUrl: URL,
+    picGatewayUrl: URL,
     identity: Ed25519KeyIdentity,
     factoryCanisterId: string
   ): Promise<FactoryService> {
     // Only use host and port from the provided URL to create a unique key for the instance
-    const host = picCoreUrl.hostname;
-    const port = picCoreUrl.port;
+    const host = picGatewayUrl.hostname;
+    const port = picGatewayUrl.port;
     const key = `${identity.getPrincipal().toString()}@${host}:${port}/${factoryCanisterId}`;
     if (!FactoryService.instances[key]) {
       FactoryService.instances[key] = await FactoryService.create(
         identity,
-        picCoreUrl,
+        picGatewayUrl,
         factoryCanisterId
       );
     }
