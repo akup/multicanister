@@ -7,10 +7,7 @@ import { deployCoreCanisterToPocketIC } from '../components/deployCanister';
 import { execSync } from 'child_process';
 
 import { Ed25519KeyIdentity } from '@dfinity/identity';
-import { createAgent } from '@dfinity/utils';
-import { Actor, ActorSubclass } from '@dfinity/agent';
-
-import { _SERVICE, idlFactory } from '../declarations/factory/factory.did';
+import { FactoryService } from './factoryService';
 export { idlFactory } from '../declarations/factory/factory.did';
 
 interface GitInfo {
@@ -138,21 +135,15 @@ export class DeployService {
     //TODO: reuse users
     console.log('Host for pic gateway', picCoreUrl.toString());
     const identity = Ed25519KeyIdentity.generate();
-    const agent = await createAgent({
+    const factoryService = await FactoryService.getInstance(
+      picCoreUrl,
       identity,
-      host: picCoreUrl.toString(),
-    });
-    // Fetch root key as we are talking to the Pocket IC and not the mainnet
-    await agent.fetchRootKey();
-
-    const factoryActor: ActorSubclass<_SERVICE> = Actor.createActor(idlFactory, {
-      agent,
-      canisterId: factoryCanisterId,
-    });
+      factoryCanisterId
+    );
 
     console.log('Creating batch...');
-    const batch = await factoryActor.create_batch({});
-    console.log('Batch created:', batch.batch_id);
+    const batch = await factoryService.createBatch();
+    console.log('Batch created:', batch);
 
     let uploadedWasms: Record<string, boolean> = {};
     for (const [appName, appData] of Object.entries(appsInfo.apps)) {
