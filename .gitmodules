@@ -1,3 +1,9 @@
 [submodule "innerDfxProjects/candidUi"]
 	path = innerDfxProjects/candidUi
 	url = https://github.com/dfinity/candid.git
+	branch = master
+	
+[submodule "picjs"]
+	path = picjs
+	url = https://github.com/akup/picjs-fork
+	branch = liveMode

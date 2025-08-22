@@ -49,6 +49,26 @@ importers:
         specifier: ^5.8.3
         version: 5.8.3
 
+  picjs/packages/pic:
+    dependencies:
+      '@dfinity/agent':
+        specifier: ^2.3.0
+        version: 2.3.0(@dfinity/candid@2.3.0(@dfinity/principal@2.3.0))(@dfinity/principal@2.3.0)
+      '@dfinity/candid':
+        specifier: ^2.3.0
+        version: 2.3.0(@dfinity/principal@2.3.0)
+      '@dfinity/identity':
+        specifier: ^2.3.0
+        version: 2.4.1(@dfinity/agent@2.3.0(@dfinity/candid@2.3.0(@dfinity/principal@2.3.0))(@dfinity/principal@2.3.0))(@dfinity/principal@2.3.0)
+      '@dfinity/principal':
+        specifier: 2.3.0
+        version: 2.3.0
+      bip39:
+        specifier: ^3.1.0
+        version: 3.1.0
+
+  picjs/packages/pic-server: {}
+
   typescript/_eslint-config:
     devDependencies:
       '@typescript-eslint/eslint-plugin':
@@ -183,8 +203,8 @@ importers:
         specifier: 2.3.0
         version: 2.3.0
       '@repo/pic':
-        specifier: workspace:*
-        version: link:../pic
+        specifier: workspace:^
+        version: link:../../picjs/packages/pic
       express:
         specifier: 5.1.0
         version: 5.1.0
@@ -968,6 +988,9 @@ packages:
   binary-extensions@2.3.0:
     resolution: {integrity: sha512-Ceh+7ox5qe7LJuLHoY0feh3pHuUDHAcRUeyL2VYghZwfpkNIy/+8Ocg0a3UuSoYzavmylwuLWQOf3hl0jjMMIw==}
     engines: {node: '>=8'}
+
+  bip39@3.1.0:
+    resolution: {integrity: sha512-c9kiwdk45Do5GL0vJMe7tS95VjCii65mYAH7DfWl3uW8AVzXKQVUm64i3hzVybBDMp9r7j9iNxR85+ul8MdN/A==}
 
   bl@4.1.0:
     resolution: {integrity: sha512-1W07cM9gS6DcLperZfFSj+bWLtaPGSOHWhPiGzXmvVJbRLdG82sH/Kn8EtW1VqWVA54AKf2h5k5BbnIbwF3h6w==}
@@ -3743,6 +3766,10 @@ snapshots:
   bignumber.js@9.2.1: {}
 
   binary-extensions@2.3.0: {}
+
+  bip39@3.1.0:
+    dependencies:
+      '@noble/hashes': 1.7.2
 
   bl@4.1.0:
     dependencies:
