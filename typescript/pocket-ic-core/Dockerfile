@@ -19,6 +19,6 @@ COPY . .
 
 RUN pnpm install
 
-EXPOSE 8092 4943 4944
+EXPOSE 8092 4944
 
 CMD ["pnpm", "run", "dev-pocket-ic-core"]
