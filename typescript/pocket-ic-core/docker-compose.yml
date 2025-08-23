@@ -4,11 +4,10 @@ services:
     container_name: pocket-ic-core-dev
     ports:
       - "8092:8092" # API Server
-      - "4943:4943" # PocketIC Server
       - "4944:4944" # Gateway PocketIC
     volumes:
       # mount with nodemon
-      - ./typescript/pocket-ic-core/src:/app/typescript/pocket-ic-core/src
+      - ./src:/app/typescript/pocket-ic-core/src
       # pocket-ic state folder
       - pocket-ic-state:/app/ic-state
     restart: unless-stopped
