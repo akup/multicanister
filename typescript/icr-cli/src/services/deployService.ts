@@ -135,6 +135,7 @@ export class DeployService {
     //TODO: reuse users
     console.log('Host for pic gateway', picGatewayUrl.toString());
     const identity = Ed25519KeyIdentity.generate();
+    identity.getKeyPair();
     const factoryService = await FactoryService.getInstance(
       picGatewayUrl,
       identity,

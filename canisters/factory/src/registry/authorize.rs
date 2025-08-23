@@ -1,30 +1,11 @@
 use candid::Principal;
 use ic_cdk::api::msg_caller;
 use ic_cdk::update;
-use std::cell::RefCell;
-use ic_stable_structures::{StableVec, DefaultMemoryImpl};
-use ic_stable_structures::memory_manager::{MemoryManager, MemoryId, VirtualMemory};
-
-pub type Memory = VirtualMemory<DefaultMemoryImpl>;
-
-pub static AUTHORIZED_LIST_MEMORY_ID: MemoryId = MemoryId::new(0);
-
-thread_local! {
-  pub static MEMORY_MANAGER: RefCell<MemoryManager<DefaultMemoryImpl>> = RefCell::new(
-      MemoryManager::init(DefaultMemoryImpl::default())
-  );
-
-  pub static AUTHORIZED_LIST: RefCell<StableVec<Principal, Memory>>
-      = RefCell::new(
-      StableVec::init(
-        MEMORY_MANAGER.with(|m| m.borrow().get(AUTHORIZED_LIST_MEMORY_ID)),
-      ).expect("Failed to initialize AUTHORIZED_LIST")
-  );
-}
+use super::memory_registry::AUTHORIZED_LIST;
 
 #[update]
 pub fn authorize(new_authorized: Principal) {
-  //TODO: only controller (DAO) can authorize
+  //TODO: only controller (DAO) can add to authorized list (call this method)
   let caller = msg_caller();
   AUTHORIZED_LIST.with(|authorized_list| {
     let mut contains = false;
@@ -37,8 +18,11 @@ pub fn authorize(new_authorized: Principal) {
         caller_authorized = true;
       }
     });
+    //Temporary authorize the caller
+    //TODO: remove this after testing
+    caller_authorized = true;
     if caller_authorized && !contains {
-      authorized_list.borrow_mut().push(&new_authorized);
+      let _ = authorized_list.borrow_mut().push(&new_authorized);
     }
   })
 }

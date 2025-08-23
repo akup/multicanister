@@ -1,7 +1,7 @@
-import { Ed25519KeyIdentity } from '@dfinity/identity';
 import { createAgent } from '@dfinity/utils';
 import { Actor, ActorSubclass, HttpAgent, Identity } from '@dfinity/agent';
 import { _SERVICE, idlFactory } from '../declarations/factory/factory.did';
+import type { Principal } from '@dfinity/principal';
 
 export class FactoryService {
   private static instances: Record<string, FactoryService> = {};
@@ -36,7 +36,7 @@ export class FactoryService {
 
   public static async getInstance(
     picGatewayUrl: URL,
-    identity: Ed25519KeyIdentity,
+    identity: Identity,
     factoryCanisterId: string
   ): Promise<FactoryService> {
     // Only use host and port from the provided URL to create a unique key for the instance
@@ -56,5 +56,9 @@ export class FactoryService {
   public async createBatch(): Promise<bigint> {
     const batch = await this.factoryActor.create_batch({});
     return batch.batch_id;
+  }
+
+  public async authorize(principal: Principal): Promise<void> {
+    await this.factoryActor.authorize(principal);
   }
 }

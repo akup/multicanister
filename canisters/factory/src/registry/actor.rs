@@ -13,7 +13,7 @@ use std::ops::Deref;
 
 use crate::registry::authorize::{authorize, is_authorized};
 use crate::registry::rc_bytes::RcBytes;
-use crate::registry::types_and_args::{Key, WasmAssetMetadata, WasmAssetChunk, CHUNK_SIZE, MAX_WASM_SIZE};
+use crate::registry::types_and_args::{Key, WasmAssetMetadataV1, WasmAssetChunkV1, CHUNK_SIZE, MAX_WASM_SIZE};
 use crate::registry::url_decode::url_decode;
 
 use super::memory_registry::{WASM_ASSETS_METADATA, WASM_ASSETS};
@@ -653,7 +653,7 @@ fn commit_batch(arg: CommitBatchArguments) {
 fn do_create_asset(arg: CreateRegistryEntryArguments) {
   debug_print("do_create_asset");
   
-  let wasm_metadata = WasmAssetMetadata {
+  let wasm_metadata = WasmAssetMetadataV1 {
     modified: time() as u64,
     total_length: arg.total_length.0.to_usize().unwrap_or_else(|| trap("total_length too large for usize")),
     sha256: arg.sha256.into_vec().try_into().unwrap_or_else(|_| trap("invalid SHA-256 length")),
@@ -726,7 +726,7 @@ fn do_set_asset_content(arg: SetAssetContentArguments) {
       collected_chunks.iter().for_each(|chunk| {
         let mut chunk_content = [0u8; CHUNK_SIZE];
         chunk_content.copy_from_slice(&chunk.content);
-        wasm_assets.insert((arg.wasm_id.clone(), chunk_index), WasmAssetChunk {
+        wasm_assets.insert((arg.wasm_id.clone(), chunk_index), WasmAssetChunkV1 {
           content: chunk_content,
           length: chunk.content.len(),
         });

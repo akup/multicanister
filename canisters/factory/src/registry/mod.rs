@@ -1,4 +1,3 @@
-pub mod memory_storable;
 pub mod memory_registry;
 pub mod authorize;
 pub mod rc_bytes;

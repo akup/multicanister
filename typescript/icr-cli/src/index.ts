@@ -12,9 +12,10 @@ import { createUser, UsersManagment } from './components/users/manageUsers';
 import * as dotenv from 'dotenv';
 import { PocketIcCoreService } from './services/pocketIcCoreService';
 import { genFactoryIdl } from './services/genFactoryIdl';
+import { FactoryService } from './services/factoryService';
 dotenv.config();
 
-type Command = 'deploy' | 'build' | 'create-user' | 'gen-factory-idl';
+type Command = 'deploy' | 'build' | 'create-user' | 'gen-factory-idl' | 'authorize';
 
 var commandHandled: Command | undefined = undefined;
 
@@ -64,6 +65,12 @@ yargs(hideBin(process.argv))
           alias: 'skipc',
           description: 'Skips building core canisters',
           type: 'boolean',
+        })
+        .option('user', {
+          alias: 'u',
+          description: 'User (backed by principal) that deploys apps to factory',
+          type: 'boolean',
+          demandOption: true,
         });
 
       // Apply common options
@@ -119,6 +126,22 @@ yargs(hideBin(process.argv))
     },
     args => {
       commandHandled = 'create-user';
+      commandArgs = args;
+    }
+  )
+  .command(
+    'authorize',
+    'Authorizes a user',
+    y => {
+      y.option('user', {
+        alias: 'u',
+        description: 'User (backed by principal) that deploys apps to factory',
+        type: 'string',
+        demandOption: true,
+      });
+    },
+    args => {
+      commandHandled = 'authorize';
       commandArgs = args;
     }
   )
@@ -203,67 +226,107 @@ const startICRCli = async (): Promise<void> => {
 
           let appsInfo = readAppsFile(commandArgs.apps);
 
-          //Building for every command
-          if (!commandArgs.skipBuild) {
-            if (!commandArgs.skipCore) {
-              await BuildService.buildCore(coreInfo, dfxProjects);
-            }
-            if (appsInfo && Object.keys(appsInfo.apps).length > 0) {
-              await BuildService.buildApps(appsInfo, dfxProjects);
+          //Building for build and deploy commands
+          if (commandHandled === 'build' || commandHandled === 'deploy') {
+            if (!commandArgs.skipBuild) {
+              if (!commandArgs.skipCore) {
+                await BuildService.buildCore(coreInfo, dfxProjects);
+              }
+              if (appsInfo && Object.keys(appsInfo.apps).length > 0) {
+                await BuildService.buildApps(appsInfo, dfxProjects);
+              }
             }
           }
 
           //Deploying for deploy command
-          if (commandHandled === 'deploy') {
-            let factoryCanisterId: string | undefined = undefined;
-            if (!commandArgs.skipCore) {
-              factoryCanisterId = await DeployService.deployCore({
-                coreInfo,
-                dfxProjectsByActorName: dfxProjects,
-                picCoreUrl: picCoreUrl as URL,
-              });
-            }
-            if (!factoryCanisterId) {
-              PocketIcCoreService.setPicCoreUrl(picCoreUrl as URL);
-              const pocketIcCoreService = PocketIcCoreService.getInstance();
-              const cores = await pocketIcCoreService.listCores();
-              factoryCanisterId = cores.factory?.canisterIds[0];
-            }
-            if (!factoryCanisterId) {
-              console.log(chalk.red('No factory canister id found'));
-              return;
-            }
-            if (appsInfo && Object.keys(appsInfo.apps).length > 0) {
-              const picGatewayString = commandArgs.picGateway ?? process.env.PIC_GATEWAY_URL;
-              if (!picGatewayString) {
-                console.log(
-                  chalk.red(
-                    'No pic gateway option provided (--picgw, --pic-gateway flag with url) and no $PIC_GATEWAY_URL environment variable set'
-                  )
-                );
-                return;
-              }
-              let picGatewayUrl = new URL(picGatewayString);
-              if (!picGatewayUrl.protocol) {
-                console.log(
-                  chalk.red(
-                    'Invalid pocket server url (--pics, --pocket-server flag with or $POCKET_IC_CORE_URL environment variable set)'
-                  )
-                );
-                return;
-              }
-              await DeployService.deployApps({
-                appsInfo,
-                coreInfo,
-                dfxProjectsByActorName: dfxProjects,
-                picGatewayUrl: picGatewayUrl,
-                factoryCanisterId,
-              });
-            }
-            return;
-          } else {
+          let factoryCanisterId: string | undefined = undefined;
+          if (commandHandled === 'deploy' && !commandArgs.skipCore) {
+            factoryCanisterId = await DeployService.deployCore({
+              coreInfo,
+              dfxProjectsByActorName: dfxProjects,
+              picCoreUrl: picCoreUrl as URL,
+            });
+          }
+
+          //If we didn't get factory canister id at deployCore step get it directly
+          if (!factoryCanisterId) {
+            PocketIcCoreService.setPicCoreUrl(picCoreUrl as URL);
+            const pocketIcCoreService = PocketIcCoreService.getInstance();
+            const cores = await pocketIcCoreService.listCores();
+            factoryCanisterId = cores.factory?.canisterIds[0];
+          }
+          if (!factoryCanisterId) {
+            console.log(
+              chalk.red('No factory canister id found. Factory canister is not deployed to core!')
+            );
             return;
           }
+
+          if (commandHandled === 'deploy' && !(appsInfo && Object.keys(appsInfo.apps).length > 0)) {
+            //No apps to deploy
+            console.log(chalk.yellow('No apps to deploy (apps.json is empty)'));
+            return;
+          }
+
+          //Deploying apps to pocket IC
+          let picGatewayUrl: URL | undefined = undefined;
+          if (commandHandled === 'deploy' || commandHandled === 'authorize') {
+            const picGatewayString = commandArgs.picGateway ?? process.env.PIC_GATEWAY_URL;
+            if (!picGatewayString) {
+              console.log(
+                chalk.red(
+                  'No pic gateway option provided (--picgw, --pic-gateway flag with url) and no $PIC_GATEWAY_URL environment variable set'
+                )
+              );
+              return;
+            }
+            picGatewayUrl = new URL(picGatewayString);
+            if (!picGatewayUrl.protocol) {
+              console.log(
+                chalk.red(
+                  'Invalid pocket server url (--pics, --pocket-server flag with or $POCKET_IC_CORE_URL environment variable set)'
+                )
+              );
+              return;
+            }
+          }
+
+          if (commandHandled === 'deploy') {
+            if (!picGatewayUrl || !appsInfo) {
+              return;
+            }
+
+            await DeployService.deployApps({
+              appsInfo,
+              coreInfo,
+              dfxProjectsByActorName: dfxProjects,
+              picGatewayUrl: picGatewayUrl,
+              factoryCanisterId,
+            });
+          }
+
+          if (commandHandled === 'authorize') {
+            if (!picGatewayUrl) {
+              return;
+            }
+
+            const usersManager = new UsersManagment('./users.json');
+            const user = usersManager.getUser(commandArgs.user);
+            if (!user) {
+              console.log(chalk.red('User not found'));
+              return;
+            }
+
+            console.log('Authorizing user', user.getPrincipal().toString());
+
+            // const factoryService = await FactoryService.getInstance(
+            //   picGatewayUrl,
+            //   user,
+            //   factoryCanisterId
+            // );
+            // await factoryService.authorize(user.getPrincipal());
+          }
+          return;
         } else {
           console.log(chalk.red('No core.json file found'));
           return;

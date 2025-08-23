@@ -1,11 +1,11 @@
-use candid::{CandidType, Deserialize, Int};
+use candid::{CandidType, Deserialize};
 use ic_stable_structures::storable::{Bound, Storable};
 use storable_derive::SizedStorable;
 use std::borrow::Cow;
 use std::mem::size_of;
 
 pub type Key = String;
-pub type Timestamp = Int;
+pub type Timestamp = u64;
 pub type ChunkKey = (String, u32);
 
 pub const MAX_WASM_SIZE: usize = 1000 * 1024; //10MB
@@ -21,14 +21,14 @@ pub struct ActorConstructorArg {
 }
 
 #[derive(Clone, Debug, SizedStorable)]
-pub struct WasmAssetMetadata {
-  pub modified: u64,
+pub struct WasmAssetMetadataV1 {
+  pub modified: Timestamp,
   pub total_length: usize,
   pub sha256: [u8; 32],
 }
 
 #[derive(Clone, Debug, SizedStorable)]
-pub struct WasmAssetChunk {
+pub struct WasmAssetChunkV1 {
   pub content: [u8; CHUNK_SIZE],
   pub length: usize,
 }

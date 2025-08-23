@@ -161,5 +161,7 @@ service: {
     http_request: (request: HttpRequest) -> (HttpResponse) query;
     http_request_streaming_callback: (token: StreamingCallbackToken) -> (opt StreamingCallbackHttpResponse) query;
 
+    // ------------------ AUTHORIZATION APIS ------------------
+    //Adds a principal to the authorized list
     authorize: (principal) -> ();
 }

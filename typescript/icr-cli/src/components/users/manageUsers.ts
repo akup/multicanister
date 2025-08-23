@@ -1,6 +1,7 @@
 import chalk from 'chalk';
 import * as fs from 'fs';
-import { generatePrivateKey } from './principalUtils';
+import { generatePrivateKey, getIdentityFromPrivateKey } from './principalUtils';
+import { Identity } from '@dfinity/agent';
 
 export type User = {
   name: string;
@@ -53,6 +54,14 @@ export class UsersManagment {
 
   public getUserPrivateKey(user: string): string | undefined {
     return this.users[user];
+  }
+
+  public getUser(user: string): Identity | undefined {
+    const privateKey = this.users[user];
+    if (!privateKey) {
+      return undefined;
+    }
+    return getIdentityFromPrivateKey(privateKey);
   }
 
   private getUsers(): Record<string, string> {
