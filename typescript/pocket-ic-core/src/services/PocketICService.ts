@@ -345,7 +345,7 @@ export class PocketICService {
       chunkHashesList: uploadedChunks,
       wasmModuleHash: wasmModuleHash,
       arg: new Uint8Array(), // Empty initialization arguments
-      mode: (() => {
+      mode: ((): { reinstall: null } | { upgrade: [] } | { install: null } => {
         if (updateStrategy === 'reinstall') {
           return { reinstall: null };
         } else if (updateStrategy === 'upgrade') {

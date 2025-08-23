@@ -54,29 +54,36 @@ You can also run the service in a containerized development environment using Do
 
 ### Prerequisites for Docker
 
-* **Docker** and **Docker Compose** must be installed on your system.
-* A `Dockerfile` and `docker-compose.yml` must be present in the project root.
+- **Docker** and **Docker Compose** must be installed on your system.
+- A `Dockerfile` and `docker-compose.yml` must be present in the project root.
 
 ### Docker Commands
 
 The following commands are available from within the `typescript/pocket-ic-core` directory:
 
-* **To build and start the service:** (This is the main command you'll use)
-  ```bash
-  pnpm docker:start
+- **To build and start the service:** (This is the main command you'll use)
 
-* **To only build the image:**
-  ```bash
-  pnpm docker:build
+```bash
+pnpm docker:start
+```
 
-* **To only start the existing containers:**
-  ```bash
-  pnpm docker:up
+- **To only build the image:**
 
-* **To stop and remove the containers:**
-  ```bash
-  pnpm docker:down
+```bash
+pnpm docker:build
+```
 
+- **To only start the existing containers:**
+
+```bash
+pnpm docker:up
+```
+
+- **To stop and remove the containers:**
+
+```bash
+pnpm docker:down
+```
 
 ## API Endpoints
 

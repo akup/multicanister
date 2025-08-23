@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import multer, { FileFilterCallback } from 'multer';
+import multer from 'multer';
 import path from 'path';
 import { CoreModel } from '~/models/CoreModel';
 import crypto from 'crypto';
@@ -186,7 +186,7 @@ router.post('/upload', upload.single('file'), async (req: UploadRequest, res: Re
 });
 
 // Cleanup incomplete uploads on server start
-const cleanupIncompleteUploads = async () => {
+const cleanupIncompleteUploads = async (): Promise<void> => {
   const uploadDir = path.join(process.cwd(), 'ic-data', 'uploads');
   if (fs.existsSync(uploadDir)) {
     const files = await fs.promises.readdir(uploadDir);
