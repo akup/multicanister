@@ -90,7 +90,11 @@ export interface UnsetAssetContentArguments {
   content_encoding: string;
 }
 export interface _SERVICE {
-  authorize: ActorMethod<[Principal], undefined>;
+  /**
+   * ------------------ AUTHORIZATION APIS ------------------
+   * Adds a principal to the authorized list
+   */
+  authorize: ActorMethod<[Principal], string>;
   clear: ActorMethod<[ClearArguments], undefined>;
   /**
    * Perform all operations successfully, or reject

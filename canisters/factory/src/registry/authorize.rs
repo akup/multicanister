@@ -4,7 +4,8 @@ use ic_cdk::update;
 use super::memory_registry::AUTHORIZED_LIST;
 
 #[update]
-pub fn authorize(new_authorized: Principal) {
+pub fn authorize(new_authorized: Principal) -> String {
+  ic_cdk::println!("Authorizing user: {}", new_authorized.to_text());
   //TODO: only controller (DAO) can add to authorized list (call this method)
   let caller = msg_caller();
   AUTHORIZED_LIST.with(|authorized_list| {
@@ -24,7 +25,8 @@ pub fn authorize(new_authorized: Principal) {
     if caller_authorized && !contains {
       let _ = authorized_list.borrow_mut().push(&new_authorized);
     }
-  })
+  });
+  "Authorized called successfully".to_string()
 }
 
 pub fn is_authorized() -> Result<(), String> {

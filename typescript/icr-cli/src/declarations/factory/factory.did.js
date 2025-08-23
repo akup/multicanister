@@ -71,7 +71,7 @@ export const idlFactory = ({ IDL }) => {
   });
   const Time = IDL.Int;
   return IDL.Service({
-    'authorize' : IDL.Func([IDL.Principal], [], []),
+    'authorize' : IDL.Func([IDL.Principal], [IDL.Text], []),
     'clear' : IDL.Func([ClearArguments], [], []),
     'commit_batch' : IDL.Func(
         [

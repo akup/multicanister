@@ -163,5 +163,5 @@ service: {
 
     // ------------------ AUTHORIZATION APIS ------------------
     //Adds a principal to the authorized list
-    authorize: (principal) -> ();
+    authorize: (principal) -> (text);
 }

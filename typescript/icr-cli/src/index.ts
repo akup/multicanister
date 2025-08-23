@@ -69,7 +69,7 @@ yargs(hideBin(process.argv))
         .option('user', {
           alias: 'u',
           description: 'User (backed by principal) that deploys apps to factory',
-          type: 'boolean',
+          type: 'string',
           demandOption: true,
         });
 
@@ -135,7 +135,8 @@ yargs(hideBin(process.argv))
     y => {
       y.option('user', {
         alias: 'u',
-        description: 'User (backed by principal) that deploys apps to factory',
+        description:
+          'User (backed by principal) that you want to authorize to deploy apps to factory',
         type: 'string',
         demandOption: true,
       });
@@ -186,7 +187,7 @@ const startICRCli = async (): Promise<void> => {
   }
 
   var picCoreUrl: URL | undefined = undefined;
-  if (commandHandled === 'deploy') {
+  if (commandHandled === 'deploy' || commandHandled === 'authorize') {
     const pocketIcCoreUrl = commandArgs.pocketServer ?? process.env.POCKET_IC_CORE_URL;
     if (!pocketIcCoreUrl) {
       console.log(
@@ -296,12 +297,20 @@ const startICRCli = async (): Promise<void> => {
               return;
             }
 
+            const usersManager = new UsersManagment('./users.json');
+            const user = usersManager.getUser(commandArgs.user);
+            if (!user) {
+              console.log(chalk.red('User not found'));
+              return;
+            }
+
             await DeployService.deployApps({
               appsInfo,
               coreInfo,
               dfxProjectsByActorName: dfxProjects,
               picGatewayUrl: picGatewayUrl,
               factoryCanisterId,
+              user,
             });
           }
 
@@ -319,12 +328,13 @@ const startICRCli = async (): Promise<void> => {
 
             console.log('Authorizing user', user.getPrincipal().toString());
 
-            // const factoryService = await FactoryService.getInstance(
-            //   picGatewayUrl,
-            //   user,
-            //   factoryCanisterId
-            // );
-            // await factoryService.authorize(user.getPrincipal());
+            const factoryService = await FactoryService.getInstance(
+              picGatewayUrl,
+              user,
+              factoryCanisterId
+            );
+            const result = await factoryService.authorize(user.getPrincipal());
+            console.log(chalk.green(result));
           }
           return;
         } else {

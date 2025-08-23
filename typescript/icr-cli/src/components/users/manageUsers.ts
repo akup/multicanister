@@ -9,6 +9,7 @@ export type User = {
 };
 
 // Type guard to validate Record<string, string>
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function isUserRecord(obj: any): obj is Record<string, string> {
   return (
     obj &&
@@ -57,6 +58,8 @@ export class UsersManagment {
   }
 
   public getUser(user: string): Identity | undefined {
+    console.log('Getting user', user);
+    console.log('Users', this.users);
     const privateKey = this.users[user];
     if (!privateKey) {
       return undefined;
@@ -122,14 +125,12 @@ export const createUser = ({
 
     if (verbose) {
       console.log(`User '${user}' ${updated ? 'updated' : 'created'} successfully.`);
-      if (!privateKey) {
-        console.log(`${chalk.yellow('Private key: ')} ${chalk.bold.whiteBright(privateKeyToUse)}`);
-      }
     }
-  } catch (error: any) {
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
     if (verbose) {
-      console.error(`Failed to ${replace ? 'update' : 'create'} user: ${error.message}`);
+      console.error(`Failed to ${replace ? 'update' : 'create'} user: ${errorMessage}`);
     }
-    process.exit(1);
+    throw error;
   }
 };

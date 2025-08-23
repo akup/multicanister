@@ -58,7 +58,7 @@ export class FactoryService {
     return batch.batch_id;
   }
 
-  public async authorize(principal: Principal): Promise<void> {
-    await this.factoryActor.authorize(principal);
+  public async authorize(principal: Principal): Promise<string> {
+    return await this.factoryActor.authorize(principal);
   }
 }

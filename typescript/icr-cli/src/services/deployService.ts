@@ -7,6 +7,7 @@ import { deployCoreCanisterToPocketIC } from '../components/deployCanister';
 import { execSync } from 'child_process';
 
 import { Ed25519KeyIdentity } from '@dfinity/identity';
+import { Identity } from '@dfinity/agent';
 import { FactoryService } from './factoryService';
 export { idlFactory } from '../declarations/factory/factory.did';
 
@@ -101,12 +102,14 @@ export class DeployService {
     dfxProjectsByActorName,
     picGatewayUrl,
     factoryCanisterId,
+    user,
   }: {
     appsInfo: AppsInfo;
     coreInfo: CoreInfo;
     dfxProjectsByActorName: Record<string, [DfxProjectCanister, DfxProject]>;
     picGatewayUrl: URL;
     factoryCanisterId: string;
+    user: Identity;
   }): Promise<void> {
     console.log(chalk.whiteBright('Deploying apps to pocket IC...'));
 
@@ -131,16 +134,8 @@ export class DeployService {
     //const factoryIdl = IDL.parse(candidContent);
     //IDL.generateBindings(factoryIdl);
 
-    //First we prepare Agent to work with factory in remote PIC
-    //TODO: reuse users
-    console.log('Host for pic gateway', picGatewayUrl.toString());
-    const identity = Ed25519KeyIdentity.generate();
-    identity.getKeyPair();
-    const factoryService = await FactoryService.getInstance(
-      picGatewayUrl,
-      identity,
-      factoryCanisterId
-    );
+    //First we prepare Agent to work with factory in remote PIC from the name if a provided user
+    const factoryService = await FactoryService.getInstance(picGatewayUrl, user, factoryCanisterId);
 
     console.log('Creating batch...');
     const batch = await factoryService.createBatch();

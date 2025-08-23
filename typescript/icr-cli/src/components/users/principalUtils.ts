@@ -38,6 +38,6 @@ export const generatePrivateKey = (): string => {
   const identity = Ed25519KeyIdentity.generate();
   const privateKeyBytes = identity.getKeyPair().secretKey;
   console.log('Generated principal', identity.getPrincipal().toString());
-  console.log('Generated public key', identity.getPublicKey());
+  console.log('Generated public key', Buffer.from(identity.getPublicKey().rawKey).toString('hex'));
   return Buffer.from(privateKeyBytes).toString('hex');
 };

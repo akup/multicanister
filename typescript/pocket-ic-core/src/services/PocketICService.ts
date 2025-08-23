@@ -108,6 +108,18 @@ export class PocketICService {
     };
     proc.stderr.once('data', stdErrChunkListener);
 
+    var collectedStdOut = '';
+    const stdOutChunkListener = (chunk: Buffer): void => {
+      console.log('trying to get stdout: ' + chunk.toString());
+      collectedStdOut += chunk.toString();
+      if (collectedStdOut.includes('\n')) {
+        console.log('PIC: ' + collectedStdOut.trim());
+        collectedStdOut = '';
+      }
+      proc.stdout.once('data', stdOutChunkListener);
+    };
+    proc.stdout.once('data', stdOutChunkListener);
+
     const pocketICHost = `http://localhost:${port}`;
     const gwPort = gatewayPort ?? port + 1;
     const ICGatewayAPIHost = `http://localhost:${gwPort}`;
@@ -148,11 +160,12 @@ export class PocketICService {
 
     const logPocketICTime = async (): Promise<void> => {
       try {
-        const getTimeStart = Date.now();
-        const time = await this.pocketIC!.getTime();
-        const getTimeEnd = Date.now();
-        console.log('PocketIC time', time);
-        console.log('PocketIC getTime took', getTimeEnd - getTimeStart, 'ms');
+        // const getTimeStart = Date.now();
+        // const time = await this.pocketIC!.getTime();
+        // const getTimeEnd = Date.now();
+        // console.log('PocketIC time', time);
+        // console.log('PocketIC getTime took', getTimeEnd - getTimeStart, 'ms');
+        await this.pocketIC!.getTime();
       } catch (error) {
         console.error('Error fetching PocketIC time:', error);
       }
@@ -161,6 +174,7 @@ export class PocketICService {
     // Initial invocation
     logPocketICTime();
     // Schedule to run every minute
+    // It is important to run every minute to keep the PocketIC running, or it will shutdown without
     setInterval(logPocketICTime, 60 * 1000);
 
     // Check existing canisters

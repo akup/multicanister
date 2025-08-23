@@ -183,8 +183,6 @@ importers:
         specifier: ^5.3.3
         version: 5.8.3
 
-  typescript/pic: {}
-
   typescript/pocket-ic-core:
     dependencies:
       '@dfinity/agent':
