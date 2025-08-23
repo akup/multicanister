@@ -59,6 +59,6 @@ export class FactoryService {
   }
 
   public async authorize(principal: Principal): Promise<string> {
-    return await this.factoryActor.authorize(principal);
+    return this.factoryActor.authorize(principal);
   }
 }

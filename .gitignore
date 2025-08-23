@@ -88,3 +88,6 @@ out/
 
 #ICR PocketIC
 ic-data/
+
+#Ignoring icr-cli fonts
+typescript/icr-cli/fonts/

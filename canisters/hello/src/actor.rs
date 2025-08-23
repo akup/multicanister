@@ -1,5 +1,5 @@
 use candid::Nat;
-use ic_cdk_macros::{query, update};
+use ic_cdk_macros::{update};
 
 #[update]
 fn get(i: Nat) -> String {
