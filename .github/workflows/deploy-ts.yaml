@@ -37,7 +37,7 @@ jobs:
           - name: pocket-ic-core
             path: typescript/pocket-ic-core
             dockerfile: Dockerfile
-            context: typescript/pocket-ic-core
+            context: "."
 
           # Then list off-chain apps here
           # This is Test App
