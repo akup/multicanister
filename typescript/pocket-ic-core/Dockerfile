@@ -4,7 +4,7 @@ WORKDIR /app
 
 RUN corepack enable && corepack prepare pnpm@10.8.1 --activate
 
-RUN apt-get update && apt-get install -y curl gzip
+RUN apk add --no-cache curl gzip
 
 ARG POCKET_IC_VERSION=9.0.3
 ADD https://github.com/dfinity/pocketic/releases/download/${POCKET_IC_VERSION}/pocket-ic-x86_64-linux.gz /tmp/pocket-ic.gz
