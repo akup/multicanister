@@ -1,6 +1,7 @@
 import { Ed25519KeyIdentity } from '@dfinity/identity';
 import * as fs from 'fs';
 import * as path from 'path';
+import { DATA_DIR } from './DataDir';
 
 export class IdentityModel {
   private static instance: IdentityModel;
@@ -9,11 +10,11 @@ export class IdentityModel {
 
   private constructor() {
     // Store identity file in the ic-data directory
-    const icDataDir = path.join(process.cwd(), 'app', 'ic-data');
-    if (!fs.existsSync(icDataDir)) {
-      fs.mkdirSync(icDataDir, { recursive: true });
+    const identityDataDir = DATA_DIR;
+    if (!fs.existsSync(identityDataDir)) {
+      fs.mkdirSync(identityDataDir, { recursive: true });
     }
-    this.identityFilePath = path.join(icDataDir, 'identity.json');
+    this.identityFilePath = path.join(identityDataDir, 'identity.json');
     this.loadIdentity();
   }
 

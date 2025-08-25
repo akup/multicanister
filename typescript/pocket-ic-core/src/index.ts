@@ -6,6 +6,7 @@ import { PocketICService } from './services/PocketICService';
 import chalk from 'chalk';
 
 import * as dotenv from 'dotenv';
+import { DATA_DIR } from './models/DataDir';
 dotenv.config();
 
 const argv = yargs(hideBin(process.argv))
@@ -39,6 +40,8 @@ app.use(express.json());
 
 // Routes
 app.use('/api', coreRoutes);
+
+console.log('Try to start with state dir: ', DATA_DIR);
 
 // Start PocketIC
 export const pocketICService = PocketICService.getInstance();

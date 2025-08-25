@@ -48,6 +48,10 @@ RUN pnpm prune --prod
 EXPOSE 8092 4944
 
 ENV POCKET_IC_BIN=/usr/local/bin/pocket-ic
-ENV POCKET_IC_STATE_DIR=/app/ic-state
+ENV DATA_DIR=/app/ic-data
+ENV POCKET_IC_STATE_DIR=/app/ic-data/ic-state
+
+RUN mkdir -p /app/ic-data
+
 
 CMD ["node", "dist/index.js"]

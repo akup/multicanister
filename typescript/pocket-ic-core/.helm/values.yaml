@@ -23,7 +23,7 @@ persistence:
         storageClassName: vultr-block-storage
         accessMode: ReadWriteOnce
         size: 10Gi
-        mountPath: /ic-data
+        mountPath: /app/ic-data
         readOnly: false
 
 global:
