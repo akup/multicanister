@@ -1,0 +1,23 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+#namespaces
+  - ./security-namespace.yaml
+  - ./observability-namespace.yaml
+  - ./wireguard-proxy-namespace.yaml
+#  - ./applicationSets/beyla.yaml
+#  - ./applicationSets/external-dns.yaml
+#monitoring crds (prometheus classes)
+  - ./applicationSets/monitoring-crds.yaml
+#ingress nginx with cert manager
+  - ./applicationSets/cert-manager-issuer.yaml
+  - ./applicationSets/ingress-nginx.yaml
+  - ./applicationSets/cert-manager.yaml
+#wireguard gate (depends on stakater reloader)
+  - ./applicationSets/stakater-reloader.yaml
+  - ./applicationSets/wireguard-gate.yaml
+#Logging, tracing, metrics
+  - ./applicationSets/grafana.yaml
+  - ./applicationSets/loki-appset.yaml
+  - ./applicationSets/alloy.yaml
+#  - ./applicationSets/tempo.yaml

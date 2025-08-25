@@ -1,0 +1,44 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: grafana
+  namespace: argocd
+spec:
+  generators:
+    - clusters:
+        selector:
+          matchLabels:
+            monitoring: enabled
+            loki: enabled
+  template:
+    metadata:
+      name: 'grafana-{{name}}'
+    spec:
+      project: cluster-addons
+      source:
+        repoURL: https://github.com/akup/multicanister
+        targetRevision: main
+        path: infra/argocd/mc-cluster-addons/addons/grafana/
+        helm:
+          releaseName: grafana
+          valueFiles:
+            - 'values.yaml'
+            # - 'values/{{name}}.yaml' #Cluster specific values file ({{name}} is the cluster name)
+      destination:
+        name: '{{name}}'
+        namespace: observability
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+          allowEmpty: false
+        syncOptions:
+          - CreateNamespace=true
+          - ServerSideApply=true
+          - PrunePropagationPolicy=foreground
+        retry:
+          limit: 5
+          backoff:
+            duration: 5s
+            factor: 2
+            maxDuration: 3m

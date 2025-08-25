@@ -1,0 +1,26 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: observability
+resources:
+  - https://github.com/prometheus-operator/prometheus-operator/releases/download/v0.83.0/bundle.yaml
+patches:
+  # Add tolerations to Deployment to run on all nodes
+  - target:
+      kind: Deployment
+      name: prometheus-operator
+    patch: |-
+      - op: add
+        path: /spec/template/spec/nodeSelector
+        value:
+          kubernetes.io/os: linux
+          node-role.kubernetes.io/log-workloads: ""
+      - op: add
+        path: /spec/template/spec/tolerations
+        value:
+          - key: node-role.kubernetes.io/control-plane
+            operator: Exists
+            effect: NoSchedule
+          - key: node-role
+            operator: Equal
+            value: log-workloads
+            effect: NoExecute

@@ -1,0 +1,32 @@
+*.d.ts
+*.js
+node_modules
+cdktf.out
+cdktf.log
+*terraform.*.tfstate*
+generated
+.gen
+.terraform
+.env*
+tsconfig.tsbuildinfo
+!jest.config.js
+!setup.js
+
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+# Cluster API Configuration
+cluster_api_conf/cluster_configs/
+cluster_api_conf/capi_kubernetes/
+cluster_api_conf/server.pid
+cluster_api_conf/server.log
+
+# VSCode
+.vscode/
+/**/.vscode/

@@ -1,0 +1,10 @@
+region: ams
+clusterName: test-cluster-1
+controlPlaneHighAvailability: false
+workerGroups:
+  system-workloads:
+    count: 3
+    planId: vc2-2c-4gb
+  app-workloads:
+    count: 3
+    planId: vc2-4c-8gb

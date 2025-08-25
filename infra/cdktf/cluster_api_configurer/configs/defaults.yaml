@@ -1,0 +1,4 @@
+# Default configuration values for Cluster API
+kubernetesVersion: "v1.32.4"
+controlPlanePlan: "vc2-2c-2gb"
+ciliumVersion: "1.17.4"

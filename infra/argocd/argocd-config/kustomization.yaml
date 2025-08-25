@@ -1,0 +1,29 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: argocd
+resources:
+  - ./addons/
+  - ./config/
+  - ./clusters/
+  - ./monitoring/
+  - ./projects/
+patches:
+  # Make sure ArgoCD gets deployed to system node pool to avoid throttling other workloads.
+  - target:
+      kind: Deployment|StatefulSet
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment # kind does not matter here 
+      metadata:
+        name: foo # name does not matter here
+      spec:
+        template:
+          spec:
+            tolerations:
+              - key: node-role
+                operator: Equal
+                value: system-workloads
+                effect: NoExecute
+            nodeSelector:
+              node-role.kubernetes.io/system-workloads: ""
+              

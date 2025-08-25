@@ -1,0 +1,8 @@
+# Trivy Security Policy Exceptions for reloader
+# This file contains exceptions for security issues that are accepted for this chart
+
+# KSV041: Secrets permissions are required for reloader functionality, as they are scanned for changes to reload deployments
+KSV041
+
+# Additional exceptions can be added here as needed
+# Format: <VULNERABILITY_ID> <optional_reason> 

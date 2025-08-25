@@ -1,0 +1,76 @@
+####################
+### Storage Classes
+####################
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: vultr-block-storage
+  namespace: kube-system
+provisioner: block.csi.vultr.com
+allowVolumeExpansion: true
+parameters:
+  storage_type: "block"
+  disk_type: "nvme"
+
+---
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: vultr-block-storage-retain
+  namespace: kube-system
+provisioner: block.csi.vultr.com
+allowVolumeExpansion: true
+reclaimPolicy: Retain
+parameters:
+  storage_type: "block"
+  disk_type: "nvme"
+
+---
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: vultr-block-storage-hdd
+  namespace: kube-system
+provisioner: block.csi.vultr.com
+allowVolumeExpansion: true
+parameters:
+  storage_type: "block"
+  disk_type: "hdd"
+
+---
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: vultr-block-storage-hdd-retain
+  namespace: kube-system
+provisioner: block.csi.vultr.com
+allowVolumeExpansion: true
+reclaimPolicy: Retain
+parameters:
+  storage_type: "block"
+  disk_type: "hdd"
+
+---
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: vultr-vfs-storage
+  namespace: kube-system
+provisioner: block.csi.vultr.com
+allowVolumeExpansion: true
+parameters:
+  storage_type: "vfs"
+  disk_type: "nvme"
+
+---
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: vultr-vfs-storage-retain
+  namespace: kube-system
+provisioner: block.csi.vultr.com
+allowVolumeExpansion: true
+reclaimPolicy: Retain
+parameters:
+  storage_type: "vfs"
+  disk_type: "nvme"

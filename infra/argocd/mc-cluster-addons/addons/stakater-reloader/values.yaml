@@ -1,0 +1,98 @@
+reloader:
+  reloader:
+    # Reloader configuration
+    reloadOnCreate: true
+    reloadOnUpdate: true
+    reloadOnDelete: true
+    
+    # Enable HA mode to allow custom deployment values
+    enableHA: true
+    
+    deployment:
+      # Image configuration
+      image:
+        name: ghcr.io/stakater/reloader
+        tag: v1.0.48
+        pullPolicy: IfNotPresent
+
+      replicas: 2
+      
+      # Node scheduling
+      nodeSelector:
+        kubernetes.io/os: linux
+        node-role.kubernetes.io/system-workloads: ""
+      
+      # A list of tolerations to be applied to the Deployment
+      tolerations:
+        - key: node-role
+          operator: Equal
+          value: system-workloads
+          effect: NoExecute
+        - key: node-role.kubernetes.io/control-plane
+          operator: Exists
+          effect: NoSchedule
+      
+      # Container resources
+      resources:
+        requests:
+          memory: "64Mi"
+          cpu: "50m"
+        limits:
+          memory: "128Mi"
+          cpu: "100m"
+      
+      # Pod security context (fsGroup belongs here)
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      
+      # Container security context (fsGroup does NOT belong here)
+      containerSecurityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+      
+      # Pod anti-affinity for high availability
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - stakater-reloader-reloader
+                topologyKey: "kubernetes.io/hostname"
+      
+      # Topology spread constraints
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: "kubernetes.io/hostname"
+          whenUnsatisfiable: "ScheduleAnyway"
+          labelSelector:
+            matchLabels:
+              app: stakater-reloader-reloader
+    
+    # Service account
+    serviceAccount:
+      create: true
+      name: "reloader"
+      annotations: {}
+    
+    # RBAC
+    rbac:
+      create: true
+    
+    # Pod disruption budget
+    podDisruptionBudget:
+      enabled: true
+      minAvailable: 1
+    
+    # Monitoring
+    serviceMonitor:
+      enabled: false
+ 

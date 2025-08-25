@@ -1,0 +1,170 @@
+name: Regular Security Scan (manual run)
+
+on:
+  schedule:
+    # Run daily at 2:00 AM UTC
+    - cron: '0 2 * * *'
+  push:
+    branches:
+      - main
+      - 'release-*'
+  pull_request:
+    branches:
+      - main
+      - 'release-*' #Do not fail on release branches
+  workflow_dispatch:
+    inputs:
+      scan_type:
+        type: choice
+        description: Scan type
+        default: scan
+        options:
+        - scan
+
+env:
+  nodeVersion: 20
+
+jobs:
+  # It gets all charts in addons/*/Chart.yaml and puts in a matrix
+  get-charts:
+    runs-on: ubuntu-latest
+    outputs:
+      chart-list: ${{ steps.charts.outputs.addons-list }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Get chart list
+        id: charts
+        run: |
+          ./helm-dependencies-scan.sh scan-github-matrix > charts.json
+          echo "addons-list=$(cat charts.json)" >> $GITHUB_OUTPUT
+
+  helm-scan:
+    needs: get-charts
+    runs-on: [ubuntu-latest]
+    strategy:
+      matrix:
+        chart: ${{ fromJSON(needs.get-charts.outputs.chart-list) }}
+        #To use matrix values:
+        #folder=${{ fromJSON(matrix.chart)[0] }}
+        #name=${{ fromJSON(matrix.chart)[1] }}
+        #version=${{ fromJSON(matrix.chart)[2] }}
+        #repository=${{ fromJSON(matrix.chart)[3] }}
+        #values_path=${{ fromJSON(matrix.chart)[4] }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get branch name
+        run: |
+          echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
+          echo "branch_name=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT
+          echo "names=${GITHUB_REF#refs/heads/}, ${GITHUB_HEAD_REF}, ${GITHUB_HEAD_REF}"
+        id: extract_branch
+
+      - name: Scan Helm Chart
+        uses: JJOInvest/security-workflow/.github/actions/trivy-scan-helm-custom@main
+        id: trivy-scan
+        with:
+          CHART_FOLDER: ./addons/${{ fromJSON(matrix.chart)[0] }}
+          CHART_VALUES: ${{ fromJSON(matrix.chart)[4] }}
+          SERVICE_NAME: ${{ fromJSON(matrix.chart)[1] }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Store images list
+        run: |
+          echo "Debugginf output of trivy-scan: ${{ steps.trivy-scan.outputs.images-list-b64 }}"
+          echo "${{ steps.trivy-scan.outputs.images-list-b64 }}" | base64 -d > images-list-${{ fromJSON(matrix.chart)[1] }}.json
+          echo "Debugging images list for ${{ fromJSON(matrix.chart)[1] }}"
+          cat images-list-${{ fromJSON(matrix.chart)[1] }}.json
+        id: store-images
+
+      - name: Upload images list
+        uses: actions/upload-artifact@v4
+        with:
+          name: images-list-${{ fromJSON(matrix.chart)[1] }}
+          path: images-list-${{ fromJSON(matrix.chart)[1] }}.json
+          retention-days: 1
+
+  # Aggregate outputs from matrix runs
+  aggregate-outputs:
+    needs: helm-scan
+    runs-on: ubuntu-latest
+    outputs:
+      images-matrix: ${{ steps.aggregate.outputs.images-matrix }}
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: images-list-*
+          merge-multiple: true
+          path: .
+
+      - name: Aggregate matrix outputs
+        id: aggregate
+        run: |
+          # Combine all downloaded images lists into a single JSON array
+          echo "Debug: Checking for JSON files..."
+          ls -la *.json 2>/dev/null || echo "No JSON files found"
+          
+          # Find all images-list-*.json files and merge them
+          if ls images-list-*.json 1> /dev/null 2>&1; then
+            echo "Found images-list JSON files:"
+            ls images-list-*.json
+            
+            # Use jq to combine all images-list-*.json files into a single array
+            # -s: slurp all inputs into an array
+            # add: concatenate arrays
+            echo "Debug: Checking JSON file contents"
+            for file in images-list-*.json; do
+              echo "Content of $file:"
+              cat "$file"
+            done
+            
+            all_images=$(jq -s 'add' images-list-*.json)
+            images_matrix=$(echo "$all_images" | jq -r 'unique | .[] | gsub("^\"|\"$|^-\""; "") | {image: .}' | jq -s -c '.')
+            echo "Debug images-matrix=$images_matrix"
+            echo "images-matrix=$images_matrix" >> $GITHUB_OUTPUT
+          else
+            echo "No images-list files found"
+            echo "images-matrix=[]" >> $GITHUB_OUTPUT
+          fi
+
+  # Scan each image from the matrix
+  scan-images:
+    needs: aggregate-outputs
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        image: ${{ fromJSON(needs.aggregate-outputs.outputs.images-matrix) }}
+    steps:
+      - name: Clean image name
+        id: clean-name
+        run: |
+          # Clean image name by replacing special characters with dashes
+          clean_name=$(echo "${{ matrix.image.image }}" | sed 's/[^a-zA-Z0-9.-]/--/g' | sed 's/--\+/--/g' | sed 's/^--\|--$//g')
+          echo "Original image: ${{ matrix.image.image }}"
+          echo "Clean name: $clean_name"
+          echo "clean-name=$clean_name" >> $GITHUB_OUTPUT
+
+      - name: Scan individual image
+        run: |
+          echo "Scanning image: ${{ matrix.image.image }}"
+          # Add your image scanning logic here
+          # For example, using trivy to scan the image
+          # trivy image --format json ${{ matrix.image.image }}
+
+
+      - name: Scan image with Anchore Grype
+        uses: anchore/scan-action@v6
+        with:
+          image: ${{ matrix.image.image }}
+          fail-build: "false"
+          severity-cutoff: "medium"
+          by-cve: "true"
+          output-format: "table"
+          output-file: "grype-${{ steps.clean-name.outputs.clean-name }}.txt"
+          
+      - name: Upload Grype Text report to artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: grype-${{ steps.clean-name.outputs.clean-name }}-txt
+          path: grype-${{ steps.clean-name.outputs.clean-name }}.txt

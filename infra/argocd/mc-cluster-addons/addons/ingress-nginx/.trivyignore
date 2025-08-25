@@ -1,0 +1,12 @@
+# Trivy Security Policy Exceptions for ingress-nginx
+# This file contains exceptions for security issues that are accepted for this chart
+
+# KSV041: Secrets permissions are required for ingress-nginx functionality
+# The ingress controller needs access to secrets for TLS certificates and other configurations
+# This is a standard requirement for ingress controllers
+KSV041
+# KSV114: Admission webhooks are required for ingress-nginx-controller to get ingress rules for routing
+KSV114
+
+# Additional exceptions can be added here as needed
+# Format: <VULNERABILITY_ID> <optional_reason> 

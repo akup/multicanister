@@ -1,0 +1,4 @@
+region: ewr
+clusterName: comprehensive-test
+controlPlaneHighAvailability: true
+workerGroups: {}

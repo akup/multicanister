@@ -1,0 +1,296 @@
+# -- Change default chart name app.kubernetes.io/name
+nameOverride: ""
+# -- Change default fullname metadata.name from release.name-chart.name
+fullnameOverride: ""
+
+# -- Change default environment (dev, stage, prod)
+env: ""
+# -- Change setup producer name in kafka queue
+setupType: ""
+
+# -- How much replicas run
+replicaCount: 1
+# -- Choose between Deployment (false) or StatefulSet (true)
+# -- StatefulSet specific configuration
+statefulSet:
+  enabled: false
+  # -- Pod management policy for StatefulSet (OrderedReady, Parallel)
+  podManagementPolicy: "OrderedReady"
+# -- How much releases stores in history to rollback
+revisionHistoryLimit: 5
+
+# -- UpdateStrategy strategy for deployment (can be changed to RollingUpdate)
+updateStrategy:
+  type: Recreate
+
+image:
+  # -- Repository from where to pull the image
+  repository: ""
+  # -- Docker image tag for image
+  tag: ""
+  # -- Policy how to pull image (can be changed to IfNotPresent, Never)
+  pullPolicy: IfNotPresent
+
+# -- The imagePullSecrets field in the configuration file specifies that Kubernetes should get the credentials from a Secret to pull image from private registry
+imagePullSecrets:
+  - name: "mcops-registry"
+
+# -- Global parameters
+global:
+  # -- If alwaysRedeploy -eq true, will be added annotation rollme: {{ randAlphaNum 10 | quote }} to redeploy on every release
+  alwaysRedeploy: true
+  # -- The application is given a certain amount of time to terminate (default 30s). This time can be configured using the terminationGracePeriodSeconds field
+  terminationGracePeriodSeconds: 30
+  # -- Share Process Namespace between Containers in a Pod
+  shareProcessNamespace: false
+  vaultSecretsAnnotations: {}
+
+initContainer:
+  enabled: false
+  name: db-boostrap
+  image:
+    repository: ghcr.io/jjoinvest/db-boostrap
+    tag: 1.0.0
+    pullPolicy: Always
+  env_vars:
+    {}
+    # ## DB host variables for connection
+    # DB_TYPE: mysql
+    # DB_HOST: mysql
+    # DB_PORT: 3306
+    # DB_CONNECT_RETRIES: 3
+
+    # ## DB host variables for auth
+    # MASTER_USER: root
+    # MASTER_PASSWORD: ${MASTER_PASSWORD}
+
+    # ## Environment variables for the database to be created
+    # CREATE_DB_NAME: app
+    # CREATE_USER_NAME: app
+    # CREATE_USER_PASSWORD: $CREATE_USER_PASSWORD
+
+    # ## Environment variables for DB_TYPE: postgres only
+    # POSTGRES_EXTENTIONS: ""
+
+hostAliases: {}
+
+secrets:
+  enabled: false
+  secretsList:
+    {}
+    # asd:
+    #   type: Opaque
+    #   readOnly: true
+    #   fileName: ads
+    #   mountPath: /
+    #   secretData: |
+    #     asd
+
+# -- Serviceaccount, if name not set will be release.name-chart.name
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+# -- (dictionary) Additional pod annotations
+podAnnotations: {}
+
+# -- (dictionary) Additional pod labels
+podLabels: {}
+  # Example usage:
+  # app.kubernetes.io/component: "api"
+  # app.kubernetes.io/part-of: "microservices"
+  # environment: "production"
+  # team: "backend"
+  # version: "v1.0.0"
+
+# -- (dictionary) SecurityContext defines the security options the container should be run with. If set, the fields of SecurityContext override the equivalent fields of PodSecurityContext. More info: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
+podSecurityContext:
+  {}
+  # fsGroup: 2000
+
+# -- (dictionary) Configure Container Security Context
+securityContext:
+  {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+# -- Specifies whether a PodDisruptionBudget should be created
+podDisruptionBudget:
+  enabled: false
+  minAvailable: 1
+  maxUnavailable: 0
+
+# Specifies whether a service should be created
+service:
+  type: ClusterIP
+  # Service ports
+  ports:
+    http:
+      pod_port: 8000
+      service_port: 8000
+      protocol: TCP
+      ingress: true
+
+
+# -- (dictionary) Configure extra options for containers liveness, readiness and startup probes
+probes:
+  {}
+  # livenessProbe:
+  #   httpGet:
+  #     path: /status
+  #     port: http
+  #   initialDelaySeconds: 30
+  #   periodSeconds: 60
+  #   timeoutSeconds: 5
+  #   successThreshold: 1
+  #   failureThreshold: 3
+  # readinessProbe:
+  #   httpGet:
+  #     path: /status
+  #     port: http
+  #   initialDelaySeconds: 30
+  #   periodSeconds: 10
+  #   timeoutSeconds: 5
+  #   successThreshold: 1
+  #   failureThreshold: 3
+  # startupProbe:
+  #   httpGet:
+  #     path: /status
+  #     port: http
+  #   periodSeconds: 10
+  #   failureThreshold: 10
+
+# Configure ingress resourse (Ingress allows ingress services to be created to allow external access)
+ingress:
+  # -- Enable or disable igress
+  enabled: false
+  # -- Ingress className
+  className: "nginx"
+  # -- Ingress additional annotations
+  annotations:
+    {}
+    # cert-manager.io/cluster-issuer: letsencrypt-http
+    # nginx.ingress.kubernetes.io/use-regex: "true"
+  # -- Ingress host
+  hosts:
+    - host: url
+      paths:
+        - path: /
+          pathType: Prefix
+          # Optional: specify which service port to route to
+          # servicePort: 80
+    # Example: Multiple hosts with different ports
+    # - host: api.example.com
+    #   paths:
+    #     - path: /
+    #       pathType: Prefix
+    #       servicePort: 80      # Route to service port 80
+    # - host: admin.example.com
+    #   paths:
+    #     - path: /
+    #       pathType: Prefix
+    #       servicePort: 8080    # Route to service port 8080
+    # - host: metrics.example.com
+    #   paths:
+    #     - path: /
+    #       pathType: Prefix
+    #       servicePort: 9090    # Route to service port 9090
+  # -- If you're providing your own certificates, please use this to add the certificates as secrets (or you can use cert-manager to get certificate)
+  # tls:
+  #   - secretName: url-tls
+  #     hosts:
+  #       - url
+
+# Request for storage
+persistence:
+  # -- Enable of disable
+  enabled: false
+  # -- Additional annotations for PVC
+  annotations:
+    "helm.sh/resource-policy": keep
+  # -- PVC section
+  pvc:
+    # -- You can add additional pvc in list
+    pvcList:
+      {}
+      # -- PVC name pvc-{{ .Release.Name}}-{{ .Chart.Name }}-data
+      # snapshots:
+      #   # -- PVC storageclass name
+      #   storageClass: scw-bssd
+      #   # -- PVC accessMode
+      #   accessMode: ReadWriteOnce
+      #   # -- PVC size
+      #   size: 30Gi
+      #   # -- PVC mountPath inside container
+      #   mountPath: /data
+      #   # -- PVC readOnly or not
+      #   readOnly: false
+
+# --  (dictionary) Main container resource requests and limits
+# ref: https://kubernetes.io/docs/user-guide/compute-resources/
+resources:
+  {}
+  # limits:
+  #   cpu: 4000m
+  #   memory: 8Gi
+  # requests:
+  #   cpu: 2000m
+  #   memory: 8Gi
+
+# -- (dictionary) nodeSelector Node labels for pod assignment. Evaluated as a template.
+# ref: https://kubernetes.io/docs/user-guide/node-selection/
+nodeSelector: {}
+
+# -- (list) Tolerations for pod assignment. Evaluated as a template.
+# ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+tolerations: []
+
+# -- (dictionary) Affinity for pod assignment. Evaluated as a template.
+# ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+affinity:
+  {}
+  # podAffinity:
+  #   requiredDuringSchedulingIgnoredDuringExecution:
+  #   - labelSelector:
+  #       matchExpressions:
+  #       - key: app.kubernetes.io/instance
+  #         operator: In
+  #         values:
+  #         - name
+  #     topologyKey: kubernetes.io/hostname
+  # nodeAffinity:
+  #   requiredDuringSchedulingIgnoredDuringExecution:
+  #     nodeSelectorTerms:
+  #     - matchExpressions:
+  #       - key: name
+  #         operator: In
+  #         values:
+  #         - enabled
+  # podAntiAffinity:
+  #   requiredDuringSchedulingIgnoredDuringExecution:
+  #   - labelSelector:
+  #       matchExpressions:
+  #       - key: app.kubernetes.io/name
+  #         operator: In
+  #         values:
+  #         - name
+  #     topologyKey: kubernetes.io/hostname
+
+# --  Additional env vars for main container
+env_vars:
+  {}
+  # key: value
+
+# Main container entrypoint and/or args
+customLaunch:
+  # -- Enable or disable custom launch for main container (can be used with only command or/and args)
+  enabled: false
+  # -- Change start command for main container (additional)
+  command: ""
+  # -- Change arguments for main conatiner command (additional)
+  args: [""]

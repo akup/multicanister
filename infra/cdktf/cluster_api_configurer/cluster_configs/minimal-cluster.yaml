@@ -1,0 +1,4 @@
+region: ewr
+clusterName: minimal-cluster
+controlPlaneHighAvailability: true
+workerGroups: {}

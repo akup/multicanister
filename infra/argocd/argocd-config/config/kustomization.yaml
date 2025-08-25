@@ -1,0 +1,30 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../bases/
+  - ./argocd/repo-server-metrics-service.yaml
+  - ./argocd/webhooks-service.yaml
+# TODO: uncomment these to start using ArgoCD Vault Plugin
+#  - ./vault-plugin/plugins.yaml
+#  - ./vault-plugin/secret.yaml
+patches:
+  - path: ./argocd/dex-sa-volume.yaml
+    target:
+      group: apps
+      kind: Deployment
+      name: argocd-dex-server
+      version: v1
+  - path: ./argocd/application-controller-sts.yaml
+  - path: ./argocd/applicationset-controller-deployment.yaml
+  - path: ./argocd/dex-server-deployment.yaml
+  - path: ./argocd/notifications-controller-deployment.yaml
+  - path: ./argocd/redis-deployment.yaml
+  - path: ./argocd/repo-server-deployment.yaml
+  - path: ./argocd/server-deployment.yaml
+  - path: ./argocd/repo-server-metrics-service.yaml
+  - path: ./argocd/argocd-cmd-params-config-map.yaml
+  - path: ./argocd/argocd-config-map.yaml
+  - path: ./argocd/rbac-config-map.yaml
+  - path: ./argocd/server-service.yaml
+# TODO: uncomment the line below to start using ArgoCD Vault Plugin
+#  - path: ./vault-plugin/repo-server-deploy.yaml

@@ -1,0 +1,15 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: argocd-dex-server
+spec:
+  # Scale DEX server down as it's not being used.
+  replicas: 0
+  template:
+    spec:
+      containers:
+        - name: dex
+          resources:
+            requests:
+              cpu: 200m
+              memory: 128Mi

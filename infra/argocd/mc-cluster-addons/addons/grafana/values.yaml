@@ -1,0 +1,62 @@
+grafana:
+  # For some reason I need to exec inside pod:
+  # grafana cli admin reset-admin-password YourSecurePassword!
+  # Using kubectl example:
+  # kubectl exec grafana-6f89d55d7b-7xqmj -n observability --kubeconfig ./test-main-ams.kubeconfig -- grafana cli admin reset-admin-password YourSecurePassword!
+  adminPassword: "YourSecurePassword!" # <<< SET YOUR STRONG PASSWORD HERE
+  
+  # 🔍 Node selector and tolerations at top level
+  nodeSelector:
+    kubernetes.io/os: linux
+    node-role.kubernetes.io/log-workloads: ""
+  tolerations:
+    - key: node-role
+      operator: Equal
+      value: log-workloads
+      effect: NoExecute
+  
+  # 🔍 Replicas at top level
+  # If replicas are higher than 1, it will cuase Mult-attach issues with the PVC
+  # To use high-availability setup, database should be used instead of PVC:
+  # # Use external database instead of SQLite
+  # database:
+  #   type: postgres  # or mysql
+  #   host: "your-db-host"
+  #   name: "grafana"
+  #   user: "grafana"
+  #   password: "your-password"
+  
+  # # Disable persistence since database is external
+  # persistence:
+  #   enabled: false
+  replicas: 1
+  revisionHistoryLimit: 2
+  
+  persistence:
+    enabled: true
+    type: pvc
+    size: 10Gi
+    accessModes: [ ReadWriteOnce ]
+    storageClassName: vultr-block-storage
+  service:
+    type: ClusterIP
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+      - name: Loki
+        type: loki
+        url: http://loki-gateway.logging.svc.cluster.local/ # URL points to the loki-gateway service in the logging namespace
+        access: proxy # Use Grafana backend as proxy
+        isDefault: true # Make this the default datasource
+  # OPTIONAL: Set resource Requests/Limits (adjust as needed)
+  deploymentStrategy:
+    type: Recreate
+
+  resources:
+   requests:
+     cpu: 200m
+     memory: 512Mi
+   limits:
+     cpu: 400m
+     memory: 1Gi

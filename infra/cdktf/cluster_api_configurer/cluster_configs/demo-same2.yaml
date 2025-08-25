@@ -1,0 +1,7 @@
+region: ewr2
+clusterName: demo-same2
+controlPlaneHighAvailability: true
+workerGroups:
+  demo:
+    count: 1
+    planId: vc2-1c-1gb

@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: argocd-local
+  namespace: argocd
+  annotations:
+    managed-by: argocd.argoproj.io
+  labels:
+    argocd.argoproj.io/secret-type: cluster
+    nginx-ingress: enabled
+    wireguard-gate: enabled
+    external-dns: enabled
+    monitoring: enabled
+    loki: enabled
+    beyla: enabled
+    tempo: enabled
+type: Opaque
+stringData:
+  name: argocd-local
+  server: https://kubernetes.default.svc

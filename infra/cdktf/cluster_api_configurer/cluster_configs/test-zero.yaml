@@ -1,0 +1,7 @@
+region: ewr
+clusterName: test-zero
+controlPlaneHighAvailability: true
+workerGroups:
+  system-workloads:
+    count: 0
+    planId: vc2-2c-4gb

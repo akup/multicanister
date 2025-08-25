@@ -1,0 +1,167 @@
+# loki-helm-settings.yaml
+loki:
+  # 🔍 Global S3 configuration
+  extraArgs:
+    - "-config.expand-env=true"
+  extraEnvFrom:
+    - secretRef:
+        name: loki-s3-credentials-secret
+  
+  loki:
+    revisionHistoryLimit: 2
+    auth_enabled: false # <<< It's a best practice to enable it in production environments
+    storage:
+      bucketNames:
+        chunks: test-main-ams-loki-chunks
+        ruler: test-main-ams-loki-ruler
+        admin: test-main-ams-loki-admin
+      type: s3
+      s3:
+        # For credentials at components there is extraEnvFrom parameter
+        # it uses secretRef 'loki-s3-credentials-secret' to get the credentials from the secret
+        # and add all key->values from the secret to the environment variables
+        # Strictly use in secret key names to replace accessKeyId and secretAccessKey
+        # ACCESS_KEY_ID and SECRET_ACCESS_KEY are current the keys in the secret
+        endpoint: "https://ams1.vultrobjects.com"
+        region: "us-east-1" #This is hardcoded for vultr
+        s3ForcePathStyle: true
+        accessKeyId: "${ACCESS_KEY_ID}"
+        secretAccessKey: "${SECRET_ACCESS_KEY}"
+        # Check this approach for secrets
+          # secretRef:
+          #   name: loki-s3-credentials-secret
+          #   key: SECRET_ACCESS_KEY
+        insecure: false
+    storage_config:
+      tsdb_shipper:
+        active_index_directory: /var/loki/tsdb-index
+        cache_location: /var/loki/index_cache
+        cache_ttl: 24h
+    # Schema config using TSDB
+    schemaConfig:
+      configs:
+      - from: 2025-08-15 # <<< Use a start date relevant to your use case
+        store: tsdb
+        object_store: s3
+        schema: v13 # <<< Use the latest version available
+        index:
+          prefix: index_
+          period: 24h
+    # IMPORTANT: Define appropriate parallelism and ingestion rates values for your use case, default values won't work
+    limits_config:
+      max_query_parallelism: 16
+      ingestion_rate_mb: 16 # <<< Start with a high value and fine-tune from there
+      ingestion_burst_size_mb: 32 # <<< Start with a high value and fine-tune from there
+      retention_period: 720h # 30 days retention (Loki attempts deletion if compactor runs)
+    # IMPORTANT: Compactor retention explicitly DISABLED for stability during the tutorial
+    compactor:
+      retention_enabled: true # Set to true if you want Loki to manage S3 deletion based on retention_period
+      compaction_interval: 2h
+      working_directory: /var/loki/compactor # Ensure this path is writable if persistence enabled
+      delete_request_store: s3
+  
+  # Gateway component with common node selector and tolerations
+  gateway:
+    replicas: 2
+    deploymentStrategy:
+      type: RollingUpdate
+    nodeSelector:
+      kubernetes.io/os: linux
+      node-role.kubernetes.io/log-workloads: ""
+    tolerations:
+      - key: node-role
+        operator: Equal
+        value: log-workloads
+        effect: NoExecute
+  
+  # Write component (ingesters) with storage, common node selector and tolerations
+  write:
+    replicas: 2
+    persistence:
+      storageClass: vultr-block-storage
+      size: "10Gi"
+    nodeSelector:
+      kubernetes.io/os: linux
+      node-role.kubernetes.io/log-workloads: ""
+    tolerations:
+      - key: node-role
+        operator: Equal
+        value: log-workloads
+        effect: NoExecute
+    # 🔍 Add S3 credentials to write component
+    extraArgs:
+      - "-config.expand-env=true"
+    extraEnvFrom:
+      - secretRef:
+          name: loki-s3-credentials-secret
+  
+  # Read component (queriers) with storage, common node selector and tolerations
+  read:
+    replicas: 2
+    persistence:
+      storageClass: vultr-block-storage
+      size: "10Gi"
+    nodeSelector:
+      kubernetes.io/os: linux
+      node-role.kubernetes.io/log-workloads: ""
+    tolerations:
+      - key: node-role
+        operator: Equal
+        value: log-workloads
+        effect: NoExecute
+    # 🔍 Add S3 credentials to read component
+    extraArgs:
+      - "-config.expand-env=true"
+    extraEnvFrom:
+      - secretRef:
+          name: loki-s3-credentials-secret
+  
+  # Backend component (compactor, ruler) with storage, common node selector and tolerations
+  backend:
+    replicas: 2
+    persistence:
+      storageClass: vultr-block-storage
+      size: "20Gi"
+    nodeSelector:
+      kubernetes.io/os: linux
+      node-role.kubernetes.io/log-workloads: ""
+    tolerations:
+      - key: node-role
+        operator: Equal
+        value: log-workloads
+        effect: NoExecute
+    # 🔍 Add S3 credentials to backend component for compactor
+    extraArgs:
+      - "-config.expand-env=true"
+    extraEnvFrom:
+      - secretRef:
+          name: loki-s3-credentials-secret
+  
+  # Results cache (memcached) with common node selector and tolerations
+  resultsCache:
+    replicas: 2
+    persistence:
+      storageClass: vultr-block-storage
+      size: "10Gi"
+    nodeSelector:
+      kubernetes.io/os: linux
+      node-role.kubernetes.io/log-workloads: ""
+    tolerations:
+      - key: node-role
+        operator: Equal
+        value: log-workloads
+        effect: NoExecute
+  
+  # Keep chunksCache disabled for simplicity/stability initially
+  chunksCache:
+    enabled: false
+
+  # IMPORTANT: Set Resource Requests/Limits AFTER evaluating your use case requirements
+  # For Loki, start with HIGH request/limits values and fine-tune from there
+  resources:
+    requests:
+      cpu: 500m
+      memory: 2Gi # 1024Mi
+    limits:
+      cpu: 1000m
+      memory: 4Gi
