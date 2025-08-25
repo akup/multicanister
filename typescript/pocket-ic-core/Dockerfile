@@ -22,7 +22,7 @@ COPY ./typescript/_typescript-config ./typescript/_typescript-config
 # Copy only dependant projects
 COPY ./typescript/pocket-ic-core ./typescript/pocket-ic-core
 # Copy picjs as it is part of workspace
-COPY ./picjs/packages/picjs ./picjs/packages/picjs
+COPY ./picjs/packages/pic ./picjs/packages/pic
 
 # Copy pnpm workspace and lock file
 COPY ./pnpm-workspace.yaml ./pnpm-workspace.yaml
