@@ -1,10 +1,13 @@
-FROM node:alpine3.22
+# FROM node:alpine3.22
+FROM node:22-slim
 
 WORKDIR /app
 
 RUN corepack enable && corepack prepare pnpm@10.8.1 --activate
 
-RUN apk add --no-cache curl gzip
+# Install dependencies
+# libc6-compat is required for pocket-ic compatibility with alpine linux
+RUN apk add --no-cache curl gzip# libc6-compat
 
 ARG POCKET_IC_VERSION=9.0.3
 ADD https://github.com/dfinity/pocketic/releases/download/${POCKET_IC_VERSION}/pocket-ic-x86_64-linux.gz /tmp/pocket-ic.gz
