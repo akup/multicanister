@@ -57,6 +57,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Filter matrix for manual dispatch
         if: github.event.inputs.application != ''
