@@ -11,12 +11,20 @@ ADD https://github.com/dfinity/pocketic/releases/download/${POCKET_IC_VERSION}/p
 RUN gzip -d /tmp/pocket-ic.gz && \
     mv /tmp/pocket-ic /usr/local/bin/pocket-ic && \
     chmod +x /usr/local/bin/pocket-ic
+RUN rm -rf /tmp/pocket-ic.gz
 
 # Copy pnpm workspace with dependencies
-# Copy the entire typescript directory
-COPY ./typescript ./typescript
+# Copy the entire typescript directory commons
+COPY ./typescript/_eslint-config ./typescript/_eslint-config
+COPY ./typescript/_prettier-config ./typescript/_prettier-config
+COPY ./typescript/_typescript-config ./typescript/_typescript-config
+
+# Copy only dependant projects
+COPY ./typescript/pocket-ic-core ./typescript/pocket-ic-core
 # Copy picjs as it is part of workspace
-COPY ./picjs ./picjs
+COPY ./picjs/packages/picjs ./picjs/packages/picjs
+
+# Copy pnpm workspace and lock file
 COPY ./pnpm-workspace.yaml ./pnpm-workspace.yaml
 COPY ./pnpm-lock.yaml ./pnpm-lock.yaml
 
