@@ -1,4 +1,8 @@
-nameOverride: "pocket-ic-core"
+fullnameOverride: "pocket-ic-core"
+
+podLabels:
+  app: pocket-ic
+  tier: icp-chain
 
 replicaCount: 1
 

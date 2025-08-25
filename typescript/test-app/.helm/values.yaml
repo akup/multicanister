@@ -1,0 +1,106 @@
+nameOverride: "test-app"
+
+podLabels:
+  app: test-app
+  tier: backend
+
+replicaCount: 1
+
+revisionHistoryLimit: 5
+updateStrategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxUnavailable: 0
+    maxSurge: 1
+
+image:
+  repository: "ghcr.io/jjoinvest/dex-multicanister/test-app"
+  tag: "main"
+  pullPolicy: Always
+
+global:
+  alwaysRedeploy: true
+  terminationGracePeriodSeconds: 30
+  shareProcessNamespace: false
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+initContainer:
+  enabled: false
+  env_vars: {}
+
+hostAliases: {}
+
+secrets:
+  enabled: false
+  secretsList: {}
+
+podAnnotations: {}
+
+podSecurityContext: {}
+
+securityContext: {}
+
+podDisruptionBudget:
+  enabled: false
+  minAvailable: 1
+  maxUnavailable: 0
+
+probes: {}
+
+env_vars: {}
+
+affinity: {}
+
+persistence:
+  enabled: false
+  annotations:
+    "helm.sh/resource-policy": keep
+  pvc:
+    enabled: false
+    pvcList: {}
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    # cert-manager.io/cluster-issuer: letsencrypt-http  # Disabled HTTPS
+    nginx.ingress.kubernetes.io/force-reload: "true"
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "https://dev.mc-ops.tech"
+  hosts:
+    - host: dev2.mc-ops.tech
+      paths:
+        - path: /
+          pathType: Prefix
+  # tls: #Use this section if certifiacte is issued with lets encrypt. It can be that cloudflare issues certificate and sends http traffic to ingress.
+  #   - secretName: test-app-tls  # cert-manager will create this secret
+  #     hosts:
+  #       - dev.mc-ops.tech
+
+resources: 
+  requests:
+    memory: 128Mi
+
+service: 
+  type: ClusterIP
+  ports:
+    http:
+      pod_port: 3000
+      protocol: TCP
+      service_port: 80
+      ingress: true
+
+tolerations:
+  - key: node-role
+    operator: "Equal"
+    value: log-workloads #Change to dex-app-workloads
+    effect: NoExecute
+
+nodeSelector:
+  kubernetes.io/os: linux
+  node-role.kubernetes.io/log-workloads: ""
