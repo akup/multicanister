@@ -54,4 +54,4 @@ ENV POCKET_IC_STATE_DIR=/app/ic-data/ic-state
 RUN mkdir -p /app/ic-data
 
 
-CMD ["node", "dist/index.js"]
+CMD ["node", "dist/index.js", "--port", "8092", "--pic-port", "4943", "--gateway-port", "4944"]
