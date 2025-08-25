@@ -34,6 +34,7 @@ jobs:
       packages: write
     
     strategy:
+      fail-fast: false
       matrix:
         app:
           # This is Pocket IC Core server
