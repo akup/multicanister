@@ -6,6 +6,8 @@
   "type": "commonjs",
   "private": true,
   "scripts": {
+    "build": "tsc",
+    "esbuild": "esbuild src/index.ts --bundle --platform=node --target=node18 --format=cjs --outfile=dist/index.js",
     "dev-start": "nodemon --config nodemon.json -r tsconfig-paths/register ./src/index.ts -p 8092",
     "docker:build": "docker build -f ./Dockerfile ../../ -t multicanisterops-dev",
     "docker:up": "docker compose -f ./docker-compose.yml up",
@@ -44,6 +46,7 @@
     "@typescript-eslint/eslint-plugin": "8.30.1",
     "@typescript-eslint/parser": "8.30.1",
     "chalk": "4.1.2",
+    "esbuild": "^0.20.0",
     "eslint": "9.24.0",
     "eslint-config-prettier": "9.1.0",
     "eslint-plugin-prettier": "5.1.3",

@@ -9,7 +9,7 @@ export class IdentityModel {
 
   private constructor() {
     // Store identity file in the ic-data directory
-    const icDataDir = path.join(process.cwd(), 'ic-data');
+    const icDataDir = path.join(process.cwd(), 'app', 'ic-data');
     if (!fs.existsSync(icDataDir)) {
       fs.mkdirSync(icDataDir, { recursive: true });
     }

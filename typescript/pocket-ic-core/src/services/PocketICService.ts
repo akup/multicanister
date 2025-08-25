@@ -1,11 +1,11 @@
 import { spawn } from 'child_process';
-import { CoreModel } from '~/models/CoreModel';
+import { CoreModel } from '../models/CoreModel';
 import { ApplicationSubnetConfig, PocketIc, SubnetStateType } from '@repo/pic';
 import { chunk_hash, ICManagementCanister } from '@dfinity/ic-management';
 import { createAgent } from '@dfinity/utils';
 import { Principal } from '@dfinity/principal';
 import { CreateInstanceRequest } from '@repo/pic/src/pocket-ic-client-types';
-import { IdentityModel } from '~/models/IdentityModel';
+import { IdentityModel } from '../models/IdentityModel';
 import * as fs from 'fs';
 import { AgentCallError, CanisterStatus } from '@dfinity/agent';
 

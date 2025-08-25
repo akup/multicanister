@@ -19,6 +19,12 @@ COPY . .
 
 RUN pnpm install
 
+# Build the TypeScript application
+RUN pnpm run esbuild
+
+# Remove dev dependencies to reduce image size
+RUN pnpm prune --prod
+
 EXPOSE 8092 4944
 
-CMD ["pnpm", "run", "dev-pocket-ic-core"]
+CMD ["node", "dist/index.js"]

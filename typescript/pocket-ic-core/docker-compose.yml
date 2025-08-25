@@ -10,7 +10,9 @@ services:
       - ./src:/app/typescript/pocket-ic-core/src
       # pocket-ic state folder
       - pocket-ic-state:/app/ic-state
+      - pic-core-service-state:/app/ic-data
     restart: unless-stopped
 
 volumes:
   pocket-ic-state:
+  pic-core-service-state:

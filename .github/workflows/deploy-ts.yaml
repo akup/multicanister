@@ -33,6 +33,14 @@ jobs:
     strategy:
       matrix:
         app:
+          # This is Pocket IC Core server
+          - name: pocket-ic-core
+            path: typescript/pocket-ic-core
+            dockerfile: Dockerfile
+            context: typescript/pocket-ic-core
+
+          # Then list off-chain apps here
+          # This is Test App
           - name: test-app
             path: typescript/test-app
             dockerfile: Dockerfile

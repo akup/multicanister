@@ -14,7 +14,7 @@ export class CoreModel {
   private static instance: CoreModel;
   private readonly storageDir: string;
 
-  private constructor(storageDir: string = path.join(process.cwd(), 'ic-data', 'cores')) {
+  private constructor(storageDir: string = path.join(process.cwd(), 'app', 'ic-data', 'cores')) {
     this.storageDir = storageDir;
     this.ensureStorageDir();
   }

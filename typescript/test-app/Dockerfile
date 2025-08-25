@@ -26,4 +26,4 @@ RUN pnpm prune --prod
 EXPOSE 3000
 
 # Start the application
-CMD ["pnpm", "start"] 
+CMD ["node", "dist/index.js"] 
