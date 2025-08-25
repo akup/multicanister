@@ -65,6 +65,7 @@ ingress:
       paths:
         - path: /
           pathType: Prefix
+          servicePort: 80
     - host: dev.gateway.pic.mc-ops.tech
       paths:
         - path: /
