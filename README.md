@@ -150,7 +150,7 @@ By default Pocket IC core starts PIC gateway on 4944 port. You can access canist
 
 For example if you start with default core.json, you will see following log of `pnpm dev-icr-cli`:
 
-```json
+```js
 {
   candid_ui: {
     canisterIds: [ '$candid_ui_canister_id' ],
