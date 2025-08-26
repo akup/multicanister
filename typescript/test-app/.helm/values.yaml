@@ -73,7 +73,7 @@ ingress:
     nginx.ingress.kubernetes.io/enable-cors: "true"
     nginx.ingress.kubernetes.io/cors-allow-origin: "https://dev.mc-ops.tech"
   hosts:
-    - host: dev2.mc-ops.tech
+    - host: dev.mc-ops.tech
       paths:
         - path: /
           pathType: Prefix
