@@ -90,16 +90,20 @@ router.post('/upload', upload.single('file'), async (req: Request, res: Response
     }
     uploadedFilePath = req.file.path; // Get path from disk storage
 
-    let { name, sha256, branch, tag, commit, updateStrategy, init_arg_hex } = req.body;
+    let { name, sha256, branch, tag, commit, init_arg_hex } = req.body;
 
     if (!branch) {
       branch = 'main';
       tag = 'latest';
       commit = 'latest';
     }
-    if (!updateStrategy || !['upgrade', 'reinstall'].includes(updateStrategy)) {
-      updateStrategy = 'upgrade' as UpdateStrategy;
-    }
+
+    const existingCanisterDetails = await coreModel.get(name);
+    const isFirstInstall = !existingCanisterDetails?.wasmHash;
+
+    const updateStrategy: UpdateStrategy = isFirstInstall ? 'reinstall' : 'upgrade';
+
+    console.log(`Determined strategy: '${updateStrategy}' for canister '${name}'`);
 
     if (!name || !sha256) {
       return res.status(400).json({
@@ -118,7 +122,6 @@ router.post('/upload', upload.single('file'), async (req: Request, res: Response
       });
     }
 
-    const existingCanisterDetails = await coreModel.get(name);
     if (!existingCanisterDetails || existingCanisterDetails.canisterIds.length === 0) {
       return res.status(404).json({
         message: `Canister '${name}' not found. It must be created first via /get-canister-ids.`,
@@ -146,7 +149,7 @@ router.post('/upload', upload.single('file'), async (req: Request, res: Response
       initArg: init_arg_hex ? Buffer.from(init_arg_hex, 'hex') : undefined,
       updateStrategy:
         // canisterStatus === 'corrupted' ? (updateStrategy as UpdateStrategy) : 'upgrade',     // temporary disabling, look beforehand
-        'upgrade',
+        updateStrategy,
     });
 
     const coreRecord = {

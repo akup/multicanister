@@ -7,6 +7,8 @@ export class CoreInfo {
   sns_root: string = '';
   sns_governance: string = '';
   sns_ledger: string = '';
+  sns_swap: string = '';
+  sns_index: string = '';
   ii?: string;
   candid_ui?: string;
 }

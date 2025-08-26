@@ -69,7 +69,7 @@ export const deployCoreCanisterToPocketIC = async (
     try {
       const resolvedArgs = resolvePlaceholders(canisterConfig.init_args, deployedCanisterIds);
       execSync('didc --version', { stdio: 'ignore' });
-      initArgHex = execSync(`didc encode "${resolvedArgs}"`, { encoding: 'utf-8' }).trim();
+      initArgHex = execSync(`didc encode '${resolvedArgs}'`, { encoding: 'utf-8' }).trim();
     } catch (e) {
       console.error(
         chalk.red('Failed to encode arguments with didc. Is didc installed and in your PATH?')
