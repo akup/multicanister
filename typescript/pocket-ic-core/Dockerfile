@@ -45,7 +45,7 @@ RUN pnpm run esbuild
 # Remove dev dependencies to reduce image size
 RUN pnpm prune --prod
 
-EXPOSE 8092 4944
+EXPOSE 8092 4944 3000
 
 ENV POCKET_IC_BIN=/usr/local/bin/pocket-ic
 ENV DATA_DIR=/app/ic-data

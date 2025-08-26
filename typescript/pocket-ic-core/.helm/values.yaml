@@ -75,10 +75,10 @@ ingress:
         - path: /
           pathType: Prefix
           servicePort: 4944
-  tls: #Use this section if certifiacte is issued with lets encrypt. It can be that cloudflare issues certificate and sends http traffic to ingress.
-    - secretName: pic-service-tls  # cert-manager will create this secret
-      hosts:
-        - dev.service.pic.mc-ops.tech
+  # tls: #Use this section if certifiacte is issued with lets encrypt. It can be that cloudflare issues certificate and sends http traffic to ingress.
+  #   - secretName: pic-service-tls  # cert-manager will create this secret
+  #     hosts:
+  #       - dev.service.pic.mc-ops.tech
 
 resources:
   requests:
@@ -97,6 +97,11 @@ service:
       pod_port: 4944
       protocol: TCP
       service_port: 4944
+      ingress: true
+    test-port:
+      pod_port: 3000
+      protocol: TCP
+      service_port: 3000
       ingress: true
 
 tolerations:

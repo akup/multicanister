@@ -60,6 +60,19 @@ pocketICService
       console.error(chalk.red('Failed to start server:'), error);
       process.exit(1);
     });
+
+    const app2 = express();
+    app2.use(express.json());
+    app2.use('/', (req, res) => {
+      res.send('Hello world');
+    });
+    const server2 = app2.listen(3000, () => {
+      console.log(chalk.bold(`Debug server is running on port 3000`));
+    });
+    server2.on('error', error => {
+      console.error(chalk.red('Failed to start server:'), error);
+      process.exit(1);
+    });
   })
   .catch(error => {
     console.error(chalk.red('Failed to start PocketIC:'), error);

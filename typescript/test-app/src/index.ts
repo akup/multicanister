@@ -12,10 +12,35 @@ let agent: HttpAgent | null = null;
 app.use(express.json());
 
 // Routes
-app.get('/', (req, res) => {
+app.get('/', async (req, res) => {
   console.log('Hello world called');
-  //TODO: try to call canister here
-  res.send('Hello world');
+
+  let fetchResult = '';
+  try {
+    const response = await fetch(`http://pocket-ic-core:4944/api/v1/canisters`);
+    const data = await response.json();
+    console.log(data);
+    fetchResult += `Canisters: ${JSON.stringify(data)}`;
+  } catch (error) {
+    console.error(error);
+    fetchResult += `Error fetching canisters: ${error}`;
+  }
+
+  fetchResult += '\n';
+  fetchResult += '--------------------------------';
+  fetchResult += '\n';
+
+  try {
+    const response = await fetch(`http://pocket-ic-core:3000/`);
+    const data = await response.text();
+    console.log(data);
+    fetchResult += `Test app: ${data}`;
+  } catch (error) {
+    console.error(error);
+    fetchResult += `Error fetching canisters: ${error}`;
+  }
+
+  res.send(fetchResult);
 });
 
 app.get('/test', (req, res) => {
