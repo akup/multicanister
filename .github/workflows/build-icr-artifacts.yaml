@@ -57,6 +57,15 @@ jobs:
         working-directory: typescript/icr-cli
         run: ls -la dist/bin/
 
+      - name: Rename binaries to include build label
+        working-directory: typescript/icr-cli
+        run: |
+          for file in dist/bin/*; do
+            [ -f "$file" ] || continue
+            base=$(basename "$file")
+            mv "$file" "dist/bin/${base}-${{ env.BUILD_LABEL }}"
+          done
+
       - name: Upload binaries as artifacts
         uses: actions/upload-artifact@v4
         with:
