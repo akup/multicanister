@@ -55,13 +55,18 @@ app.listen(PORT, async () => {
   console.log(`  GET http://localhost:${PORT}/test`);
 
   // Initialize management canister
-  const identity = Ed25519KeyIdentity.generate();
-  agent = await createAgent({
-    identity,
-    host: ICGatewayAPIHost,
-  });
-  console.log(`Try to access Pocket IC at ${ICGatewayAPIHost}`);
-  // Fetch root key as we are talking to the Pocket IC and not the mainnet
-  await agent.fetchRootKey();
-  console.log(`Root key fetched`);
+  try {
+    const identity = Ed25519KeyIdentity.generate();
+    agent = await createAgent({
+      identity,
+      host: ICGatewayAPIHost,
+    });
+    console.log(`Try to access Pocket IC at ${ICGatewayAPIHost}`);
+    // Fetch root key as we are talking to the Pocket IC and not the mainnet
+    await agent.fetchRootKey();
+    console.log(`Root key fetched`);
+  } catch (error) {
+    console.error(error);
+    console.log(`Error fetching root key: ${error}`);
+  }
 });
