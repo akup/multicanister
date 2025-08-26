@@ -73,8 +73,11 @@ jobs:
           mkdir -p ~/.local/bin
           cd ~/.local/bin
           
-          # Download the specific release
-          wget -O icr-cli "https://github.com/JJOInvest/dex-multicanister/releases/download/${{ steps.release.outputs.release_tag }}/icr-cli-linux"
+          # Download the specific release (private repo - needs auth)
+          wget -O icr-cli \
+            --header "Authorization: token ${{ github.token }}" \
+            --header "Accept: application/octet-stream" \
+            "https://github.com/JJOInvest/dex-multicanister/releases/download/${{ steps.release.outputs.release_tag }}/icr-cli-linux"
           
           # Make it executable
           chmod +x icr-cli
