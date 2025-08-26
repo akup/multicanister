@@ -40,7 +40,35 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Get release info
+        id: release
+        run: |
+          # Get latest release info
+          RELEASE_INFO=$(gh api repos/${{ github.repository }}/releases/latest)
+          RELEASE_ID=$(echo "$RELEASE_INFO" | jq -r '.id')
+          RELEASE_TAG=$(echo "$RELEASE_INFO" | jq -r '.tag_name')
+          RELEASE_SHA=$(echo "$RELEASE_INFO" | jq -r '.target_commitish')
+          
+          echo "release_id=$RELEASE_ID" >> $GITHUB_OUTPUT
+          echo "release_tag=$RELEASE_TAG" >> $GITHUB_OUTPUT
+          echo "release_sha=$RELEASE_SHA" >> $GITHUB_OUTPUT
+          
+          echo "Latest release: $RELEASE_TAG (SHA: $RELEASE_SHA)"
+
+      - name: Setup cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pnpm
+            node_modules
+            typescript/*/node_modules
+          key: wasm-build-${{ steps.release.outputs.release_sha }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            wasm-build-${{ steps.release.outputs.release_sha }}-
+            wasm-build-
+
       - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
         run: pnpm install
 
       - name: Build and deploy wasms

@@ -63,7 +63,9 @@ jobs:
           for file in dist/bin/*; do
             [ -f "$file" ] || continue
             base=$(basename "$file")
-            mv "$file" "dist/bin/${base}-${{ env.BUILD_LABEL }}"
+            baseName="${base%.*}"
+            extension="${base##*.}"
+            mv "$file" "dist/bin/${baseName}-${{ env.BUILD_LABEL }}.${extension}"
           done
 
       - name: Upload binaries as artifacts
