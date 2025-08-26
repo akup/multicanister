@@ -150,7 +150,7 @@ export class PocketICService {
       ...subnetCreateConfigs,
     });
     //Need to set domain to 0.0.0.0 to make it accessible from outside container
-    await this.pocketIC.makeLive(gwPort, '0.0.0.0');
+    await this.pocketIC.makeLive(gwPort, ['0.0.0.0', '127.0.0.1', 'localhost']);
     console.log('PocketIC gateway started on port', gwPort);
 
     // Use default IC Management via IC Agent
