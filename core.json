@@ -1,4 +1,5 @@
 {
   "factory": "factory",
-  "candid_ui": "didjs"
+  "candid_ui": "didjs",
+  "hello": "hello"
 }

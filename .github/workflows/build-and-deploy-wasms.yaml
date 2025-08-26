@@ -177,6 +177,19 @@ jobs:
       - name: Add ic-wasm to PATH
         run: echo "$HOME/.local/bin" >> $GITHUB_PATH
 
+
+      - name: Install npm
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # This step should be done automatically by icr-cli, but it's not working at the moment
+      - name: Npm install in dependencies (candidUi)
+        run: |
+          cd "$GITHUB_WORKSPACE"
+          cd innerDfxProjects/candidUi/tools/ui
+          npm install
+
       - name: Run icr-cli
         shell: bash
         env:

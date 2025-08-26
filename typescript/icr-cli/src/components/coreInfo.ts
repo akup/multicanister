@@ -6,6 +6,7 @@ export class CoreInfo {
   factory: string = '';
   ii?: string;
   candid_ui?: string;
+  hello?: string;
   //TODO: add sns canisters
   modules: Array<string> = [];
 }
