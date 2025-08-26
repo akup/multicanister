@@ -69,15 +69,24 @@ jobs:
 
       - name: Download ICR CLI if not cached
         if: steps.cache.outputs.cache-hit != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           mkdir -p ~/.local/bin
           cd ~/.local/bin
           
-          # Download the specific release (private repo - needs auth)
-          wget -O icr-cli \
-            --header "Authorization: token ${{ github.token }}" \
-            --header "Accept: application/octet-stream" \
-            "https://github.com/JJOInvest/dex-multicanister/releases/download/${{ steps.release.outputs.release_tag }}/icr-cli-linux"
+          # Get the asset ID for the Linux binary
+          ASSET_ID=$(gh api repos/${{ github.repository }}/releases/tags/${{ steps.release.outputs.release_tag }} \
+            --jq '.assets[] | select(.name=="icr-cli-linux") | .id')
+          
+          echo "Downloading asset ID: $ASSET_ID"
+          
+          # Download using the asset API (more reliable for private repos)
+          curl -L \
+            -H "Authorization: token ${{ github.token }}" \
+            -H "Accept: application/octet-stream" \
+            -o icr-cli \
+            "https://api.github.com/repos/${{ github.repository }}/releases/assets/$ASSET_ID"
           
           # Make it executable
           chmod +x icr-cli
