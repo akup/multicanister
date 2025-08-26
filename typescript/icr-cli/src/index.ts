@@ -18,6 +18,16 @@ import { URL } from 'url';
 
 dotenv.config();
 
+// Debug information to find genesis of path issues
+console.log('=== DEBUG INFO ===');
+console.log('Current working directory:', process.cwd());
+// eslint-disable-next-line no-undef
+console.log('__dirname:', typeof __dirname !== 'undefined' ? __dirname : 'undefined');
+// eslint-disable-next-line no-undef
+console.log('__filename:', typeof __filename !== 'undefined' ? __filename : 'undefined');
+console.log('Process argv:', process.argv);
+console.log('==================');
+
 type Command = 'deploy' | 'build' | 'create-user' | 'gen-factory-idl' | 'authorize';
 
 var commandHandled: Command | undefined = undefined;
