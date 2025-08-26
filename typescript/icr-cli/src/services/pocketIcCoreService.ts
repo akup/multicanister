@@ -1,6 +1,7 @@
-import { FormData, File } from 'undici';
 import * as fs from 'fs';
 import { URL } from 'url';
+import fetch, { RequestInit } from 'node-fetch';
+import { FormData, File } from 'undici';
 
 export interface CoreMetadata {
   canisterIds: string[];
@@ -50,10 +51,9 @@ export class PocketIcCoreService {
     formData.append('sha256', wasmSha256);
     formData.append('name', canisterName);
 
-    const { default: fetch } = await import('node-fetch');
     const response = await fetch(`${PocketIcCoreService.picCoreUrl!.origin}/api/upload`, {
       method: 'POST',
-      body: formData,
+      body: formData as unknown as RequestInit['body'],
     });
 
     if (!response.ok) {
@@ -84,7 +84,6 @@ export class PocketIcCoreService {
   }
 
   async listCores(): Promise<ListCoresResponse> {
-    const { default: fetch } = await import('node-fetch');
     const response = await fetch(`${PocketIcCoreService.picCoreUrl!.origin}/api/list-core`);
 
     if (!response.ok) {
