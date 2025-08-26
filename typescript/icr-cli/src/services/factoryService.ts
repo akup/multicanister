@@ -28,7 +28,7 @@ export class FactoryService {
     await agent.fetchRootKey();
 
     const factoryActor: ActorSubclass<_SERVICE> = Actor.createActor(idlFactory, {
-      agent: agent,
+      agent,
       canisterId: factoryCanisterId,
     });
 

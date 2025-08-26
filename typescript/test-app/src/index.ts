@@ -1,7 +1,9 @@
 import express from 'express';
 import { Ed25519KeyIdentity } from '@dfinity/identity';
-import { HttpAgent } from '@dfinity/agent';
+import { Actor, ActorSubclass, HttpAgent } from '@dfinity/agent';
 import { createAgent } from '@dfinity/utils';
+import { idlFactory } from './declarations/hello.js';
+import type { _SERVICE } from './declarations/hello.d.ts';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -12,35 +14,58 @@ let agent: HttpAgent | null = null;
 app.use(express.json());
 
 // Routes
-app.get('/', async (req, res) => {
-  console.log('Hello world called');
+app.get('/', (req, res) => {
+  res.send(`
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <title>Test App</title>
+      </head>
+      <body>
+        <h1>Send a Number to POST /</h1>
+        <form id="numForm">
+          <label for="num">Number:</label>
+          <input type="number" id="num" name="num" value="1" required>
+          <button type="submit">Send</button>
+        </form>
+        <div id="result"></div>
+        <script>
+          document.getElementById('numForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const num = document.getElementById('num').value;
+            const response = await fetch('/', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              // Send as query param for compatibility with backend
+              // (could also send in body if backend is changed)
+              // body: JSON.stringify({ num })
+            });
+            const text = await response.text();
+            document.getElementById('result').innerText = text;
+          });
+        </script>
+      </body>
+    </html>
+  `);
+});
 
-  let fetchResult = '';
+app.post('/', async (req, res) => {
+  const num = req.query.num && typeof req.query.num === 'string' ? BigInt(req.query.num) : 1n;
+
   try {
-    const response = await fetch(`http://pocket-ic-core:4944/api/v1/canisters`);
-    const data = await response.text();
-    console.log(data);
-    fetchResult += `Canisters: ${data}`;
+    // Note: You'll need to define factoryCanisterId or get it from environment/config
+    const actor: ActorSubclass<_SERVICE> = Actor.createActor(idlFactory, {
+      agent: agent!,
+      canisterId: '75lp5-u7777-77776-qaaba-cai',
+    });
+
+    const result = await actor.get(num);
+    console.log(`got result: ${result}`);
+    res.send(`ok: ${result}`);
   } catch (error) {
     console.error(error);
-    fetchResult += `Error fetching canisters: ${error}`;
+    res.status(500).send('error');
   }
-
-  fetchResult += '\n';
-  fetchResult += '--------------------------------';
-  fetchResult += '\n';
-
-  try {
-    const response = await fetch(`http://pocket-ic-core:3000/`);
-    const data = await response.text();
-    console.log(data);
-    fetchResult += `Test app: ${data}`;
-  } catch (error) {
-    console.error(error);
-    fetchResult += `Error fetching canisters: ${error}`;
-  }
-
-  res.send(fetchResult);
 });
 
 app.get('/test', (req, res) => {
