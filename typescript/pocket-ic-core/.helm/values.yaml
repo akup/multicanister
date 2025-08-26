@@ -10,7 +10,7 @@ revisionHistoryLimit: 5
 
 image:
   repository: "ghcr.io/jjoinvest/dex-multicanister/pocket-ic-core"
-  tag: "main"
+  tag: "dev-testdeploy"
   pullPolicy: Always
 
 # Enable StatefulSet
