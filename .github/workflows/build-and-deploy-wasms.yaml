@@ -42,6 +42,8 @@ jobs:
 
       - name: Get release info
         id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           # Get latest release info
           RELEASE_INFO=$(gh api repos/${{ github.repository }}/releases/latest)
@@ -75,7 +77,7 @@ jobs:
           wget -O icr-cli "https://github.com/JJOInvest/dex-multicanister/releases/download/${{ steps.release.outputs.release_tag }}/icr-cli-linux
           
           # Make it executable
-          chmod +x ≈
+          chmod +x icr-cli
           
           # Verify download
           ./icr-cli --version || echo "ICR CLI downloaded successfully"
