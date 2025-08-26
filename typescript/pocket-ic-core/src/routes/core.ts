@@ -15,7 +15,7 @@ const coreModel = CoreModel.getInstance();
 const storage = multer.diskStorage({
   destination: (
     req: Request,
-    file: Express.Multer.File,
+    file: globalThis.Express.Multer.File,
     cb: (error: Error | null, destination: string) => void
   ) => {
     const uploadDir = path.join(DATA_DIR, 'uploads');
@@ -27,7 +27,7 @@ const storage = multer.diskStorage({
   },
   filename: (
     req: Request,
-    file: Express.Multer.File,
+    file: globalThis.Express.Multer.File,
     cb: (error: Error | null, filename: string) => void
   ) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
@@ -61,7 +61,7 @@ router.get('/list-core', async (req: Request, res: Response) => {
 });
 
 interface UploadRequest extends Request {
-  file?: Express.Multer.File;
+  file?: globalThis.Express.Multer.File;
 }
 
 router.post('/upload', upload.single('file'), async (req: UploadRequest, res: Response) => {

@@ -2,6 +2,7 @@ import { createAgent } from '@dfinity/utils';
 import { Actor, ActorSubclass, HttpAgent, Identity } from '@dfinity/agent';
 import { _SERVICE, idlFactory } from '../declarations/factory/factory.did';
 import type { Principal } from '@dfinity/principal';
+import { URL } from 'url';
 
 export class FactoryService {
   private static instances: Record<string, FactoryService> = {};

@@ -1,5 +1,6 @@
 import { FormData, File } from 'undici';
 import * as fs from 'fs';
+import { URL } from 'url';
 
 export interface CoreMetadata {
   canisterIds: string[];

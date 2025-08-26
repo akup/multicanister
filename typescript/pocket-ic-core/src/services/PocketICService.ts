@@ -7,7 +7,7 @@ import { Principal } from '@dfinity/principal';
 import { CreateInstanceRequest } from '@repo/pic/src/pocket-ic-client-types';
 import { IdentityModel } from '../models/IdentityModel';
 import * as fs from 'fs';
-import { AgentCallError, CanisterStatus } from '@dfinity/agent';
+import { AgentCallError } from '@dfinity/agent';
 
 const POCKET_IC_TIMEOUT = 10000;
 
@@ -52,22 +52,30 @@ export class PocketICService {
     proc.on('error', error => {
       throw new Error(`PocketIC process error: ${error.message}`);
     });
-    proc.on('exit', async () => {
+    proc.on('exit', () => {
       console.error('PocketIC process exited!!!');
-      await this.stop();
+      this.stop().catch(error => {
+        console.error('Error during shutdown:', error);
+      });
       process.exit(1);
     });
-    process.on('uncaughtException', async () => {
+    process.on('uncaughtException', () => {
       console.error('Uncaught exception');
-      await this.stop();
+      this.stop().catch(error => {
+        console.error('Error during shutdown:', error);
+      });
     });
-    process.on('SIGINT', async () => {
+    process.on('SIGINT', () => {
       console.error('SIGINT');
-      await this.stop();
+      this.stop().catch(error => {
+        console.error('Error during shutdown:', error);
+      });
     });
-    process.on('SIGTERM', async () => {
+    process.on('SIGTERM', () => {
       console.error('SIGTERM');
-      await this.stop();
+      this.stop().catch(error => {
+        console.error('Error during shutdown:', error);
+      });
     });
 
     // Wait for PocketIC to be ready

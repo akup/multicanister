@@ -67,8 +67,13 @@ pocketICService
   });
 
 // Handle process termination
-process.on('SIGINT', async () => {
+process.on('SIGINT', () => {
   console.log('Shutting down...');
-  await pocketICService.stop();
-  process.exit(0);
+  pocketICService
+    .stop()
+    .then(() => process.exit(0))
+    .catch(error => {
+      console.error('Error during shutdown:', error);
+      process.exit(1);
+    });
 });

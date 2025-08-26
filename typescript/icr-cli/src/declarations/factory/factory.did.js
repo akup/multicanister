@@ -173,4 +173,4 @@ export const idlFactory = ({ IDL }) => {
     'unset_asset_content' : IDL.Func([UnsetAssetContentArguments], [], []),
   });
 };
-export const init = ({ IDL }) => { return []; };
+export const init = () => { return []; };

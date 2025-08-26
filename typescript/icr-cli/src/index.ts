@@ -13,6 +13,9 @@ import * as dotenv from 'dotenv';
 import { PocketIcCoreService } from './services/pocketIcCoreService';
 import { genFactoryIdl } from './services/genFactoryIdl';
 import { FactoryService } from './services/factoryService';
+
+import { URL } from 'url';
+
 dotenv.config();
 
 type Command = 'deploy' | 'build' | 'create-user' | 'gen-factory-idl' | 'authorize';
