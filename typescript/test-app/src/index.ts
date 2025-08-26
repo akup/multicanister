@@ -35,9 +35,7 @@ app.get('/', (req, res) => {
             const response = await fetch('/', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              // Send as query param for compatibility with backend
-              // (could also send in body if backend is changed)
-              // body: JSON.stringify({ num })
+              body: JSON.stringify({ num })
             });
             const text = await response.text();
             document.getElementById('result').innerText = text;
@@ -49,7 +47,7 @@ app.get('/', (req, res) => {
 });
 
 app.post('/', async (req, res) => {
-  const num = req.query.num && typeof req.query.num === 'string' ? BigInt(req.query.num) : 1n;
+  const num = req.body.num ? BigInt(req.body.num) : 1n;
 
   try {
     // Note: You'll need to define factoryCanisterId or get it from environment/config
