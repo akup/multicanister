@@ -103,6 +103,14 @@ Check it is installed:
 didc --version
 ```
 
+### Install wasm-opt
+
+It is needed to build [Candid](https://github.com/dfinity/candid) submodule. Just install node version globally:
+
+```bash
+npm install -g wasm-opt
+```
+
 ## Project structure
 
 ```txt

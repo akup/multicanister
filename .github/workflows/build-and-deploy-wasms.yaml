@@ -190,9 +190,9 @@ jobs:
           cd innerDfxProjects/candidUi/tools/ui
           npm install
 
+      # It is needed for candid UI build
       - name: Install wasm-opt
         run: |
-          cd "$GITHUB_WORKSPACE"
           npm install -g wasm-opt
 
       - name: Run icr-cli
