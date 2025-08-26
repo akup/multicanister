@@ -99,9 +99,20 @@ jobs:
 
       - name: Run icr-cli
         shell: bash
+        env:
+          POCKET_IC_CORE_URL: http://dev.service.pic.mc-ops.tech/
+          PIC_GATEWAY_URL: http://dev.gateway.pic.mc-ops.tech/
         run: |
-          icr-cli --version
-          icr-cli --help
+          # By default, GitHub Actions runs jobs in the GITHUB_WORKSPACE directory, which is /home/runner/work/<repo>/<repo>
+          cd "$GITHUB_WORKSPACE"
+          # Remove all .env files
+          rm -rf .env
+          rm -rf .env.*
+
+          # Run icr-cli deploy (it will build and deploy all canisters) with 'default' user
+          ~/.local/bin/icr-cli deploy -u default
+
+
 
       # - name: Setup pnpm cache
       #   uses: actions/cache@v4
