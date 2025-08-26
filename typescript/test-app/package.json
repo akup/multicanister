@@ -13,6 +13,9 @@
     "lint:fix": "eslint . --fix"
   },
   "dependencies": {
+    "@dfinity/agent": "2.3.0",
+    "@dfinity/identity": "2.4.1",
+    "@dfinity/utils": "^2.14.0",
     "express": "5.1.0"
   },
   "devDependencies": {
@@ -22,7 +25,12 @@
     "ts-node": "10.9.2",
     "typescript": "5.8.3"
   },
-  "keywords": ["typescript", "express", "rest", "api"],
+  "keywords": [
+    "typescript",
+    "express",
+    "rest",
+    "api"
+  ],
   "author": "",
   "license": "MIT"
-} 
+}
