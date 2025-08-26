@@ -15,7 +15,7 @@ updateStrategy:
 
 image:
   repository: "ghcr.io/jjoinvest/dex-multicanister/test-app"
-  tag: "main"
+  tag: "dev-testdeploy"
   pullPolicy: Always
 
 global:
