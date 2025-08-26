@@ -39,12 +39,12 @@ After making the changes, test the repository:
 
 ```bash
 # Test direct access
-curl -I https://akup.github.io/mcops-apps/index.yaml
+curl -I https://jjoinvest.github.io/dex-apps/index.yaml
 
 # Test with Helm
-helm repo add mcops-apps https://akup.github.io/mcops-apps
+helm repo add dex-apps https://jjoinvest.github.io/dex-apps
 helm repo update
-helm search repo mcops-apps
+helm search repo dex-apps
 ```
 
 ## Benefits of Public GitHub Pages

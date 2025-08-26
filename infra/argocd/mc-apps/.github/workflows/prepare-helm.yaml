@@ -1,0 +1,32 @@
+name: Push to OCI Helm Repository
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - '.github/workflows/prepare-helm.yaml'
+      - 'app-helm-chart/**'
+  workflow_dispatch:
+
+env:
+  OCI_REGISTRY: oci://ghcr.io/jjoinvest/dex-helm-charts/app-helm-chart
+
+jobs:
+  push-store-helm:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Checkout GitHub Action'
+        uses: actions/checkout@main
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: 'Helm lint'
+        run: |
+          ./pack_and_push_chart.sh lint ${{ env.OCI_REGISTRY }}
+      - name: 'Helm push'
+        if: success()
+        run: |
+          ./pack_and_push_chart.sh push ${{ env.OCI_REGISTRY }}
+          
