@@ -173,7 +173,8 @@ export class PocketICService {
         // const getTimeEnd = Date.now();
         // console.log('PocketIC time', time);
         // console.log('PocketIC getTime took', getTimeEnd - getTimeStart, 'ms');
-        await this.pocketIC!.getTime();
+        const time = await this.pocketIC!.getTime();
+        console.log('PocketIC time', time);
       } catch (error) {
         console.error('Error fetching PocketIC time:', error);
       }
