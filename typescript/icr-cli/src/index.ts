@@ -6,6 +6,11 @@ console.log('step2');
 import yargs from 'yargs';
 console.log('step3');
 import { hideBin } from 'yargs/helpers';
+
+// Debug yargs import
+console.log('yargs type:', typeof yargs);
+// console.log('yargs default:', typeof yargs.default);
+console.log('yargs keys:', Object.keys(yargs));
 import { prepareDfx } from './components/dfxProject';
 import { readCoreFile } from './components/coreInfo';
 import { readAppsFile } from './components/appsInfo';
