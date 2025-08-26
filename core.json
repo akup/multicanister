@@ -1,4 +1,7 @@
 {
   "factory": "factory",
-  "candid_ui": "didjs"
+  "candid_ui": "didjs",
+  "sns_root": "sns_root",
+  "sns_governance": "sns_governance",
+  "sns_ledger": "sns_ledger"
 }

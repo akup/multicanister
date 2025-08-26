@@ -6,9 +6,9 @@ import { PocketIcCoreService } from './pocketIcCoreService';
 import { deployCoreCanisterToPocketIC } from '../components/deployCanister';
 import { execSync } from 'child_process';
 
-import { Ed25519KeyIdentity } from '@dfinity/identity';
 import { Identity } from '@dfinity/agent';
 import { FactoryService } from './factoryService';
+import { requiredCoreKeys, optionalCoreKeys } from '../constants';
 export { idlFactory } from '../declarations/factory/factory.did';
 
 interface GitInfo {
@@ -75,23 +75,37 @@ export class DeployService {
 
     PocketIcCoreService.setPicCoreUrl(picCoreUrl);
     const pocketIcCoreService = PocketIcCoreService.getInstance();
-    const cores = await pocketIcCoreService.listCores();
-    console.log(cores);
+    const deploymentOrder = [...requiredCoreKeys, ...optionalCoreKeys];
+    const canisterNamesToDeploy = deploymentOrder.filter(key => coreInfo[key as keyof CoreInfo]);
 
-    //Deploy core canisters
-    for (const [key, value] of Object.entries(coreInfo)) {
-      if (key === 'modules' || !value) {
-        continue;
-      }
+    // 2. Вызываем новый эндпоинт, чтобы создать канистры и получить их ID
+    console.log(chalk.white(' - Ensuring all core canisters exist...'));
+    const deployedCanisterIds = await pocketIcCoreService.getCanisterIds(canisterNamesToDeploy);
+    console.log('Received canister IDs:', deployedCanisterIds);
+
+    // 3. Теперь итерируемся и устанавливаем код в уже созданные канистры
+    for (const key of deploymentOrder) {
+      const value = coreInfo[key as keyof CoreInfo];
+      if (!value) continue;
+
       const [dfxCanister, dfxProject] = dfxProjectsByActorName[value];
       const wasmPath = dfxProject.root + dfxCanister.wasm;
+
+      // Получаем данные о состоянии (хэш и т.д.) с сервера
+      const cores = await pocketIcCoreService.listCores();
       const coreCanisterData = cores[key];
-      await deployCoreCanisterToPocketIC(key, value, wasmPath, coreCanisterData);
+
+      await deployCoreCanisterToPocketIC(
+        key,
+        value,
+        wasmPath,
+        dfxCanister,
+        coreCanisterData,
+        deployedCanisterIds
+      );
     }
-    if (cores.factory && cores.factory.canisterIds.length > 0) {
-      return cores.factory.canisterIds[0];
-    }
-    return undefined;
+
+    return deployedCanisterIds.factory;
   }
 
   // Here we deploy the apps: create and upload all wasms referenced by canisterServices[].dfxName from apps.json

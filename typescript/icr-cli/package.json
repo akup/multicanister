@@ -9,7 +9,7 @@
   "scripts": {
     "dev-create-user": "nodemon --config nodemon.json ./src/index.ts create-user --d ../../ --n default",
     "dev-start-build-all": "nodemon --config nodemon.json ./src/index.ts deploy --d ../../",
-    "dev-start": "nodemon --config nodemon.json ./src/index.ts deploy --d ../../ --skip-build --skip-core",
+    "dev-start": "nodemon --config nodemon.json ./src/index.ts deploy --d ../../ --skip-build -u default",
     "create-user": "tsx ./src/index.ts create-user --d ../../ --n default",
     "build-and-deploy": "tsx ./src/index.ts deploy --d ../../",
     "deploy": "tsx ./src/index.ts deploy --d ../../ -u default --skip-core --skip-build",

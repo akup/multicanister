@@ -1,7 +1,7 @@
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import express from 'express';
-import coreRoutes from './routes/core';
+import { coreRoutes } from './routes/core';
 import { PocketICService } from '~/services/PocketICService';
 import chalk from 'chalk';
 

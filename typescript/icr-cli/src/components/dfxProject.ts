@@ -1,28 +1,25 @@
+import type { DfxConfig, DfxCanisterConfig } from '../types';
+
 import * as fs from 'fs';
 import chalk from 'chalk';
 import * as path from 'path';
 import { defaultConfig } from '../configs';
 
+export type DfxProjectCanister = DfxCanisterConfig;
+
 export class DfxProject {
   root: string = './';
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  dfxJson: Record<string, any> = {};
-  actors: Record<string, DfxProjectCanister> = {};
+  dfxJson: DfxConfig;
+  actors: Record<string, DfxCanisterConfig> = {};
+
+  constructor(dfxJson: DfxConfig) {
+    this.dfxJson = dfxJson;
+  }
 }
 
-export type CanisterType = 'custom' | 'motoko' | 'rust' | 'assets';
-export interface DfxProjectCanister {
-  build: string | string[];
-  candid?: string;
-  optimize?: string;
-  type: CanisterType;
-  wasm: string;
-  gzip?: boolean;
-}
-
-export function prepareDfx(): Record<string, [DfxProjectCanister, DfxProject]> | null {
+export function prepareDfx(): Record<string, [DfxCanisterConfig, DfxProject]> | null {
   //Здесь мы собираем все dfx.json файлы из всех поддиректорий и составляем Record с именем canister и массивом из информации о канистре и dfx.json проекте.
-  var dfxByActorName: Record<string, [DfxProjectCanister, DfxProject]> = {};
+  const dfxByActorName: Record<string, [DfxCanisterConfig, DfxProject]> = {};
 
   // Recursively find all dfx.json files in subdirectories (excluding the root one)
   const dfxFiles: string[] = [];
@@ -55,15 +52,15 @@ export function prepareDfx(): Record<string, [DfxProjectCanister, DfxProject]> |
   // Parse each found dfx.json and populate dfxByActorName
   for (const filePath of dfxFiles) {
     try {
-      const json = JSON.parse(fs.readFileSync(filePath).toString());
-      const dfxProject = new DfxProject();
+      const json = JSON.parse(fs.readFileSync(filePath).toString()) as DfxConfig;
+      const dfxProject = new DfxProject(json);
       // set the root to the directory containing this dfx.json
       dfxProject.root =
         filePath.slice(0, filePath.length - (defaultConfig.dfxFile.length + 1)) + '/';
-      dfxProject.dfxJson = json;
-      dfxProject.actors = json['canisters'] as Record<string, DfxProjectCanister>;
+      dfxProject.actors = json['canisters'] as Record<string, DfxCanisterConfig>;
+
       for (const [canisterName, dfxCanister] of Object.entries(dfxProject.actors)) {
-        let collectedDfx = dfxByActorName[canisterName];
+        const collectedDfx = dfxByActorName[canisterName];
         if (collectedDfx) {
           console.warn(
             chalk.yellow(
@@ -71,19 +68,9 @@ export function prepareDfx(): Record<string, [DfxProjectCanister, DfxProject]> |
             )
           );
         } else {
-          if (dfxCanister.type === 'custom') {
-            if (!dfxCanister.build) {
-              const wasmUrl = new URL(dfxCanister.wasm);
-              if (!wasmUrl.protocol) {
-                console.log(
-                  chalk.red(`Invalid wasm url '${dfxCanister.wasm}' at ${dfxProject.root}/dfx.json`)
-                );
-                throw new Error(
-                  `Canister '${canisterName}' at ${dfxProject.root}/dfx.json is a custom canister but has no build command and wasm parameter is not url`
-                );
-              }
-            }
-          }
+          // The faulty validation block that checked for a URL has been removed.
+          // Now, custom canisters without a build command are accepted,
+          // assuming their 'wasm' field points to a valid pre-compiled file (local or URL).
           dfxByActorName[canisterName] = [dfxCanister, dfxProject];
         }
       }

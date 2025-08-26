@@ -37,10 +37,29 @@ export class PocketIcCoreService {
     return PocketIcCoreService.instance;
   }
 
+  async getCanisterIds(names: string[]): Promise<Record<string, string>> {
+    const { default: fetch } = await import('node-fetch');
+    const response = await fetch(`${PocketIcCoreService.picCoreUrl!.origin}/api/get-canister-ids`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ names }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Failed to get canister IDs: ${errorText}`);
+    }
+
+    return (await response.json()) as Record<string, string>;
+  }
+
   async uploadWasm(
     wasmPath: string,
     wasmSha256: string,
-    canisterName: string
+    canisterName: string,
+    initArgHex?: string
   ): Promise<UploadResponse> {
     const formData = new FormData();
     const fileBuffer = await fs.promises.readFile(wasmPath);
@@ -48,6 +67,10 @@ export class PocketIcCoreService {
     formData.append('file', file);
     formData.append('sha256', wasmSha256);
     formData.append('name', canisterName);
+
+    if (initArgHex) {
+      formData.append('init_arg_hex', initArgHex);
+    }
 
     const { default: fetch } = await import('node-fetch');
     const response = await fetch(`${PocketIcCoreService.picCoreUrl!.origin}/api/upload`, {
@@ -57,8 +80,6 @@ export class PocketIcCoreService {
 
     if (!response.ok) {
       const json = await response.json();
-
-      // Check for various error message formats
       let errorMessage = 'Unknown error';
 
       if (json && typeof json === 'object') {
@@ -88,8 +109,6 @@ export class PocketIcCoreService {
 
     if (!response.ok) {
       const json = await response.json();
-
-      // Check for various error message formats
       let errorMessage = 'Unknown error';
 
       if (json && typeof json === 'object') {
