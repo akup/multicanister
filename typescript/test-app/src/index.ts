@@ -18,9 +18,9 @@ app.get('/', async (req, res) => {
   let fetchResult = '';
   try {
     const response = await fetch(`http://pocket-ic-core:4944/api/v1/canisters`);
-    const data = await response.json();
+    const data = await response.text();
     console.log(data);
-    fetchResult += `Canisters: ${JSON.stringify(data)}`;
+    fetchResult += `Canisters: ${data}`;
   } catch (error) {
     console.error(error);
     fetchResult += `Error fetching canisters: ${error}`;
