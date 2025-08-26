@@ -40,6 +40,31 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Cache Rust targets
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.rustup/toolchains/*/lib/rustlib/wasm32-unknown-unknown
+            ~/.cargo/bin
+            ~/.cargo/registry/index/*
+            ~/.cargo/registry/cache/*
+            ~/.cargo/git/db/*
+          key: ${{ runner.os }}-rust-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-rust-
+
+      # Fallback: Manual Rust target installation if actions-rs fails
+      - name: Install wasm32 target manually
+        if: failure()
+        run: |
+          rustup target add wasm32-unknown-unknown
+          rustup show
+
       - name: Get release info
         id: release
         env:
