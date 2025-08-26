@@ -50,15 +50,10 @@ jobs:
       - name: Build binary
         working-directory: typescript/icr-cli
         run: |
-          # First install locally in a folder to make sure it works
-          pnpm install
-          # Check the code works
-          pnpm run create-user
           # Build the app
           pnpm run build
+          # Check the code works
           node dist/index.js --version
-          # INSERT_YOUR_CODE
-          exit 1
           pnpm run build-binary-debug
 
       - name: List built binaries
