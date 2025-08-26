@@ -1,6 +1,10 @@
+console.log('=== ICR CLI STARTED ===');
 import chalk from 'chalk';
+console.log('step1');
 import figlet from 'figlet';
+console.log('step2');
 import yargs from 'yargs';
+console.log('step3');
 import { hideBin } from 'yargs/helpers';
 import { prepareDfx } from './components/dfxProject';
 import { readCoreFile } from './components/coreInfo';
