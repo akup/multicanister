@@ -122,6 +122,61 @@ jobs:
           # Cache the downloaded binary
           echo "ICR CLI cached for future use"
 
+      - name: Get ic-wasm release info
+        id: ic-wasm-release
+        run: |
+          # Get latest release info
+          IC_WASM_RELEASE_INFO=$(curl -s https://api.github.com/repos/dfinity/ic-wasm/releases/latest)
+          IC_WASM_TAG=$(echo "$IC_WASM_RELEASE_INFO" | jq -r .tag_name)
+          IC_WASM_SHA=$(echo "$IC_WASM_RELEASE_INFO" | jq -r .target_commitish)
+          
+          echo "ic_wasm_tag=$IC_WASM_TAG" >> $GITHUB_OUTPUT
+          echo "ic_wasm_sha=$IC_WASM_SHA" >> $GITHUB_OUTPUT
+          
+          echo "Latest ic-wasm release: $IC_WASM_TAG (SHA: $IC_WASM_SHA)"
+
+      - name: Cache ic-wasm
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.local/bin/ic-wasm
+            ic-wasm-cache
+          key: ic-wasm-${{ steps.ic-wasm-release.outputs.ic_wasm_sha }}
+          restore-keys: |
+            ic-wasm-
+
+      - name: Download ic-wasm if not cached
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p ~/.local/bin
+          cd ~/.local/bin
+
+          # Get latest release tag
+          IC_WASM_LATEST=$(curl -s https://api.github.com/repos/dfinity/ic-wasm/releases/latest | jq -r .tag_name)
+          echo "Latest ic-wasm release: $IC_WASM_LATEST"
+
+          # Download the Linux binary asset
+          IC_WASM_URL=$(curl -s https://api.github.com/repos/dfinity/ic-wasm/releases/latest | \
+            jq -r '.assets[] | select(.name | test("ic-wasm-linux$")) | .browser_download_url')
+
+          if [ -z "$IC_WASM_URL" ]; then
+            echo "Could not find ic-wasm-linux asset in latest release"
+            exit 1
+          fi
+
+          echo "Downloading ic-wasm from $IC_WASM_URL"
+          curl -L "$IC_WASM_URL" -o ic-wasm
+          chmod +x ic-wasm
+
+          # Verify download
+          ./ic-wasm --version || echo "ic-wasm downloaded successfully"
+
+          # Cache the downloaded binary
+          echo "ic-wasm cached for future use"
+
+      - name: Add ic-wasm to PATH
+        run: echo "$HOME/.local/bin" >> $GITHUB_PATH
+
       - name: Run icr-cli
         shell: bash
         env:
