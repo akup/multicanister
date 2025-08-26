@@ -1,0 +1,47 @@
+name: Build and Deploy IC canisters
+
+on:
+  push:
+    branches: [ main, dev-* ]
+    paths:
+      - 'typescript/**'
+      - '.github/workflows/build-and-deploy-wasms.yaml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'typescript/**'
+      - '.github/workflows/build-and-deploy-wasms.yaml'
+  workflow_dispatch:
+    inputs:
+      application:
+        description: 'Application to deploy (leave empty for all)'
+        required: false
+        type: string
+        default: ''
+        options:
+          - pocket-ic-core
+          - test-app
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build and deploy wasms
+        run: pnpm build-and-deploy-wasms
