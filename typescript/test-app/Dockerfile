@@ -1,6 +1,8 @@
 # Use Node.js 22 Alpine as base image
 FROM node:22-alpine
 
+RUN apk add --no-cache curl
+
 # Install pnpm
 RUN npm install -g pnpm
 
