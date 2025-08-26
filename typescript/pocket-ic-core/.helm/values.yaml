@@ -89,11 +89,6 @@ service:
       protocol: TCP
       service_port: 4944
       ingress: true
-    test-port:
-      pod_port: 3000
-      protocol: TCP
-      service_port: 3000
-      ingress: false
 
 tolerations:
   - key: node-role
