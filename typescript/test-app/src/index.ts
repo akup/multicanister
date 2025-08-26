@@ -2,7 +2,7 @@ import express from 'express';
 import { Ed25519KeyIdentity } from '@dfinity/identity';
 import { Actor, ActorSubclass, HttpAgent } from '@dfinity/agent';
 import { createAgent } from '@dfinity/utils';
-import type { _SERVICE, idlFactory } from './declarations/hello';
+import type { _SERVICE, idlFactory } from './declarations/hello.did';
 
 const app = express();
 const PORT = process.env.PORT || 3000;

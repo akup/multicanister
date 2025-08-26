@@ -19,7 +19,7 @@ RUN pnpm install
 COPY . .
 
 # Build the TypeScript application
-RUN pnpm run build
+RUN pnpm run esbuild
 
 # Remove dev dependencies to reduce image size
 RUN pnpm prune --prod
