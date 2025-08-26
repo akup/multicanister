@@ -1,14 +1,14 @@
 import express from 'express';
 import { Ed25519KeyIdentity } from '@dfinity/identity';
-import { Actor, ActorSubclass, HttpAgent } from '@dfinity/agent';
+import { Actor, ActorSubclass } from '@dfinity/agent';
 import { createAgent } from '@dfinity/utils';
-import type { _SERVICE, idlFactory } from './declarations/hello.did';
+import { _SERVICE, idlFactory } from './declarations/hello.did';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const ICGatewayAPIHost = 'http://pocket-ic-core:4944';
 
-let agent: HttpAgent | null = null;
+let actor: ActorSubclass<_SERVICE> | null = null;
 // Middleware
 app.use(express.json());
 
@@ -53,12 +53,7 @@ app.post('/', async (req, res) => {
 
   try {
     // Note: You'll need to define factoryCanisterId or get it from environment/config
-    const actor: ActorSubclass<_SERVICE> = Actor.createActor(idlFactory, {
-      agent: agent!,
-      canisterId: '75lp5-u7777-77776-qaaba-cai',
-    });
-
-    const result = await actor.get(num);
+    const result = await actor!.get(num);
     console.log(`got result: ${result}`);
     res.send(`ok: ${result}`);
   } catch (error) {
@@ -81,9 +76,14 @@ app.listen(PORT, async () => {
   // Initialize management canister
   try {
     const identity = Ed25519KeyIdentity.generate();
-    agent = await createAgent({
+    const agent = await createAgent({
       identity,
       host: ICGatewayAPIHost,
+    });
+    // Note: You'll need to define factoryCanisterId or get it from environment/config
+    actor = Actor.createActor(idlFactory, {
+      agent,
+      canisterId: '75lp5-u7777-77776-qaaba-cai',
     });
     console.log(`Try to access Pocket IC at ${ICGatewayAPIHost}`);
     // Fetch root key as we are talking to the Pocket IC and not the mainnet
