@@ -130,7 +130,7 @@ export class PocketICService {
 
     const pocketICHost = `http://localhost:${port}`;
     const gwPort = gatewayPort ?? port + 1;
-    const ICGatewayAPIHost = `http://localhost:${gwPort}`;
+    const ICGatewayAPIHost = `http://0.0.0.0:${gwPort}`;
 
     // Initialize PocketIC client with application subnet and NNS subnet
     const defaultApplicationSubnet: ApplicationSubnetConfig = {
