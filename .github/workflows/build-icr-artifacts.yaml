@@ -52,6 +52,8 @@ jobs:
         run: |
           # First install locally in a folder to make sure it works
           pnpm install
+          # Check the code works
+          pnpm run create-user
           # Build the app
           pnpm run build
           node dist/index.js --version
