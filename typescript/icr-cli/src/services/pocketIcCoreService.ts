@@ -57,7 +57,14 @@ export class PocketIcCoreService {
     });
 
     if (!response.ok) {
-      const json = await response.json();
+      const text = await response.text();
+      let json: any = undefined;
+      try {
+        json = JSON.parse(text);
+      } catch (error) {
+        console.log(text);
+        throw error;
+      }
 
       // Check for various error message formats
       let errorMessage = 'Unknown error';

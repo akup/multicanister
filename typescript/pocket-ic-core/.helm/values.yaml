@@ -55,6 +55,8 @@ ingress:
     # cert-manager.io/cluster-issuer: letsencrypt-http  # Disabled HTTPS
     nginx.ingress.kubernetes.io/force-reload: "true"
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/client-max-body-size: "5M"
+    nginx.ingress.kubernetes.io/proxy-body-size: "5M"
   hosts:
     - host: dev.service.pic.mc-ops.tech
       paths:
