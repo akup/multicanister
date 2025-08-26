@@ -51,6 +51,9 @@ jobs:
         working-directory: typescript/icr-cli
         run: |
           pnpm run build
+          node dist/index.js --version
+          # INSERT_YOUR_CODE
+          exit 1
           pnpm run build-binary-debug
 
       - name: List built binaries
