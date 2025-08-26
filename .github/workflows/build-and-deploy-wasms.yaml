@@ -55,21 +55,44 @@ jobs:
           
           echo "Latest release: $RELEASE_TAG (SHA: $RELEASE_SHA)"
 
-      - name: Setup cache
+      - name: Download ICR CLI or use cache
         uses: actions/cache@v4
         with:
           path: |
-            ~/.cache/pnpm
-            node_modules
-            typescript/*/node_modules
-          key: wasm-build-${{ steps.release.outputs.release_sha }}-${{ hashFiles('pnpm-lock.yaml') }}
+            ~/.local/bin
+            icr-cli-cache
+          key: icr-cli-${{ steps.release.outputs.release_tag }}
           restore-keys: |
-            wasm-build-${{ steps.release.outputs.release_sha }}-
-            wasm-build-
+            icr-cli-
 
-      - name: Install dependencies
+      - name: Download ICR CLI if not cached
         if: steps.cache.outputs.cache-hit != 'true'
-        run: pnpm install
+        run: |
+          mkdir -p ~/.local/bin
+          cd ~/.local/bin
+          
+          # Download the specific release
+          wget -O icr-cli "https://github.com/JJOInvest/dex-multicanister/releases/download/${{ steps.release.outputs.release_tag }}/icr-cli-linux
+          
+          # Make it executable
+          chmod +x ≈
+          
+          # Verify download
+          ./icr-cli --version || echo "ICR CLI downloaded successfully"
+          
+          # Cache the downloaded binary
+          echo "ICR CLI cached for future use"
 
-      - name: Build and deploy wasms
-        run: pnpm build-and-deploy-wasms
+      - name: Run icr-cli
+        shell: bash
+        run: |
+          icr-cli --version
+          icr-cli --help
+
+      # - name: Setup pnpm cache
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: ${{ env.STORE_PATH }}
+      #     key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+      #     restore-keys: |
+      #       ${{ runner.os }}-pnpm-store-
