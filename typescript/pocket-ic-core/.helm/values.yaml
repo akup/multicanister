@@ -51,6 +51,10 @@ podDisruptionBudget:
 ingress:
   enabled: true
   className: "nginx"
+  annotations:
+    # cert-manager.io/cluster-issuer: letsencrypt-http  # Disabled HTTPS
+    nginx.ingress.kubernetes.io/force-reload: "true"
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
   hosts:
     - host: dev.service.pic.mc-ops.tech
       paths:
