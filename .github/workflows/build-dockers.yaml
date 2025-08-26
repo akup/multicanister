@@ -5,12 +5,12 @@ on:
     branches: [ main, dev-* ]
     paths:
       - 'typescript/**'
-      - '.github/workflows/deploy-ts.yaml'
+      - '.github/workflows/build-dockers.yaml'
   pull_request:
     branches: [ main ]
     paths:
       - 'typescript/**'
-      - '.github/workflows/deploy-ts.yaml'
+      - '.github/workflows/build-dockers.yaml'
   workflow_dispatch:
     inputs:
       application:
