@@ -1,16 +1,11 @@
-console.log('=== ICR CLI STARTED ===');
 import chalk from 'chalk';
-console.log('step1');
 import figlet from 'figlet';
-console.log('step2');
 import yargs from 'yargs';
-console.log('step3');
 import { hideBin } from 'yargs/helpers';
 
-// Debug yargs import
-console.log('yargs type:', typeof yargs);
-// console.log('yargs default:', typeof yargs.default);
-console.log('yargs keys:', Object.keys(yargs));
+import * as dotenv from 'dotenv';
+dotenv.config();
+
 import { prepareDfx } from './components/dfxProject';
 import { readCoreFile } from './components/coreInfo';
 import { readAppsFile } from './components/appsInfo';
@@ -18,24 +13,11 @@ import { BuildService } from './services/buildService';
 import { DeployService } from './services/deployService';
 import { createUser, UsersManagment } from './components/users/manageUsers';
 
-import * as dotenv from 'dotenv';
 import { PocketIcCoreService } from './services/pocketIcCoreService';
 import { genFactoryIdl } from './services/genFactoryIdl';
 import { FactoryService } from './services/factoryService';
 
 import { URL } from 'url';
-
-dotenv.config();
-
-// Debug information to find genesis of path issues
-console.log('=== DEBUG INFO ===');
-console.log('Current working directory:', process.cwd());
-// eslint-disable-next-line no-undef
-console.log('__dirname:', typeof __dirname !== 'undefined' ? __dirname : 'undefined');
-// eslint-disable-next-line no-undef
-console.log('__filename:', typeof __filename !== 'undefined' ? __filename : 'undefined');
-console.log('Process argv:', process.argv);
-console.log('==================');
 
 type Command = 'deploy' | 'build' | 'create-user' | 'gen-factory-idl' | 'authorize';
 
