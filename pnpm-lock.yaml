@@ -306,6 +306,9 @@ importers:
       '@dfinity/utils':
         specifier: ^2.14.0
         version: 2.14.0(@dfinity/agent@2.3.0(@dfinity/candid@2.3.0(@dfinity/principal@2.3.0))(@dfinity/principal@2.3.0))(@dfinity/candid@2.3.0(@dfinity/principal@2.3.0))(@dfinity/principal@2.3.0)
+      esbuild:
+        specifier: ^0.20.2
+        version: 0.20.2
       express:
         specifier: 5.1.0
         version: 5.1.0
