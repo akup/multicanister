@@ -157,10 +157,10 @@ jobs:
 
           # Download the Linux binary asset
           IC_WASM_URL=$(curl -s https://api.github.com/repos/dfinity/ic-wasm/releases/latest | \
-            jq -r '.assets[] | select(.name | test("ic-wasm$")) | .browser_download_url')
+            jq -r '.assets[] | select(.name | test("ic-wasm-linux64$")) | .browser_download_url')
 
           if [ -z "$IC_WASM_URL" ]; then
-            echo "Could not find ic-wasm asset in latest release"
+            echo "Could not find ic-wasm-linux64 asset in latest release"
             exit 1
           fi
 
