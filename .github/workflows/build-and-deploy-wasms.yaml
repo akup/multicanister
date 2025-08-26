@@ -4,12 +4,12 @@ on:
   push:
     branches: [ main, dev-* ]
     paths:
-      - 'typescript/**'
+      - 'canisters/**'
       - '.github/workflows/build-and-deploy-wasms.yaml'
   pull_request:
     branches: [ main ]
     paths:
-      - 'typescript/**'
+      - 'canisters/**'
       - '.github/workflows/build-and-deploy-wasms.yaml'
   workflow_dispatch:
     inputs:
@@ -74,7 +74,7 @@ jobs:
           cd ~/.local/bin
           
           # Download the specific release
-          wget -O icr-cli "https://github.com/JJOInvest/dex-multicanister/releases/download/${{ steps.release.outputs.release_tag }}/icr-cli-linux
+          wget -O icr-cli "https://github.com/JJOInvest/dex-multicanister/releases/download/${{ steps.release.outputs.release_tag }}/icr-cli-linux"
           
           # Make it executable
           chmod +x icr-cli
