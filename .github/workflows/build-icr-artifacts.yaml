@@ -65,7 +65,14 @@ jobs:
             base=$(basename "$file")
             baseName="${base%.*}"
             extension="${base##*.}"
-            mv "$file" "dist/bin/${baseName}-${{ env.BUILD_LABEL }}.${extension}"
+            
+            # If extension is the same as base, there's no extension
+            if [ "$extension" = "$base" ]; then
+              extension=""
+              mv "$file" "dist/bin/${baseName}-${{ env.BUILD_LABEL }}"
+            else
+              mv "$file" "dist/bin/${baseName}-${{ env.BUILD_LABEL }}.${extension}"
+            fi
           done
 
       - name: Upload binaries as artifacts
