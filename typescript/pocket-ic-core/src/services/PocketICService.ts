@@ -130,7 +130,7 @@ export class PocketICService {
 
     const pocketICHost = `http://localhost:${port}`;
     const gwPort = gatewayPort ?? port + 1;
-    const ICGatewayAPIHost = `http://0.0.0.0:${gwPort}`;
+    const ICGatewayAPIHost = `http://localhost:${gwPort}`;
 
     // Initialize PocketIC client with application subnet and NNS subnet
     const defaultApplicationSubnet: ApplicationSubnetConfig = {
@@ -149,7 +149,8 @@ export class PocketICService {
       stateDir: !process.env.POCKET_IC_STATE_DIR ? undefined : process.env.POCKET_IC_STATE_DIR,
       ...subnetCreateConfigs,
     });
-    await this.pocketIC.makeLive(gwPort);
+    //Need to set domain to 0.0.0.0 to make it accessible from outside container
+    await this.pocketIC.makeLive(gwPort, '0.0.0.0');
     console.log('PocketIC gateway started on port', gwPort);
 
     // Use default IC Management via IC Agent
@@ -173,8 +174,7 @@ export class PocketICService {
         // const getTimeEnd = Date.now();
         // console.log('PocketIC time', time);
         // console.log('PocketIC getTime took', getTimeEnd - getTimeStart, 'ms');
-        const time = await this.pocketIC!.getTime();
-        console.log('PocketIC time', time);
+        await this.pocketIC!.getTime();
       } catch (error) {
         console.error('Error fetching PocketIC time:', error);
       }
