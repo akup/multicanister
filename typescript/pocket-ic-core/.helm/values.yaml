@@ -4,6 +4,9 @@ podLabels:
   app: pocket-ic
   tier: icp-chain
 
+env_vars:
+  PIC_GATEWAY_DOMAINS: pocket-ic-core, dev.gateway.pic.mc-ops.tech
+
 replicaCount: 1
 
 revisionHistoryLimit: 5
@@ -39,22 +42,6 @@ serviceAccount:
   create: true
   annotations: {}
   name: ""
-
-initContainer:
-  enabled: false
-  env_vars: {}
-
-hostAliases: {}
-
-secrets:
-  enabled: false
-  secretsList: {}
-
-podAnnotations: {}
-
-podSecurityContext: {}
-
-securityContext: {}
 
 podDisruptionBudget:
   enabled: false
