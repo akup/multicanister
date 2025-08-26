@@ -102,7 +102,7 @@ service:
       pod_port: 3000
       protocol: TCP
       service_port: 3000
-      ingress: true
+      ingress: false
 
 tolerations:
   - key: node-role

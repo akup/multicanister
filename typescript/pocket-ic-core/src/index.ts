@@ -64,7 +64,7 @@ pocketICService
     const app2 = express();
     app2.use(express.json());
     app2.use('/', (req, res) => {
-      res.send('Hello world');
+      res.send('Here I test the debug server on 3000 port');
     });
     const server2 = app2.listen(3000, () => {
       console.log(chalk.bold(`Debug server is running on port 3000`));
