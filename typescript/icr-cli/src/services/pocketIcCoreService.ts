@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { URL } from 'url';
 import fetch, { RequestInit } from 'node-fetch';
-import { FormData } from 'undici';
+import { FormData, File as UndiciFile } from 'undici';
 import { File } from '@web-std/file';
 import type { Blob } from '@web-std/file';
 type BlobPart = Buffer | Blob | string | ArrayBuffer | ArrayBufferView;
@@ -51,11 +51,13 @@ export class PocketIcCoreService {
     try {
       console.log('uploadWasm 0.1', FormData);
       const formData = new FormData();
-      console.log('uploadWasm 0.2. Try readFile');
+      console.log('uploadWasm 0.2. Try readFile', UndiciFile, File);
       const fileBuffer = fs.readFileSync(wasmPath) as Buffer;
       console.log('uploadWasm 0.3. File buffer size:', fileBuffer.length);
       console.log('uploadWasm 0.4. Appending file to FormData');
-      formData.append('file', new File([fileBuffer] as BlobPart[], path.basename(wasmPath)));
+      const file = new File([fileBuffer], path.basename(wasmPath));
+      console.log('uploadWasm 0.5. File created', file);
+      formData.append('file', file);
       formData.append('sha256', wasmSha256);
       formData.append('name', canisterName);
 
