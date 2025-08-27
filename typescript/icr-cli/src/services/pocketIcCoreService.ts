@@ -3,8 +3,9 @@ import * as path from 'path';
 import { URL } from 'url';
 import fetch, { RequestInit } from 'node-fetch';
 import { FormData } from 'undici';
-import { Blob } from 'node:buffer';
-
+import { File } from '@web-std/file';
+import type { Blob } from '@web-std/file';
+type BlobPart = Buffer | Blob | string | ArrayBuffer | ArrayBufferView;
 export interface CoreMetadata {
   canisterIds: string[];
   wasmHash: string;
@@ -51,10 +52,10 @@ export class PocketIcCoreService {
       console.log('uploadWasm 0.1', FormData);
       const formData = new FormData();
       console.log('uploadWasm 0.2. Try readFile');
-      const fileBuffer = fs.readFileSync(wasmPath);
+      const fileBuffer = fs.readFileSync(wasmPath) as Buffer;
       console.log('uploadWasm 0.3. File buffer size:', fileBuffer.length);
       console.log('uploadWasm 0.4. Appending file to FormData');
-      formData.append('file', new Blob([fileBuffer]), path.basename(wasmPath));
+      formData.append('file', new File([fileBuffer] as BlobPart[], path.basename(wasmPath)));
       formData.append('sha256', wasmSha256);
       formData.append('name', canisterName);
 
