@@ -87,7 +87,7 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Download ICR CLI or use cache
+      - name: cache icr-cli
         uses: actions/cache@v4
         with:
           path: |
