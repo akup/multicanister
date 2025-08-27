@@ -6,6 +6,7 @@ on:
     paths:
       - 'typescript/**'
       - '.github/workflows/build-dockers.yaml'
+      - '!typescript/icr-cli/**'
   pull_request:
     branches: [ main ]
     paths:
