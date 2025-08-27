@@ -116,3 +116,13 @@ jobs:
           asset_path: typescript/icr-cli/dist/bin/icr-cli-win.exe
           asset_name: icr-cli-win.exe
           asset_content_type: application/octet-stream
+
+      - name: Upload Release Assets (JS)
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: typescript/icr-cli/dist/index.js
+          asset_name: icr-cli.js
+          asset_content_type: application/octet-stream

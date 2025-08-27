@@ -49,94 +49,94 @@ jobs:
 
 
       ### This is debug step
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: wasm32-unknown-unknown
+      # - name: Setup Rust
+      #   uses: dtolnay/rust-toolchain@stable
+      #   with:
+      #     targets: wasm32-unknown-unknown
 
-      - name: Cache Rust targets
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.rustup/toolchains/*/lib/rustlib/wasm32-unknown-unknown
-            ~/.cargo/bin
-            ~/.cargo/registry/index/*
-            ~/.cargo/registry/cache/*
-            ~/.cargo/git/db/*
-          key: ${{ runner.os }}-rust-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-rust-
+      # - name: Cache Rust targets
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: |
+      #       ~/.rustup/toolchains/*/lib/rustlib/wasm32-unknown-unknown
+      #       ~/.cargo/bin
+      #       ~/.cargo/registry/index/*
+      #       ~/.cargo/registry/cache/*
+      #       ~/.cargo/git/db/*
+      #     key: ${{ runner.os }}-rust-${{ hashFiles('**/Cargo.lock') }}
+      #     restore-keys: |
+      #       ${{ runner.os }}-rust-
 
-      # Fallback: Manual Rust target installation if actions-rs fails
-      - name: Install wasm32 target manually
-        if: failure()
-        run: |
-          rustup target add wasm32-unknown-unknown
-          rustup show
+      # # Fallback: Manual Rust target installation if actions-rs fails
+      # - name: Install wasm32 target manually
+      #   if: failure()
+      #   run: |
+      #     rustup target add wasm32-unknown-unknown
+      #     rustup show
 
-      - name: Get ic-wasm release info
-        id: ic-wasm-release
-        run: |
-          # Get latest release info
-          IC_WASM_RELEASE_INFO=$(curl -s https://api.github.com/repos/dfinity/ic-wasm/releases/latest)
-          IC_WASM_TAG=$(echo "$IC_WASM_RELEASE_INFO" | jq -r .tag_name)
-          IC_WASM_SHA=$(echo "$IC_WASM_RELEASE_INFO" | jq -r .target_commitish)
+      # - name: Get ic-wasm release info
+      #   id: ic-wasm-release
+      #   run: |
+      #     # Get latest release info
+      #     IC_WASM_RELEASE_INFO=$(curl -s https://api.github.com/repos/dfinity/ic-wasm/releases/latest)
+      #     IC_WASM_TAG=$(echo "$IC_WASM_RELEASE_INFO" | jq -r .tag_name)
+      #     IC_WASM_SHA=$(echo "$IC_WASM_RELEASE_INFO" | jq -r .target_commitish)
           
-          echo "ic_wasm_tag=$IC_WASM_TAG" >> $GITHUB_OUTPUT
-          echo "ic_wasm_sha=$IC_WASM_SHA" >> $GITHUB_OUTPUT
+      #     echo "ic_wasm_tag=$IC_WASM_TAG" >> $GITHUB_OUTPUT
+      #     echo "ic_wasm_sha=$IC_WASM_SHA" >> $GITHUB_OUTPUT
           
-          echo "Latest ic-wasm release: $IC_WASM_TAG (SHA: $IC_WASM_SHA)"
+      #     echo "Latest ic-wasm release: $IC_WASM_TAG (SHA: $IC_WASM_SHA)"
 
-      - name: Cache ic-wasm
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.local/bin/ic-wasm
-            ic-wasm-cache
-          key: ic-wasm-${{ steps.ic-wasm-release.outputs.ic_wasm_sha }}
-          restore-keys: |
-            ic-wasm-
+      # - name: Cache ic-wasm
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: |
+      #       ~/.local/bin/ic-wasm
+      #       ic-wasm-cache
+      #     key: ic-wasm-${{ steps.ic-wasm-release.outputs.ic_wasm_sha }}
+      #     restore-keys: |
+      #       ic-wasm-
 
-      - name: Download ic-wasm if not cached
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: |
-          mkdir -p ~/.local/bin
-          cd ~/.local/bin
+      # - name: Download ic-wasm if not cached
+      #   if: steps.cache.outputs.cache-hit != 'true'
+      #   run: |
+      #     mkdir -p ~/.local/bin
+      #     cd ~/.local/bin
 
-          # Get latest release tag
-          IC_WASM_LATEST=$(curl -s https://api.github.com/repos/dfinity/ic-wasm/releases/latest | jq -r .tag_name)
-          echo "Latest ic-wasm release: $IC_WASM_LATEST"
+      #     # Get latest release tag
+      #     IC_WASM_LATEST=$(curl -s https://api.github.com/repos/dfinity/ic-wasm/releases/latest | jq -r .tag_name)
+      #     echo "Latest ic-wasm release: $IC_WASM_LATEST"
 
-          # Download the Linux binary asset
-          IC_WASM_URL=$(curl -s https://api.github.com/repos/dfinity/ic-wasm/releases/latest | \
-            jq -r '.assets[] | select(.name | test("ic-wasm-linux64$")) | .browser_download_url')
+      #     # Download the Linux binary asset
+      #     IC_WASM_URL=$(curl -s https://api.github.com/repos/dfinity/ic-wasm/releases/latest | \
+      #       jq -r '.assets[] | select(.name | test("ic-wasm-linux64$")) | .browser_download_url')
 
-          if [ -z "$IC_WASM_URL" ]; then
-            echo "Could not find ic-wasm-linux64 asset in latest release"
-            exit 1
-          fi
+      #     if [ -z "$IC_WASM_URL" ]; then
+      #       echo "Could not find ic-wasm-linux64 asset in latest release"
+      #       exit 1
+      #     fi
 
-          echo "Downloading ic-wasm from $IC_WASM_URL"
-          curl -L "$IC_WASM_URL" -o ic-wasm
-          chmod +x ic-wasm
+      #     echo "Downloading ic-wasm from $IC_WASM_URL"
+      #     curl -L "$IC_WASM_URL" -o ic-wasm
+      #     chmod +x ic-wasm
 
-          # Verify download
-          ./ic-wasm --version || echo "ic-wasm downloaded successfully"
+      #     # Verify download
+      #     ./ic-wasm --version || echo "ic-wasm downloaded successfully"
 
-          # Cache the downloaded binary
-          echo "ic-wasm cached for future use"
+      #     # Cache the downloaded binary
+      #     echo "ic-wasm cached for future use"
 
-      - name: Add ic-wasm to PATH
-        run: echo "$HOME/.local/bin" >> $GITHUB_PATH
+      # - name: Add ic-wasm to PATH
+      #   run: echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-      - name: Remove candidUi dependencies (we don't need on test build)
-        run: |
-          cd "$GITHUB_WORKSPACE"
-          rm -rf innerDfxProjects
+      # - name: Remove candidUi dependencies (we don't need on test build)
+      #   run: |
+      #     cd "$GITHUB_WORKSPACE"
+      #     rm -rf innerDfxProjects
 
-      - name: Install wasm-opt
-        run: |
-          npm install -g wasm-opt
+      # - name: Install wasm-opt
+      #   run: |
+      #     npm install -g wasm-opt
       ### End of debug step
 
       - name: Build binary
@@ -150,11 +150,6 @@ jobs:
           
           # Check the code works
           node dist/index.js --version
-          
-          # Check cli can deploy (debug mode)
-          rm -rf .env
-          rm -rf .env.*
-          npm run deploy
 
           # Build binaries
           pnpm run build-binary-debug
@@ -180,12 +175,15 @@ jobs:
               mv "$file" "dist/bin/${baseName}-${{ env.BUILD_LABEL }}.${extension}"
             fi
           done
+          mv dist/index.js dist/icr-cli-${{ env.BUILD_LABEL }}.js
 
       - name: Upload binaries as artifacts
         uses: actions/upload-artifact@v4
         with:
           name: icr-cli-binaries-${{ env.BUILD_LABEL }}-${{ github.run_number }}
-          path: typescript/icr-cli/dist/bin/*
+          path: |
+            typescript/icr-cli/dist/bin/*
+            typescript/icr-cli/dist/icr-cli-${{ env.BUILD_LABEL }}.js
           retention-days: 90
 
       - name: Output artifact information
