@@ -46,9 +46,13 @@ export class PocketIcCoreService {
   ): Promise<UploadResponse> {
     console.log('uploadWasm 0', wasmPath);
     try {
+      console.log('uploadWasm 0.1', FormData);
       const formData = new FormData();
+      console.log('uploadWasm 0.2. Try readFile');
       const fileBuffer = await fs.promises.readFile(wasmPath);
+      console.log('uploadWasm 0.3. File readed');
       const file = new File([fileBuffer], 'wasm');
+      console.log('uploadWasm 0.4. File created');
       formData.append('file', file);
       formData.append('sha256', wasmSha256);
       formData.append('name', canisterName);
