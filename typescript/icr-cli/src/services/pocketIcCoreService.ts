@@ -44,6 +44,7 @@ export class PocketIcCoreService {
     wasmSha256: string,
     canisterName: string
   ): Promise<UploadResponse> {
+    console.log('uploadWasm 0');
     const formData = new FormData();
     const fileBuffer = await fs.promises.readFile(wasmPath);
     const file = new File([fileBuffer], 'wasm');
@@ -51,43 +52,54 @@ export class PocketIcCoreService {
     formData.append('sha256', wasmSha256);
     formData.append('name', canisterName);
 
-    const response = await fetch(`${PocketIcCoreService.picCoreUrl!.origin}/api/upload`, {
-      method: 'POST',
-      body: formData as unknown as RequestInit['body'],
-    });
+    try {
+      console.log('uploadWasm 1');
+      const response = await fetch(`${PocketIcCoreService.picCoreUrl!.origin}/api/upload`, {
+        method: 'POST',
+        body: formData as unknown as RequestInit['body'],
+      });
+      console.log('uploadWasm 2');
 
-    if (!response.ok) {
-      const text = await response.text();
-      let json: any = undefined;
-      try {
-        json = JSON.parse(text);
-      } catch (error) {
-        console.log(text);
-        throw error;
-      }
-
-      // Check for various error message formats
-      let errorMessage = 'Unknown error';
-
-      if (json && typeof json === 'object') {
-        if ('error' in json && json.error) {
-          console.error(json.error);
+      if (!response.ok) {
+        console.log('uploadWasm error');
+        const text = await response.text();
+        let json: any = undefined;
+        try {
+          json = JSON.parse(text);
+        } catch (error) {
+          console.log(text);
+          throw error;
         }
-        if ('message' in json && json.message) {
-          errorMessage = String(json.message);
+
+        // Check for various error message formats
+        let errorMessage = 'Unknown error';
+
+        if (json && typeof json === 'object') {
+          if ('error' in json && json.error) {
+            console.error(json.error);
+          }
+          if ('message' in json && json.message) {
+            errorMessage = String(json.message);
+          } else {
+            console.log('Full error response:', JSON.stringify(json, null, 2));
+          }
+        } else if (typeof json === 'string') {
+          errorMessage = json;
         } else {
           console.log('Full error response:', JSON.stringify(json, null, 2));
         }
-      } else if (typeof json === 'string') {
-        errorMessage = json;
-      } else {
-        console.log('Full error response:', JSON.stringify(json, null, 2));
+
+        throw new Error(
+          `Failed to upload canister ${canisterName} with wasm file: ${errorMessage}`
+        );
       }
+      console.log('uploadWasm ok');
 
-      throw new Error(`Failed to upload canister ${canisterName} with wasm file: ${errorMessage}`);
+      return (await response.json()) as UploadResponse;
+    } catch (error) {
+      console.error('Error uploading wasm:', error);
+      throw error;
     }
-
-    return (await response.json()) as UploadResponse;
   }
 
   async listCores(): Promise<ListCoresResponse> {
