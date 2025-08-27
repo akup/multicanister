@@ -1,0 +1,217 @@
+name: Build and Deploy IC canisters
+
+on:
+  push:
+    branches: [ main, dev-* ]
+    paths:
+      - 'canisters/**'
+      - '.github/workflows/build-and-deploy-wasms.yaml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'canisters/**'
+      - '.github/workflows/build-and-deploy-wasms.yaml'
+  workflow_dispatch:
+    inputs:
+      application:
+        description: 'Application to deploy (leave empty for all)'
+        required: false
+        type: string
+        default: ''
+        options:
+          - pocket-ic-core
+          - test-app
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+
+jobs:
+  build-and-deploy-wasms:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Cache Rust targets
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.rustup/toolchains/*/lib/rustlib/wasm32-unknown-unknown
+            ~/.cargo/bin
+            ~/.cargo/registry/index/*
+            ~/.cargo/registry/cache/*
+            ~/.cargo/git/db/*
+          key: ${{ runner.os }}-rust-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-rust-
+
+      # Fallback: Manual Rust target installation if actions-rs fails
+      - name: Install wasm32 target manually
+        if: failure()
+        run: |
+          rustup target add wasm32-unknown-unknown
+          rustup show
+
+      - name: Get release info
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Get latest release info
+          RELEASE_INFO=$(gh api repos/${{ github.repository }}/releases/latest)
+          RELEASE_ID=$(echo "$RELEASE_INFO" | jq -r '.id')
+          RELEASE_TAG=$(echo "$RELEASE_INFO" | jq -r '.tag_name')
+          RELEASE_SHA=$(echo "$RELEASE_INFO" | jq -r '.target_commitish')
+          
+          echo "icr_cli_id=$RELEASE_ID" >> $GITHUB_OUTPUT
+          echo "icr_cli_tag=$RELEASE_TAG" >> $GITHUB_OUTPUT
+          echo "icr_cli_sha=$RELEASE_SHA" >> $GITHUB_OUTPUT
+          
+          echo "Latest release: $RELEASE_TAG (SHA: $RELEASE_SHA)"
+
+      - name: Install npm
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: cache icr-cli
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.local/bin
+            icr-cli-cache
+          key: icr-cli-${{ steps.release.outputs.icr_cli_sha }}
+          restore-keys: |
+            icr-cli-${{ steps.release.outputs.icr_cli_sha }}
+
+      - name: Download ICR CLI if not cached
+        if: steps.cache.outputs.cache-hit != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p ~/.local/bin
+          cd ~/.local/bin
+          
+          # Get the asset ID for the Linux binary
+          ASSET_ID=$(gh api repos/${{ github.repository }}/releases/tags/${{ steps.release.outputs.release_tag }} \
+            --jq '.assets[] | select(.name=="icr-cli-js.tgz") | .id')
+          
+          echo "Downloading asset ID: $ASSET_ID"
+          
+          # Download using the asset API (more reliable for private repos)
+          curl -L \
+            -H "Authorization: token ${{ github.token }}" \
+            -H "Accept: application/octet-stream" \
+            -o icr-cli-js.tgz \
+            "https://api.github.com/repos/${{ github.repository }}/releases/assets/$ASSET_ID"
+          
+          # Unzip the file
+          tar -xzf icr-cli-js.tgz -C .
+          
+          # Verify download
+          node ./icr-cli.js --version || echo "ICR CLI downloaded successfully"
+
+          # List the contents of the directory
+          ls -la .
+          
+          # Cache the downloaded binary
+          echo "ICR CLI cached for future use"
+
+      - name: Get ic-wasm release info
+        id: ic-wasm-release
+        run: |
+          # Get latest release info
+          IC_WASM_RELEASE_INFO=$(curl -s https://api.github.com/repos/dfinity/ic-wasm/releases/latest)
+          IC_WASM_TAG=$(echo "$IC_WASM_RELEASE_INFO" | jq -r .tag_name)
+          IC_WASM_SHA=$(echo "$IC_WASM_RELEASE_INFO" | jq -r .target_commitish)
+          
+          echo "ic_wasm_tag=$IC_WASM_TAG" >> $GITHUB_OUTPUT
+          echo "ic_wasm_sha=$IC_WASM_SHA" >> $GITHUB_OUTPUT
+          
+          echo "Latest ic-wasm release: $IC_WASM_TAG (SHA: $IC_WASM_SHA)"
+
+      - name: Cache ic-wasm
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.local/bin/ic-wasm
+            ic-wasm-cache
+          key: ic-wasm-${{ steps.ic-wasm-release.outputs.ic_wasm_sha }}
+          restore-keys: |
+            ic-wasm-${{ steps.ic-wasm-release.outputs.ic_wasm_sha }}
+
+      - name: Download ic-wasm if not cached
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p ~/.local/bin
+          cd ~/.local/bin
+
+          # Get latest release tag
+          IC_WASM_LATEST=$(curl -s https://api.github.com/repos/dfinity/ic-wasm/releases/latest | jq -r .tag_name)
+          echo "Latest ic-wasm release: $IC_WASM_LATEST"
+
+          # Download the Linux binary asset
+          IC_WASM_URL=$(curl -s https://api.github.com/repos/dfinity/ic-wasm/releases/latest | \
+            jq -r '.assets[] | select(.name | test("ic-wasm-linux64$")) | .browser_download_url')
+
+          if [ -z "$IC_WASM_URL" ]; then
+            echo "Could not find ic-wasm-linux64 asset in latest release"
+            exit 1
+          fi
+
+          echo "Downloading ic-wasm from $IC_WASM_URL"
+          curl -L "$IC_WASM_URL" -o ic-wasm
+          chmod +x ic-wasm
+
+          # Verify download
+          ./ic-wasm --version || echo "ic-wasm downloaded successfully"
+
+          # Cache the downloaded binary
+          echo "ic-wasm cached for future use"
+
+      - name: Add ic-wasm to PATH
+        run: echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+
+      # This step should be done automatically by icr-cli, but it's not working at the moment
+      - name: Npm install in dependencies (candidUi)
+        run: |
+          cd "$GITHUB_WORKSPACE"
+          cd innerDfxProjects/candidUi/tools/ui
+          npm install
+
+      # It is needed for candid UI build
+      - name: Install wasm-opt
+        run: |
+          npm install -g wasm-opt
+
+      - name: Run icr-cli (with nodeJS)
+        shell: bash
+        env:
+          POCKET_IC_CORE_URL: http://dev.service.pic.mc-ops.tech/
+          PIC_GATEWAY_URL: http://dev.gateway.pic.mc-ops.tech/
+        run: |
+          # By default, GitHub Actions runs jobs in the GITHUB_WORKSPACE directory, which is /home/runner/work/<repo>/<repo>
+          cd "$GITHUB_WORKSPACE"
+          # Remove all .env files
+          rm -rf .env
+          rm -rf .env.*
+
+          # Run icr-cli deploy (it will build and deploy all canisters) with 'default' user
+          cp -r ~/.local/bin/fonts ~/.local/
+          ls -la .
+          ls -la ~/.local
+          node ~/.local/bin/icr-cli.js deploy -u default

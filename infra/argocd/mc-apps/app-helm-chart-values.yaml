@@ -33,7 +33,7 @@ image:
 
 # -- The imagePullSecrets field in the configuration file specifies that Kubernetes should get the credentials from a Secret to pull image from private registry
 imagePullSecrets:
-  - name: "mcops-registry"
+  - name: "dex-registry"
 
 # -- Global parameters
 global:

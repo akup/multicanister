@@ -33,8 +33,8 @@
   },
   "lint-staged": {
     "typescript/**/*.{ts,tsx}": [
-      "pnpm turbo run format",
-      "pnpm turbo run lint:fix"
+      "pnpm --filter=* format",
+      "pnpm --filter=* lint:fix"
     ]
   },
   "keywords": [],
@@ -43,7 +43,7 @@
   "type": "commonjs",
   "engines": {
     "node": ">=22.9.0",
-    "pnpm": ">=10.8.1"
+    "pnpm": "10.15.0"
   },
-  "packageManager": "pnpm@10.8.1"
+  "packageManager": "pnpm@10.15.0"
 }

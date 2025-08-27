@@ -1,0 +1,136 @@
+name: Build and Release ICR CLI
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      release_version:
+        description: 'Release version (e.g., v1.0.0)'
+        required: true
+        type: string
+
+env:
+  RELEASE_VERSION: ${{ github.event_name == 'push' && github.ref_name || github.event.inputs.release_version }}
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.15.0
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build binary
+        working-directory: typescript/icr-cli
+        run: |
+          pnpm run build
+          pnpm run build-binary-debug
+
+      - name: List built binaries
+        working-directory: typescript/icr-cli
+        run: ls -la dist/bin/
+
+      - name: Upload binaries as artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: icr-cli-binaries-${{ env.RELEASE_VERSION }}
+          path: typescript/icr-cli/dist/bin/*
+          retention-days: 30
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ env.RELEASE_VERSION }}
+          release_name: ICR CLI ${{ env.RELEASE_VERSION }}
+          body: |
+            ## ICR CLI ${{ env.RELEASE_VERSION }}
+            
+            ### Binaries
+            This release includes pre-built binaries for the ICR CLI.
+            
+            ### Changes
+            - Built from commit: ${{ github.sha }}
+            - Build date: ${{ github.event.head_commit.timestamp }}
+          draft: false
+          prerelease: false
+
+      - name: Upload Release Assets
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: typescript/icr-cli/dist/bin/icr-cli-linux
+          asset_name: icr-cli-linux
+          asset_content_type: application/octet-stream
+
+      - name: Upload Release Assets (macOS)
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: typescript/icr-cli/dist/bin/icr-cli-macos
+          asset_name: icr-cli-macos
+          asset_content_type: application/octet-stream
+
+      - name: Upload Release Assets (Windows)
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: typescript/icr-cli/dist/bin/icr-cli-win.exe
+          asset_name: icr-cli-win.exe
+          asset_content_type: application/octet-stream
+
+      - name: Create ICR CLI JS tgz file
+        run: |
+          mkdir -p icr-cli-tgz/fonts
+          cp typescript/icr-cli/dist/index.js icr-cli-tgz/icr-cli.js
+          cp -r typescript/icr-cli/fonts/* icr-cli-tgz/fonts/
+          tar -czf icr-cli-js.tgz -C icr-cli-tgz . 
+          rm -rf icr-cli-tgz
+
+      - name: Upload Release Assets (JS tgz)
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: icr-cli-js.tgz
+          asset_name: icr-cli-js.tgz
+          asset_content_type: application/gzip

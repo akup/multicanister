@@ -15,7 +15,7 @@ const coreModel = CoreModel.getInstance();
 const storage = multer.diskStorage({
   destination: (
     req: Request,
-    file: Express.Multer.File,
+    file: globalThis.Express.Multer.File,
     cb: (error: Error | null, destination: string) => void
   ) => {
     const uploadDir = path.join(DATA_DIR, 'uploads');
@@ -27,7 +27,7 @@ const storage = multer.diskStorage({
   },
   filename: (
     req: Request,
-    file: Express.Multer.File,
+    file: globalThis.Express.Multer.File,
     cb: (error: Error | null, filename: string) => void
   ) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
@@ -61,16 +61,18 @@ router.get('/list-core', async (req: Request, res: Response) => {
 });
 
 interface UploadRequest extends Request {
-  file?: Express.Multer.File;
+  file?: globalThis.Express.Multer.File;
 }
 
 router.post('/upload', upload.single('file'), async (req: UploadRequest, res: Response) => {
   let uploadedFilePath: string | null = null;
 
   try {
+    console.log('uploading file');
     if (!req.file) {
-      return res.status(400).json({ message: 'No file uploaded' });
+      return res.status(400).json({ message: 'No file in request' });
     }
+    console.log('has file contents');
 
     uploadedFilePath = req.file.path;
 
@@ -105,6 +107,8 @@ router.post('/upload', upload.single('file'), async (req: UploadRequest, res: Re
         required: ['sha256'],
       });
     }
+
+    console.log('File sha256 hash matches');
 
     var canisterStatus: CanisterStatus | undefined = undefined;
     const existingCanisterDetails = await coreModel.get(name);

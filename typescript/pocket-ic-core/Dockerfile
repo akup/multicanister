@@ -7,7 +7,7 @@ RUN corepack enable && corepack prepare pnpm@10.8.1 --activate
 
 # Install dependencies
 # For debian based images
-RUN apt-get update && apt-get install -y curl gzip
+RUN apt-get update && apt-get install -y curl gzip net-tools
 
 # For alpine based images
 # libc6-compat is required for pocket-ic compatibility with alpine linux

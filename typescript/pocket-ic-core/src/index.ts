@@ -1,3 +1,6 @@
+import * as dotenv from 'dotenv';
+dotenv.config();
+
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import express from 'express';
@@ -5,9 +8,7 @@ import coreRoutes from './routes/core';
 import { PocketICService } from './services/PocketICService';
 import chalk from 'chalk';
 
-import * as dotenv from 'dotenv';
 import { DATA_DIR } from './models/DataDir';
-dotenv.config();
 
 const argv = yargs(hideBin(process.argv))
   .option('port', {
@@ -67,8 +68,13 @@ pocketICService
   });
 
 // Handle process termination
-process.on('SIGINT', async () => {
+process.on('SIGINT', () => {
   console.log('Shutting down...');
-  await pocketICService.stop();
-  process.exit(0);
+  pocketICService
+    .stop()
+    .then(() => process.exit(0))
+    .catch(error => {
+      console.error('Error during shutdown:', error);
+      process.exit(1);
+    });
 });

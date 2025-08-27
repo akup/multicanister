@@ -4,13 +4,16 @@ podLabels:
   app: pocket-ic
   tier: icp-chain
 
+env_vars:
+  PIC_GATEWAY_DOMAINS: pocket-ic-core, dev.gateway.pic.mc-ops.tech
+
 replicaCount: 1
 
 revisionHistoryLimit: 5
 
 image:
   repository: "ghcr.io/jjoinvest/dex-multicanister/pocket-ic-core"
-  tag: "main"
+  tag: "dev-testdeploy"
   pullPolicy: Always
 
 # Enable StatefulSet
@@ -40,22 +43,6 @@ serviceAccount:
   annotations: {}
   name: ""
 
-initContainer:
-  enabled: false
-  env_vars: {}
-
-hostAliases: {}
-
-secrets:
-  enabled: false
-  secretsList: {}
-
-podAnnotations: {}
-
-podSecurityContext: {}
-
-securityContext: {}
-
 podDisruptionBudget:
   enabled: false
   minAvailable: 1
@@ -64,6 +51,12 @@ podDisruptionBudget:
 ingress:
   enabled: true
   className: "nginx"
+  annotations:
+    # cert-manager.io/cluster-issuer: letsencrypt-http  # Disabled HTTPS
+    nginx.ingress.kubernetes.io/force-reload: "true"
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/client-max-body-size: "5M"
+    nginx.ingress.kubernetes.io/proxy-body-size: "5M"
   hosts:
     - host: dev.service.pic.mc-ops.tech
       paths:
@@ -75,10 +68,10 @@ ingress:
         - path: /
           pathType: Prefix
           servicePort: 4944
-  tls: #Use this section if certifiacte is issued with lets encrypt. It can be that cloudflare issues certificate and sends http traffic to ingress.
-    - secretName: pic-service-tls  # cert-manager will create this secret
-      hosts:
-        - dev.service.pic.mc-ops.tech
+  # tls: #Use this section if certifiacte is issued with lets encrypt. It can be that cloudflare issues certificate and sends http traffic to ingress.
+  #   - secretName: pic-service-tls  # cert-manager will create this secret
+  #     hosts:
+  #       - dev.service.pic.mc-ops.tech
 
 resources:
   requests:
