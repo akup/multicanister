@@ -211,6 +211,7 @@ jobs:
           rm -rf .env.*
 
           # Run icr-cli deploy (it will build and deploy all canisters) with 'default' user
-          cp -r ~/.local/bin/fonts .
+          cp -r ~/.local/bin/fonts ~/.local/
           ls -la .
+          ls -la ~/.local
           node ~/.local/bin/icr-cli.js deploy -u default
