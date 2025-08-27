@@ -17,7 +17,7 @@ ENV POCKET_IC_STATE_DIR=/app/ic-state
 
 COPY . .
 
-RUN pnpm install
+RUN pnpm install --ignore-scripts
 
 EXPOSE 8092 4944
 
