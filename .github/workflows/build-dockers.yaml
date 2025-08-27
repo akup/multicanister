@@ -1,4 +1,4 @@
-name: Build and Deploy TypeScript Applications
+name: Build and Deploy Dockers
 
 on:
   push:
