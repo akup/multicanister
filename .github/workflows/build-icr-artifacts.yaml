@@ -158,12 +158,16 @@ jobs:
           tar -czf icr-cli-js.tgz -C icr-cli-tgz . 
           rm -rf icr-cli-tgz
 
+          mkdir -p bin
+          mv typescript/icr-cli/dist/bin/* bin/
+          rm -rf typescript/icr-cli/dist
+
       - name: Upload binaries as artifacts
         uses: actions/upload-artifact@v4
         with:
           name: icr-cli-binaries-${{ github.run_number }}
           path: |
-            typescript/icr-cli/dist/bin/*
+            bin/*
             icr-cli-js.tgz
             typescript/icr-cli/dist/icr-cli.js
           retention-days: 90
