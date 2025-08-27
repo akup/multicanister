@@ -158,18 +158,9 @@ jobs:
         working-directory: typescript/icr-cli
         run: ls -la dist/bin/
 
-      - name: Rename binaries to include build label
-        working-directory: typescript/icr-cli
-        run: |
-          for file in dist/bin/*; do
-            [ -f "$file" ] || continue
-            base=$(basename "$file")
-            mv "$file" "dist/bin/${baseName}"
-          done
-          mv dist/index.js dist/icr-cli.js
-
       - name: Create ICR CLI JS tgz file
         run: |
+          mv dist/index.js dist/icr-cli.js
           mkdir -p icr-cli-tgz/fonts
           cp typescript/icr-cli/dist/index.js icr-cli-tgz/icr-cli.js
           cp -r typescript/icr-cli/fonts/* icr-cli-tgz/fonts/
