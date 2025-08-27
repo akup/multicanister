@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import { URL } from 'url';
 import fetch, { RequestInit } from 'node-fetch';
-import { FormData, File } from 'undici';
+import { FormData } from 'undici';
 
 export interface CoreMetadata {
   canisterIds: string[];
@@ -50,11 +50,7 @@ export class PocketIcCoreService {
       const formData = new FormData();
       console.log('uploadWasm 0.2. Try readFile');
       const fileBuffer = fs.readFileSync(wasmPath);
-      console.log('uploadWasm 0.3. File readed', File);
       console.log('File buffer', fileBuffer);
-      const file = new File([fileBuffer], 'wasm');
-      console.log('uploadWasm 0.4. File created');
-      formData.append('file', file);
       formData.append('sha256', wasmSha256);
       formData.append('name', canisterName);
 
