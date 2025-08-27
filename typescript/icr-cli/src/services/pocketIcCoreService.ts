@@ -49,8 +49,9 @@ export class PocketIcCoreService {
       console.log('uploadWasm 0.1', FormData);
       const formData = new FormData();
       console.log('uploadWasm 0.2. Try readFile');
-      const fileBuffer = await fs.promises.readFile(wasmPath);
-      console.log('uploadWasm 0.3. File readed');
+      const fileBuffer = fs.readFileSync(wasmPath);
+      console.log('uploadWasm 0.3. File readed', File);
+      console.log('File buffer', fileBuffer);
       const file = new File([fileBuffer], 'wasm');
       console.log('uploadWasm 0.4. File created');
       formData.append('file', file);
