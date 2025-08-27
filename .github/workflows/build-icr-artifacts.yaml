@@ -2,14 +2,6 @@ name: Build ICR CLI Artifacts
 
 on:
   workflow_dispatch:
-    inputs:
-      build_label:
-        description: 'Build label (e.g., dev-build, test-build)'
-        required: true
-        type: string
-
-env:
-  BUILD_LABEL: ${{ github.event.inputs.build_label }}
 
 jobs:
   build-artifacts:
@@ -169,24 +161,23 @@ jobs:
       - name: Upload binaries as artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: icr-cli-binaries-${{ env.BUILD_LABEL }}-${{ github.run_number }}
+          name: icr-cli-binaries-${{ github.run_number }}
           path: |
             typescript/icr-cli/dist/bin/*
             icr-cli-js.tgz
-            typescript/icr-cli/dist/icr-cli-${{ env.BUILD_LABEL }}.js
+            typescript/icr-cli/dist/icr-cli.js
           retention-days: 90
 
       - name: Output artifact information
         run: |
           echo "## Build Complete!" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Build Label:** ${{ env.BUILD_LABEL }}" >> $GITHUB_STEP_SUMMARY
           echo "**Run Number:** ${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY
           echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
           echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Artifacts:**" >> $GITHUB_STEP_SUMMARY
-          echo "- Name: icr-cli-binaries-${{ env.BUILD_LABEL }}-${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Name: icr-cli-binaries-${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY
           echo "- Retention: 90 days" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "Download artifacts from the Actions tab or use the workflow run URL:" >> $GITHUB_STEP_SUMMARY
