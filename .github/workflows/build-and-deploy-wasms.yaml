@@ -82,6 +82,11 @@ jobs:
           
           echo "Latest release: $RELEASE_TAG (SHA: $RELEASE_SHA)"
 
+      - name: Install npm
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
       - name: Download ICR CLI or use cache
         uses: actions/cache@v4
         with:
@@ -102,7 +107,7 @@ jobs:
           
           # Get the asset ID for the Linux binary
           ASSET_ID=$(gh api repos/${{ github.repository }}/releases/tags/${{ steps.release.outputs.release_tag }} \
-            --jq '.assets[] | select(.name=="icr-cli-linux") | .id')
+            --jq '.assets[] | select(.name=="icr-cli.js") | .id')
           
           echo "Downloading asset ID: $ASSET_ID"
           
@@ -110,14 +115,14 @@ jobs:
           curl -L \
             -H "Authorization: token ${{ github.token }}" \
             -H "Accept: application/octet-stream" \
-            -o icr-cli \
+            -o icr-cli.js \
             "https://api.github.com/repos/${{ github.repository }}/releases/assets/$ASSET_ID"
           
-          # Make it executable
-          chmod +x icr-cli
+          # Make it executable (only for binaries)
+          # chmod +x icr-cli
           
           # Verify download
-          ./icr-cli --version || echo "ICR CLI downloaded successfully"
+          node ./icr-cli.js --version || echo "ICR CLI downloaded successfully"
           
           # Cache the downloaded binary
           echo "ICR CLI cached for future use"
@@ -178,11 +183,6 @@ jobs:
         run: echo "$HOME/.local/bin" >> $GITHUB_PATH
 
 
-      - name: Install npm
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-
       # This step should be done automatically by icr-cli, but it's not working at the moment
       - name: Npm install in dependencies (candidUi)
         run: |
@@ -195,7 +195,7 @@ jobs:
         run: |
           npm install -g wasm-opt
 
-      - name: Run icr-cli
+      - name: Run icr-cli (with nodeJS)
         shell: bash
         env:
           POCKET_IC_CORE_URL: http://dev.service.pic.mc-ops.tech/
@@ -208,14 +208,4 @@ jobs:
           rm -rf .env.*
 
           # Run icr-cli deploy (it will build and deploy all canisters) with 'default' user
-          ~/.local/bin/icr-cli deploy -u default
-
-
-
-      # - name: Setup pnpm cache
-      #   uses: actions/cache@v4
-      #   with:
-      #     path: ${{ env.STORE_PATH }}
-      #     key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-      #     restore-keys: |
-      #       ${{ runner.os }}-pnpm-store-
+          node ~/.local/bin/icr-cli.js deploy -u default
