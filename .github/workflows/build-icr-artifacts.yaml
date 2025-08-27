@@ -160,7 +160,6 @@ jobs:
 
       - name: Create ICR CLI JS tgz file
         run: |
-          mv dist/index.js dist/icr-cli.js
           mkdir -p icr-cli-tgz/fonts
           cp typescript/icr-cli/dist/index.js icr-cli-tgz/icr-cli.js
           cp -r typescript/icr-cli/fonts/* icr-cli-tgz/fonts/
