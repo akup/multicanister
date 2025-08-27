@@ -44,15 +44,15 @@ export class PocketIcCoreService {
     wasmSha256: string,
     canisterName: string
   ): Promise<UploadResponse> {
-    console.log('uploadWasm 0');
-    const formData = new FormData();
-    const fileBuffer = await fs.promises.readFile(wasmPath);
-    const file = new File([fileBuffer], 'wasm');
-    formData.append('file', file);
-    formData.append('sha256', wasmSha256);
-    formData.append('name', canisterName);
-
+    console.log('uploadWasm 0', wasmPath);
     try {
+      const formData = new FormData();
+      const fileBuffer = await fs.promises.readFile(wasmPath);
+      const file = new File([fileBuffer], 'wasm');
+      formData.append('file', file);
+      formData.append('sha256', wasmSha256);
+      formData.append('name', canisterName);
+
       console.log('uploadWasm 1');
       const response = await fetch(`${PocketIcCoreService.picCoreUrl!.origin}/api/upload`, {
         method: 'POST',
