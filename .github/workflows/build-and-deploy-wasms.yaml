@@ -76,9 +76,9 @@ jobs:
           RELEASE_TAG=$(echo "$RELEASE_INFO" | jq -r '.tag_name')
           RELEASE_SHA=$(echo "$RELEASE_INFO" | jq -r '.target_commitish')
           
-          echo "release_id=$RELEASE_ID" >> $GITHUB_OUTPUT
-          echo "release_tag=$RELEASE_TAG" >> $GITHUB_OUTPUT
-          echo "release_sha=$RELEASE_SHA" >> $GITHUB_OUTPUT
+          echo "icr_cli_id=$RELEASE_ID" >> $GITHUB_OUTPUT
+          echo "icr_cli_tag=$RELEASE_TAG" >> $GITHUB_OUTPUT
+          echo "icr_cli_sha=$RELEASE_SHA" >> $GITHUB_OUTPUT
           
           echo "Latest release: $RELEASE_TAG (SHA: $RELEASE_SHA)"
 
@@ -93,9 +93,9 @@ jobs:
           path: |
             ~/.local/bin
             icr-cli-cache
-          key: icr-cli-${{ steps.release.outputs.release_tag }}
+          key: icr-cli-${{ steps.release.outputs.icr_cli_sha }}
           restore-keys: |
-            icr-cli-
+            icr-cli-${{ steps.release.outputs.icr_cli_sha }}
 
       - name: Download ICR CLI if not cached
         if: steps.cache.outputs.cache-hit != 'true'
@@ -151,7 +151,7 @@ jobs:
             ic-wasm-cache
           key: ic-wasm-${{ steps.ic-wasm-release.outputs.ic_wasm_sha }}
           restore-keys: |
-            ic-wasm-
+            ic-wasm-${{ steps.ic-wasm-release.outputs.ic_wasm_sha }}
 
       - name: Download ic-wasm if not cached
         if: steps.cache.outputs.cache-hit != 'true'
