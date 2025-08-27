@@ -68,9 +68,11 @@ router.post('/upload', upload.single('file'), async (req: UploadRequest, res: Re
   let uploadedFilePath: string | null = null;
 
   try {
+    console.log('uploading file');
     if (!req.file) {
       return res.status(400).json({ message: 'No file in request' });
     }
+    console.log('has file contents');
 
     uploadedFilePath = req.file.path;
 
@@ -105,6 +107,8 @@ router.post('/upload', upload.single('file'), async (req: UploadRequest, res: Re
         required: ['sha256'],
       });
     }
+
+    console.log('File sha256 hash matches');
 
     var canisterStatus: CanisterStatus | undefined = undefined;
     const existingCanisterDetails = await coreModel.get(name);
