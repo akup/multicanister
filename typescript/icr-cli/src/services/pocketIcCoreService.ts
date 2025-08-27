@@ -3,6 +3,7 @@ import * as path from 'path';
 import { URL } from 'url';
 import fetch, { RequestInit } from 'node-fetch';
 import FormData from 'form-data';
+import pTimeout from 'p-timeout';
 
 export interface CoreMetadata {
   canisterIds: string[];
@@ -67,11 +68,14 @@ export class PocketIcCoreService {
       formData.append('name', canisterName);
 
       console.log('uploadWasm 1');
-      const response = await fetch(`${PocketIcCoreService.picCoreUrl!.origin}/api/upload`, {
-        method: 'POST',
-        body: formData as unknown as RequestInit['body'],
-      });
-      console.log('uploadWasm 2');
+      const response = await pTimeout(
+        fetch(`${PocketIcCoreService.picCoreUrl!.origin}/api/upload`, {
+          method: 'POST',
+          body: formData as unknown as RequestInit['body'],
+        }),
+        { milliseconds: 30000 } // 30 seconds
+      );
+      console.log('uploadWasm ok');
 
       if (!response.ok) {
         console.log('uploadWasm error');
