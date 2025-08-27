@@ -69,7 +69,7 @@ router.post('/upload', upload.single('file'), async (req: UploadRequest, res: Re
 
   try {
     if (!req.file) {
-      return res.status(400).json({ message: 'No file uploaded' });
+      return res.status(400).json({ message: 'No file in request' });
     }
 
     uploadedFilePath = req.file.path;
