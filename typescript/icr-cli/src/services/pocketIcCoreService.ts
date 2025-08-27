@@ -2,10 +2,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { URL } from 'url';
 import fetch, { RequestInit } from 'node-fetch';
-import { FormData, File as UndiciFile } from 'undici';
-import { File } from '@web-std/file';
-import type { Blob } from '@web-std/file';
-type BlobPart = Buffer | Blob | string | ArrayBuffer | ArrayBufferView;
+import FormData from 'form-data';
+
 export interface CoreMetadata {
   canisterIds: string[];
   wasmHash: string;
@@ -47,17 +45,24 @@ export class PocketIcCoreService {
     wasmSha256: string,
     canisterName: string
   ): Promise<UploadResponse> {
+    // We are using 'form-data' package to upload the wasm file to the PocketIC Core.
+    // This creates a deprecation warning in Node.js 20.
+    // We are suppressing the warning for this function.
+    // We need to use form-data instead of undici's FormData because the latter is not working in a linux binary.
+    // Store original warning listeners
+    const originalWarningListeners = process.listeners('warning');
+    // Suppress deprecation warnings for this function
+    process.removeAllListeners('warning');
+
     console.log('uploadWasm 0', wasmPath);
     try {
       console.log('uploadWasm 0.1', FormData);
       const formData = new FormData();
-      console.log('uploadWasm 0.2. Try readFile', UndiciFile, File);
-      const fileBuffer = fs.readFileSync(wasmPath) as Buffer;
+      console.log('uploadWasm 0.2. Try readFile');
+      const fileBuffer = fs.readFileSync(wasmPath);
       console.log('uploadWasm 0.3. File buffer size:', fileBuffer.length);
       console.log('uploadWasm 0.4. Appending file to FormData');
-      const file = new File([fileBuffer], path.basename(wasmPath));
-      console.log('uploadWasm 0.5. File created', file);
-      formData.append('file', file);
+      formData.append('file', fileBuffer, path.basename(wasmPath));
       formData.append('sha256', wasmSha256);
       formData.append('name', canisterName);
 
@@ -107,6 +112,11 @@ export class PocketIcCoreService {
     } catch (error) {
       console.error('Error uploading wasm:', error);
       throw error;
+    } finally {
+      // Restore original warning listeners
+      originalWarningListeners.forEach(listener => {
+        process.on('warning', listener);
+      });
     }
   }
 
