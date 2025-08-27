@@ -164,18 +164,17 @@ jobs:
           for file in dist/bin/*; do
             [ -f "$file" ] || continue
             base=$(basename "$file")
-            baseName="${base%.*}"
-            extension="${base##*.}"
-            
-            # If extension is the same as base, there's no extension
-            if [ "$extension" = "$base" ]; then
-              extension=""
-              mv "$file" "dist/bin/${baseName}-${{ env.BUILD_LABEL }}"
-            else
-              mv "$file" "dist/bin/${baseName}-${{ env.BUILD_LABEL }}.${extension}"
-            fi
+            mv "$file" "dist/bin/${baseName}"
           done
-          mv dist/index.js dist/icr-cli-${{ env.BUILD_LABEL }}.js
+          mv dist/index.js dist/icr-cli.js
+
+      - name: Create ICR CLI JS tgz file
+        run: |
+          mkdir -p icr-cli-tgz/fonts
+          cp typescript/icr-cli/dist/index.js icr-cli-tgz/icr-cli.js
+          cp -r typescript/icr-cli/fonts/* icr-cli-tgz/fonts/
+          tar -czf icr-cli-js.tgz -C icr-cli-tgz . 
+          rm -rf icr-cli-tgz
 
       - name: Upload binaries as artifacts
         uses: actions/upload-artifact@v4
@@ -183,6 +182,7 @@ jobs:
           name: icr-cli-binaries-${{ env.BUILD_LABEL }}-${{ github.run_number }}
           path: |
             typescript/icr-cli/dist/bin/*
+            icr-cli-js.tgz
             typescript/icr-cli/dist/icr-cli-${{ env.BUILD_LABEL }}.js
           retention-days: 90
 

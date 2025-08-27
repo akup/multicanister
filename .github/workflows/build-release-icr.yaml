@@ -117,12 +117,20 @@ jobs:
           asset_name: icr-cli-win.exe
           asset_content_type: application/octet-stream
 
-      - name: Upload Release Assets (JS)
+      - name: Create ICR CLI JS tgz file
+        run: |
+          mkdir -p icr-cli-tgz/fonts
+          cp typescript/icr-cli/dist/index.js icr-cli-tgz/icr-cli.js
+          cp -r typescript/icr-cli/fonts/* icr-cli-tgz/fonts/
+          tar -czf icr-cli-js.tgz -C icr-cli-tgz . 
+          rm -rf icr-cli-tgz
+
+      - name: Upload Release Assets (JS tgz)
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: typescript/icr-cli/dist/index.js
-          asset_name: icr-cli.js
-          asset_content_type: application/octet-stream
+          asset_path: icr-cli-js.tgz
+          asset_name: icr-cli-js.tgz
+          asset_content_type: application/gzip
