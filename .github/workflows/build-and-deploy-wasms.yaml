@@ -28,7 +28,7 @@ env:
 
 
 jobs:
-  build-and-push:
+  build-and-deploy-wasms:
     runs-on: ubuntu-latest
     permissions:
       contents: read

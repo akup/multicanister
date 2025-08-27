@@ -7,7 +7,6 @@ import { deployCoreCanisterToPocketIC } from '../components/deployCanister';
 import { execSync } from 'child_process';
 import { URL } from 'url';
 
-import { Ed25519KeyIdentity } from '@dfinity/identity';
 import { Identity } from '@dfinity/agent';
 import { FactoryService } from './factoryService';
 export { idlFactory } from '../declarations/factory/factory.did';
@@ -81,7 +80,7 @@ export class DeployService {
 
     //Deploy core canisters
     for (const [key, value] of Object.entries(coreInfo)) {
-      if (key === 'modules' || !value) {
+      if (key === 'modules' || typeof value !== 'string' || !value) {
         continue;
       }
       const [dfxCanister, dfxProject] = dfxProjectsByActorName[value];

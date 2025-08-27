@@ -49,11 +49,22 @@ jobs:
 
       - name: Build binary
         working-directory: typescript/icr-cli
+        env:
+          POCKET_IC_CORE_URL: http://dev.service.pic.mc-ops.tech/
+          PIC_GATEWAY_URL: http://dev.gateway.pic.mc-ops.tech/
         run: |
           # Build the app
           pnpm run build
+          
           # Check the code works
           node dist/index.js --version
+          
+          # Check cli can deploy (debug mode)
+          rm -rf .env
+          rm -rf .env.*
+          npm run deploy
+
+          # Build binaries
           pnpm run build-binary-debug
 
       - name: List built binaries
