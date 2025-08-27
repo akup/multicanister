@@ -20,6 +20,9 @@ export class BuildService {
       if (key === 'modules' || !value) {
         continue;
       }
+      if (!dfxProjectsByActorName[value]) {
+        throw new Error(`There is no required core canister '${value}' in dfx json`);
+      }
       const [dfxCanister, dfxProject] = dfxProjectsByActorName[value];
       // Sequential build of canisters
       await buildCanister(value, dfxCanister, dfxProject.root, () => {

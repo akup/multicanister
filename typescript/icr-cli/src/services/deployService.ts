@@ -83,6 +83,9 @@ export class DeployService {
       if (key === 'modules' || typeof value !== 'string' || !value) {
         continue;
       }
+      if (!dfxProjectsByActorName[value]) {
+        throw new Error(`There is no required core canister '${value}' in dfx json`);
+      }
       const [dfxCanister, dfxProject] = dfxProjectsByActorName[value];
       const wasmPath = dfxProject.root + dfxCanister.wasm;
       const coreCanisterData = cores[key];
