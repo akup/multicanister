@@ -123,6 +123,9 @@ jobs:
           
           # Verify download
           node ./icr-cli.js --version || echo "ICR CLI downloaded successfully"
+
+          # List the contents of the directory
+          ls -la .
           
           # Cache the downloaded binary
           echo "ICR CLI cached for future use"
@@ -209,4 +212,5 @@ jobs:
 
           # Run icr-cli deploy (it will build and deploy all canisters) with 'default' user
           cp -r ~/.local/bin/fonts .
+          ls -la .
           node ~/.local/bin/icr-cli.js deploy -u default
