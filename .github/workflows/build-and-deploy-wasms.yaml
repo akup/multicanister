@@ -107,7 +107,7 @@ jobs:
           
           # Get the asset ID for the Linux binary
           ASSET_ID=$(gh api repos/${{ github.repository }}/releases/tags/${{ steps.release.outputs.release_tag }} \
-            --jq '.assets[] | select(.name=="icr-cli.js") | .id')
+            --jq '.assets[] | select(.name=="icr-cli-js.tgz") | .id')
           
           echo "Downloading asset ID: $ASSET_ID"
           
@@ -115,11 +115,11 @@ jobs:
           curl -L \
             -H "Authorization: token ${{ github.token }}" \
             -H "Accept: application/octet-stream" \
-            -o icr-cli.js \
+            -o icr-cli-js.tgz \
             "https://api.github.com/repos/${{ github.repository }}/releases/assets/$ASSET_ID"
           
-          # Make it executable (only for binaries)
-          # chmod +x icr-cli
+          # Unzip the file
+          tar -xzf icr-cli-js.tgz -C .
           
           # Verify download
           node ./icr-cli.js --version || echo "ICR CLI downloaded successfully"
@@ -208,4 +208,5 @@ jobs:
           rm -rf .env.*
 
           # Run icr-cli deploy (it will build and deploy all canisters) with 'default' user
+          cp -r ~/.local/bin/fonts .
           node ~/.local/bin/icr-cli.js deploy -u default
