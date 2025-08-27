@@ -1,0 +1,50 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: test-app
+  namespace: argocd
+spec:
+  generators:
+    - clusters:
+        selector:
+          matchLabels:
+            nginx-ingress: enabled
+  template:
+    metadata:
+      name: 'test-app-{{name}}'
+      annotations:
+        #TODO: change to correct branch tag (ghcr.io/jjoinvest/dex-apps/test-app:main)
+        argocd-image-updater.argoproj.io/image-list: |
+          containers:
+          - name: test-app
+            source: "ghcr.io/jjoinvest/dex-apps/test-app:main"
+            update-strategy: "semver"
+    spec:
+      project: dex-apps
+      sources:
+      - repoURL: https://raw.githubusercontent.com/JJOInvest/dex-apps/refs/heads/main/helm-repo-raw #https://github.com/JJOInvest/dex-apps
+        targetRevision: 1.0.7
+        chart: app-helm-chart
+        helm:
+          passCredentials: true  # Only needed for OCI repositories
+          releaseName: pic-service
+          valueFiles:
+            - $defaults/app-helm-chart-values.yaml
+            - $dexapps-values/typescript/test-app/.helm/values.yaml
+      - repoURL: https://github.com/JJOInvest/dex-multicanister.git
+        targetRevision: dev-testdeploy
+        ref: dexapps-values
+      - repoURL: https://github.com/JJOInvest/dex-apps.git
+        targetRevision: main
+        ref: defaults
+      destination:
+        name: '{{name}}'
+        namespace: dev-dex
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+          allowEmpty: false
+        syncOptions:
+          - CreateNamespace=true
+          - ServerSideApply=true

@@ -1,6 +1,6 @@
-# mcops-apps
+# dex-apps
 
-McOps cluster applications: PIC, TNodes, oracles
+Dex cluster applications: PIC, TNodes, oracles
 
 ## Overview
 
@@ -9,7 +9,7 @@ This repository contains Helm charts and applications for the Dex cluster, inclu
 ## Repository Structure
 
 ```text
-mcops-apps/
+dex-apps/
 ├── app-helm-chart/           # Base Helm chart for all applications
 ├── apps/                     # Application-specific configurations
 ├── applicationSets/          # ArgoCD ApplicationSets
@@ -31,9 +31,9 @@ Each application uses values for `app-helm-chart` template that is referenced fr
 
 ```yaml
 spec:
-  project: mcops-apps
+  project: dex-apps
   sources:
-  - repoURL: https://raw.githubusercontent.com/JJOInvest/mcops-apps/main/helm-repo-raw
+  - repoURL: https://raw.githubusercontent.com/JJOInvest/dex-apps/main/helm-repo-raw
     targetRevision: 1.0.0
     chart: app-helm-chart
     helm:
@@ -41,7 +41,7 @@ spec:
       releaseName: test-app
       valueFiles:
         - $dexapps-values/apps/test-app/values.yaml #test-app values
-  - repoURL: https://github.com/JJOInvest/mcops-apps.git
+  - repoURL: https://github.com/JJOInvest/dex-apps.git
     targetRevision: main
     ref: dexapps-values #Reference to repository
 ```
@@ -93,8 +93,8 @@ We use raw GitHub URLs instead of OCI (GitHub Container Registry) because:
 
 ArgoCD can access the Helm repository via:
 
-- **Raw GitHub URLs**: `https://raw.githubusercontent.com/akup/mcops-apps/main/helm-repo-raw` (Recommended for private repos)
-- **GitHub Pages**: `https://akup.github.io/mcops-apps` (For public access)
+- **Raw GitHub URLs**: `https://raw.githubusercontent.com/JJOInvest/dex-apps/main/helm-repo-raw` (Recommended for private repos)
+- **GitHub Pages**: `https://jjoinvest.github.io/dex-apps` (For public access)
 - **Public repos and helm charts**: can be used anywhere and also in helm dependencies
 
 ### Helm repository Structure (for non-OCI repo)
@@ -165,7 +165,7 @@ bash scripts/generate-raw-index.sh
 
 # For GitHub Pages repository
 mv app-helm-chart-*.tgz helm-repo/
-helm repo index helm-repo --url https://akup.github.io/mcops-apps
+helm repo index helm-repo --url https://jjoinvest.github.io/dex-apps
 
 # Commit and push
 git add helm-repo*/ && git commit -m "Update Helm repositories" && git push

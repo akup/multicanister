@@ -2,6 +2,10 @@ import chalk from 'chalk';
 import figlet from 'figlet';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
+
+import * as dotenv from 'dotenv';
+dotenv.config();
+
 import { prepareDfx } from './components/dfxProject';
 import { readCoreFile } from './components/coreInfo';
 import { readAppsFile } from './components/appsInfo';
@@ -9,11 +13,11 @@ import { BuildService } from './services/buildService';
 import { DeployService } from './services/deployService';
 import { createUser, UsersManagment } from './components/users/manageUsers';
 
-import * as dotenv from 'dotenv';
 import { PocketIcCoreService } from './services/pocketIcCoreService';
 import { genFactoryIdl } from './services/genFactoryIdl';
 import { FactoryService } from './services/factoryService';
-dotenv.config();
+
+import { URL } from 'url';
 
 type Command = 'deploy' | 'build' | 'create-user' | 'gen-factory-idl' | 'authorize';
 

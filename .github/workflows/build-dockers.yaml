@@ -1,4 +1,4 @@
-name: Build and Deploy Dockers
+name: Build and Deploy TypeScript Applications
 
 on:
   push:
@@ -6,6 +6,7 @@ on:
     paths:
       - 'typescript/**'
       - '.github/workflows/build-dockers.yaml'
+      - '!typescript/icr-cli/**'
   pull_request:
     branches: [ main ]
     paths:
@@ -27,7 +28,7 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  build-and-push:
+  build-dockers-to-registry:
     runs-on: ubuntu-latest
     permissions:
       contents: read

@@ -1,5 +1,9 @@
-import { FormData, File } from 'undici';
 import * as fs from 'fs';
+import * as path from 'path';
+import { URL } from 'url';
+import fetch, { RequestInit } from 'node-fetch';
+import FormData from 'form-data';
+import pTimeout from 'p-timeout';
 
 export interface CoreMetadata {
   canisterIds: string[];
@@ -42,48 +46,85 @@ export class PocketIcCoreService {
     wasmSha256: string,
     canisterName: string
   ): Promise<UploadResponse> {
-    const formData = new FormData();
-    const fileBuffer = await fs.promises.readFile(wasmPath);
-    const file = new File([fileBuffer], 'wasm');
-    formData.append('file', file);
-    formData.append('sha256', wasmSha256);
-    formData.append('name', canisterName);
+    // We are using 'form-data' package to upload the wasm file to the PocketIC Core.
+    // This creates a deprecation warning in Node.js 20.
+    // We are suppressing the warning for this function.
+    // We need to use form-data instead of undici's FormData because the latter is not working in a linux binary.
+    // Store original warning listeners
+    const originalWarningListeners = process.listeners('warning');
+    // Suppress deprecation warnings for this function
+    process.removeAllListeners('warning');
 
-    const { default: fetch } = await import('node-fetch');
-    const response = await fetch(`${PocketIcCoreService.picCoreUrl!.origin}/api/upload`, {
-      method: 'POST',
-      body: formData,
-    });
+    console.log('uploadWasm 0', wasmPath);
+    try {
+      console.log('uploadWasm 0.1', FormData);
+      const formData = new FormData();
+      console.log('uploadWasm 0.2. Try readFile');
+      const fileBuffer = fs.readFileSync(wasmPath);
+      console.log('uploadWasm 0.3. File buffer size:', fileBuffer.length);
+      console.log('uploadWasm 0.4. Appending file to FormData');
+      formData.append('file', fileBuffer, path.basename(wasmPath));
+      formData.append('sha256', wasmSha256);
+      formData.append('name', canisterName);
 
-    if (!response.ok) {
-      const json = await response.json();
+      console.log('uploadWasm 1');
+      const response = await pTimeout(
+        fetch(`${PocketIcCoreService.picCoreUrl!.origin}/api/upload`, {
+          method: 'POST',
+          body: formData as unknown as RequestInit['body'],
+        }),
+        { milliseconds: 30000 } // 30 seconds
+      );
+      console.log('uploadWasm ok');
 
-      // Check for various error message formats
-      let errorMessage = 'Unknown error';
-
-      if (json && typeof json === 'object') {
-        if ('error' in json && json.error) {
-          console.error(json.error);
+      if (!response.ok) {
+        console.log('uploadWasm error');
+        const text = await response.text();
+        let json: any = undefined;
+        try {
+          json = JSON.parse(text);
+        } catch (error) {
+          console.log(text);
+          throw error;
         }
-        if ('message' in json && json.message) {
-          errorMessage = String(json.message);
+
+        // Check for various error message formats
+        let errorMessage = 'Unknown error';
+
+        if (json && typeof json === 'object') {
+          if ('error' in json && json.error) {
+            console.error(json.error);
+          }
+          if ('message' in json && json.message) {
+            errorMessage = String(json.message);
+          } else {
+            console.log('Full error response:', JSON.stringify(json, null, 2));
+          }
+        } else if (typeof json === 'string') {
+          errorMessage = json;
         } else {
           console.log('Full error response:', JSON.stringify(json, null, 2));
         }
-      } else if (typeof json === 'string') {
-        errorMessage = json;
-      } else {
-        console.log('Full error response:', JSON.stringify(json, null, 2));
+
+        throw new Error(
+          `Failed to upload canister ${canisterName} with wasm file: ${errorMessage}`
+        );
       }
+      console.log('uploadWasm ok');
 
-      throw new Error(`Failed to upload canister ${canisterName} with wasm file: ${errorMessage}`);
+      return (await response.json()) as UploadResponse;
+    } catch (error) {
+      console.error('Error uploading wasm:', error);
+      throw error;
+    } finally {
+      // Restore original warning listeners
+      originalWarningListeners.forEach(listener => {
+        process.on('warning', listener);
+      });
     }
-
-    return (await response.json()) as UploadResponse;
   }
 
   async listCores(): Promise<ListCoresResponse> {
-    const { default: fetch } = await import('node-fetch');
     const response = await fetch(`${PocketIcCoreService.picCoreUrl!.origin}/api/list-core`);
 
     if (!response.ok) {

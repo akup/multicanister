@@ -22,7 +22,7 @@ export const getIdentityFromPrivateKey = (privateKey: string): Identity => {
       );
     } else {
       // Try base64
-      privateKeyBytes = Uint8Array.from(atob(privateKey), c => c.charCodeAt(0));
+      privateKeyBytes = new Uint8Array(Buffer.from(privateKey, 'base64'));
     }
 
     // Create Ed25519 identity from private key

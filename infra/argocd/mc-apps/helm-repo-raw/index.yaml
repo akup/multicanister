@@ -1,0 +1,15 @@
+apiVersion: v1
+entries:
+  app-helm-chart:
+  - apiVersion: v2
+    appVersion: 1.0.1
+    created: "2025-08-26T15:44:09.000000Z"
+    description: A Helm chart for all dex apps
+    digest: d5558cd419c8d46bdc958064cb97f963d1ea793866414c025906ec15033512ed
+    icon: https://icon.png
+    name: app-helm-chart
+    type: application
+    urls:
+    - https://raw.githubusercontent.com/JJOInvest/dex-apps/main/helm-repo/app-helm-chart-1.0.8.tgz
+    version: 1.0.8
+generated: "2025-08-26T15:44:09.000000Z"

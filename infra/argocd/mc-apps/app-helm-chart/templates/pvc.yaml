@@ -1,0 +1,30 @@
+{{- if (and .Values.persistence (default false .Values.persistence.enabled) (not .Values.statefulSet.enabled)) }}
+{{- $fullName := include "fullname" . -}}
+{{- $labels := include "labels" . -}}
+{{- if not .Release.IsUpgrade }}
+{{- if .Values.persistence.pvc }}
+{{- range $key, $value := .Values.persistence.pvc.pvcList }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: "pvc-{{ $fullName }}-{{ $key }}"
+  namespace: {{ $.Release.Namespace | quote }}
+  labels:
+    env: {{ $.Values.env }}
+    {{- $labels | nindent 4 }}
+{{- if $.Values.persistence.annotations }}
+  annotations:
+{{ toYaml $.Values.persistence.annotations | trimSuffix "\n" | indent 4 }}
+{{- end }}
+spec:
+  accessModes:
+    - {{ .accessMode }}
+  storageClassName: {{ .storageClass }}
+  resources:
+    requests:
+      storage: {{ .size }}
+---
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

@@ -5,6 +5,8 @@ import { CoreInfo } from '../components/coreInfo';
 import { DfxProject, DfxProjectCanister } from '../components/dfxProject';
 
 export class BuildService {
+  private static builtCanisters: Record<string, boolean> = {};
+
   // Here we build the core: all canisters from core.json
   public static async buildCore(
     coreInfo: CoreInfo,
@@ -17,8 +19,12 @@ export class BuildService {
 
     //Build core canisters
     for (const [key, value] of Object.entries(coreInfo)) {
-      if (key === 'modules' || !value) {
+      if (key === 'modules' || !value || BuildService.builtCanisters[value]) {
         continue;
+      }
+      BuildService.builtCanisters[value] = true;
+      if (!dfxProjectsByActorName[value]) {
+        throw new Error(`There is no required core canister '${value}' in dfx json`);
       }
       const [dfxCanister, dfxProject] = dfxProjectsByActorName[value];
       // Sequential build of canisters
@@ -44,14 +50,13 @@ export class BuildService {
     }
 
     //Go over all apps
-    let builtActors: Record<string, boolean> = {};
     for (const [appName, appData] of Object.entries(appsInfo.apps)) {
       console.log(chalk.white(` - Building app '${appName}'...`));
 
       //Then we build all canisters from the app
       for (const canisterService of appData.canisterServices) {
-        if (!builtActors[canisterService.dfxName]) {
-          builtActors[canisterService.dfxName] = true;
+        if (!BuildService.builtCanisters[canisterService.dfxName]) {
+          BuildService.builtCanisters[canisterService.dfxName] = true;
           const [dfxCanister, dfxProject] = dfxProjectsByActorName[canisterService.dfxName];
           await buildCanister(canisterService.dfxName, dfxCanister, dfxProject.root, () => {
             console.log(

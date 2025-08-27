@@ -7,8 +7,10 @@ import { Principal } from '@dfinity/principal';
 import { CreateInstanceRequest } from '@repo/pic/src/pocket-ic-client-types';
 import { IdentityModel } from '../models/IdentityModel';
 import * as fs from 'fs';
-import { AgentCallError, CanisterStatus } from '@dfinity/agent';
+import { AgentCallError } from '@dfinity/agent';
 
+const PIC_GATEWAY_DOMAINS =
+  process.env.PIC_GATEWAY_DOMAINS?.split(',').map(domain => domain.trim().toLowerCase()) ?? [];
 const POCKET_IC_TIMEOUT = 10000;
 
 export type UpdateStrategy = 'upgrade' | 'reinstall';
@@ -52,22 +54,30 @@ export class PocketICService {
     proc.on('error', error => {
       throw new Error(`PocketIC process error: ${error.message}`);
     });
-    proc.on('exit', async () => {
+    proc.on('exit', () => {
       console.error('PocketIC process exited!!!');
-      await this.stop();
+      this.stop().catch(error => {
+        console.error('Error during shutdown:', error);
+      });
       process.exit(1);
     });
-    process.on('uncaughtException', async () => {
+    process.on('uncaughtException', () => {
       console.error('Uncaught exception');
-      await this.stop();
+      this.stop().catch(error => {
+        console.error('Error during shutdown:', error);
+      });
     });
-    process.on('SIGINT', async () => {
+    process.on('SIGINT', () => {
       console.error('SIGINT');
-      await this.stop();
+      this.stop().catch(error => {
+        console.error('Error during shutdown:', error);
+      });
     });
-    process.on('SIGTERM', async () => {
+    process.on('SIGTERM', () => {
       console.error('SIGTERM');
-      await this.stop();
+      this.stop().catch(error => {
+        console.error('Error during shutdown:', error);
+      });
     });
 
     // Wait for PocketIC to be ready
@@ -141,7 +151,22 @@ export class PocketICService {
       stateDir: !process.env.POCKET_IC_STATE_DIR ? undefined : process.env.POCKET_IC_STATE_DIR,
       ...subnetCreateConfigs,
     });
-    await this.pocketIC.makeLive(gwPort);
+
+    //Need to set ipAddr to 0.0.0.0 to make it accessible from outside container
+    //Need to set all domains it will be accessible with
+    console.log(
+      'All domains',
+      ['0.0.0.0', '127.0.0.1', 'localhost']
+        .concat(PIC_GATEWAY_DOMAINS)
+        .filter(domain => domain !== '')
+    );
+    await this.pocketIC.makeLiveWithGatewayParameters({
+      port: gwPort,
+      ipAddr: '0.0.0.0',
+      domains: ['0.0.0.0', '127.0.0.1', 'localhost']
+        .concat(PIC_GATEWAY_DOMAINS)
+        .filter(domain => domain !== ''),
+    });
     console.log('PocketIC gateway started on port', gwPort);
 
     // Use default IC Management via IC Agent

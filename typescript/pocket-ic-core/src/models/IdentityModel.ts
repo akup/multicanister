@@ -2,6 +2,7 @@ import { Ed25519KeyIdentity } from '@dfinity/identity';
 import * as fs from 'fs';
 import * as path from 'path';
 import { DATA_DIR } from './DataDir';
+import { JsonnableEd25519KeyIdentity } from '@dfinity/identity/lib/cjs/identity/ed25519';
 
 export class IdentityModel {
   private static instance: IdentityModel;
@@ -28,7 +29,9 @@ export class IdentityModel {
   private loadIdentity(): void {
     try {
       if (fs.existsSync(this.identityFilePath)) {
-        const identityData = JSON.parse(fs.readFileSync(this.identityFilePath, 'utf-8'));
+        const identityData = JSON.parse(
+          fs.readFileSync(this.identityFilePath, 'utf-8')
+        ) as JsonnableEd25519KeyIdentity;
         this.identity = Ed25519KeyIdentity.fromParsedJson(identityData);
       } else {
         this.generateAndSaveIdentity();

@@ -57,12 +57,12 @@ $POCKET_IC_BIN --help
 Also it uses [pic-js](https://github.com/dfinity/pic-js) modified to [use live mode](https://github.com/akup/picjs-fork). This changes are subject for PR.
 It is referenced by gitsubmodule `picjs`.
 
-### Install didc
+### Install ic-wasm
 
-Copy latest `didc` release from [https://github.com/dfinity/candid/releases](https://github.com/dfinity/candid/releases) to your `~/bin/didc`. Make it executable:
+Copy latest `ic-wasm` release from [https://github.com/dfinity/ic-wasm/releases](https://github.com/dfinity/ic-wasm/releases) to your `~/bin/ic-wasm`. Make it executable:
 
 ```bash
-chmod +x ~/bin/didc
+chmod +x ~/bin/ic-wasm
 ```
 
 and add `~/bin` to your path.
@@ -90,7 +90,25 @@ On mac give permissions to run to didc at your `System settings->Confidentaility
 Check it is installed:
 
 ```bash
+ic-wasm --version
+```
+
+### Install didc
+
+Copy latest `didc` release from [https://github.com/dfinity/candid/releases](https://github.com/dfinity/candid/releases) to your `~/bin/didc`. Make it executable and it to your path as you've done with `ic-wasm`.
+
+Check it is installed:
+
+```bash
 didc --version
+```
+
+### Install wasm-opt
+
+It is needed to build [Candid](https://github.com/dfinity/candid) submodule. Just install node version globally:
+
+```bash
+npm install -g wasm-opt
 ```
 
 ## Project structure

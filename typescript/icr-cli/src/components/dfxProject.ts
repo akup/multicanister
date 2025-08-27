@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import chalk from 'chalk';
 import * as path from 'path';
 import { defaultConfig } from '../configs';
+import { URL } from 'url';
 
 export class DfxProject {
   root: string = './';
