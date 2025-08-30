@@ -25,6 +25,8 @@
     "dev-icr-cli": "cd typescript/icr-cli && pnpm dev-start",
     "dev-icr-cli-build-all": "cd typescript/icr-cli && pnpm dev-start-build-all",
     "install-all": "pnpm turbo run turbo-install",
+    "submodules:init": "git submodule init && git submodule update --init --depth 1 --jobs 4 picjs innerDfxProjects/candidUi ic",
+    "submodules:update": "git submodule update --remote --jobs 4 picjs innerDfxProjects/candidUi && git submodule update --init --checkout ic",
     "prepare": "husky install",
     "lint": "pnpm turbo run lint",
     "lint:fix": "pnpm turbo run lint:fix",

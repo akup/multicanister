@@ -63,7 +63,6 @@ export const deployCoreCanisterToPocketIC = async (
   }
 
   let initArgHex: string | undefined = undefined;
-  // --- MODIFIED: Added a stricter type check ---
   if (typeof canisterConfig.init_args === 'string' && canisterConfig.init_args.length > 0) {
     console.log(chalk.blue(` - Encoding initialization arguments for ${canisterName}...`));
     try {

@@ -8,3 +8,7 @@
 	url = https://github.com/akup/picjs-fork
 	branch = liveMode
 
+[submodule "ic"]
+	path = ic
+	url = https://github.com/dfinity/ic.git
+	branch = release-2025-08-28_03-17-snapshot-feature
