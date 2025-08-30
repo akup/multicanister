@@ -36,7 +36,8 @@
       "type": "custom",
       "candid": "canisters/sns/did/sns-governance-canister.wasm.did",
       "wasm": "canisters/sns/sns-governance-canister.wasm",
-      "init_args": "(record { root_canister_id = principal \"{{canisterId:sns_root}}\"; ledger_canister_id = principal \"{{canisterId:sns_ledger}}\"; swap_canister_id = principal \"{{canisterId:sns_swap}}\"; parameters = opt record { neuron_minimum_stake_e8s = 100_000_000; max_dissolve_delay_seconds = 252_460_800; max_neuron_age_for_age_bonus_seconds = 126_230_400; max_dissolve_delay_bonus_percentage = 100; max_age_bonus_percentage = 25; initial_voting_period_seconds = 345_600; wait_for_quiet_deadline_increase_seconds = 86_400; transaction_fee_e8s = 10_000; proposal_rejection_fee_e8s = 100_000_000; };})"
+      "init_args": "(record { root_canister_id = opt principal \"{{canisterId:sns_root}}\"; id_to_nervous_system_functions = vec {}; metrics = null; maturity_modulation = null; mode = (2 : int32); parameters = opt record { neuron_minimum_stake_e8s = opt (100_000_000 : nat64); max_dissolve_delay_seconds = opt (252_460_800 : nat64); max_neuron_age_for_age_bonus = opt (126_230_400 : nat64); max_dissolve_delay_bonus_percentage = opt (100 : nat64); max_age_bonus_percentage = opt (25 : nat64); initial_voting_period_seconds = opt (345_600 : nat64); wait_for_quiet_deadline_increase_seconds = opt (86_400 : nat64); transaction_fee_e8s = opt (10_000 : nat64); reject_cost_e8s = opt (100_000_000 : nat64) }; is_finalizing_disburse_maturity = null; deployed_version = null; cached_upgrade_steps = null; sns_initialization_parameters = \"\"; latest_reward_event = null; pending_version = null; swap_canister_id = opt principal \"{{canisterId:sns_swap}}\"; ledger_canister_id = opt principal \"{{canisterId:sns_ledger}}\"; proposals = vec {}; in_flight_commands = vec {}; sns_metadata = null; neurons = vec {}; genesis_timestamp_seconds = (0 : nat64); target_version = null; timers = null; upgrade_journal = null })"
+
     },
     "sns_ledger": {
       "type": "custom",
@@ -48,7 +49,7 @@
       "type": "custom",
       "candid": "canisters/sns/did/sns-swap-canister.wasm.did",
       "wasm": "canisters/sns/sns-swap-canister.wasm",
-      "init_args": "(record { nns_governance_canister_id = principal \"rrkah-fqaaa-aaaaa-aaaaq-cai\"; sns_governance_canister_id = principal \"{{canisterId:sns_governance}}\"; sns_root_canister_id = principal \"{{canisterId:sns_root}}\"; sns_ledger_canister_id = principal \"{{canisterId:sns_ledger}}\"; fallback_controller_principal_ids = vec { principal \"blmyj-3vn2k-4bepw-gjtre-gx7au-xcec2-zitym-kxm7j-yzgqg-k6ztg-fae\" }; transaction_fee_e8s = opt 10_000; neuron_basket_construction_parameters = opt record { count = 2; dissolve_delay_interval_seconds = 2630016 }; })"
+      "init_args": "(record { nns_governance_canister_id = principal \"rrkah-fqaaa-aaaaa-aaaaq-cai\"; sns_governance_canister_id = principal \"{{canisterId:sns_governance}}\"; sns_root_canister_id = principal \"{{canisterId:sns_root}}\"; sns_ledger_canister_id = principal \"{{canisterId:sns_ledger}}\"; fallback_controller_principal_ids = vec { principal \"blmyj-3vn2k-4bepw-gjtre-gx7au-xcec2-zitym-kxm7j-yzgqg-k6ztg-fae\" }; transaction_fee_e8s = opt (10_000 : nat64); neuron_basket_construction_parameters = opt record { count = (2 : nat32); dissolve_delay_interval_seconds = (2630016 : nat64) }; })"
     },
     "sns_index": {
       "type": "custom",
