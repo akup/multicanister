@@ -155,6 +155,22 @@ To handle dependencies between canisters (e.g., `sns_root` needing the ID of `sn
 }
 ```
 
+### Build SNS canisters
+
+Compile the SNS canisters (governance, root, swap, ICRC-1 ledger/index) and write their `.wasm` and `.did` files to the paths declared in `dfx.json`:
+
+```bash
+pnpm run sns:build
+```
+
+Optional subset during active development:
+
+```bash
+SNS_SET=governance,root,ledger pnpm run sns:build
+```
+
+This uses the local `./ic` submodule as sources and optimizes with `ic-wasm`. Prereqs: Rust with the `wasm32-unknown-unknown` target and `ic-wasm` installed.
+
 ## Starting the Services
 
 Before start follow instructions of preparing [Pocket IC Core Service](https://github.com/akup/multicanister/tree/main/typescript/pocket-ic-core) and [ICR CLI](https://github.com/akup/multicanister/tree/main/typescript/icr-cli)
