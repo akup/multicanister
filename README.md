@@ -157,19 +157,19 @@ To handle dependencies between canisters (e.g., `sns_root` needing the ID of `sn
 
 ### Build SNS canisters
 
-Compile the SNS canisters (governance, root, swap, ICRC-1 ledger/index) and write their `.wasm` and `.did` files to the paths declared in `dfx.json`:
+Compile the SNS canisters (governance, root, swap, ICRC-1 ledger/index) and write their `.wasm` and `.did` files exactly to the paths declared in `dfx.json`.
 
 ```bash
 pnpm run sns:build
 ```
 
-Optional subset during active development:
+During development you can build a subset:
 
 ```bash
-SNS_SET=governance,root,ledger pnpm run sns:build
+SNS_SET=governance,root,swap pnpm run sns:build
 ```
 
-This uses the local `./ic` submodule as sources and optimizes with `ic-wasm`. Prereqs: Rust with the `wasm32-unknown-unknown` target and `ic-wasm` installed.
+**How it works:** sources are taken from the local `./ic` submodule; WASM is optionally optimized with `ic-wasm shrink` (set `NO_SHRINK=1` to skip).
 
 ## Starting the Services
 

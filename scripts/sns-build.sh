@@ -2,11 +2,12 @@
 set -Eeuo pipefail
 
 # ===================== Config (env-overridable) =====================
-: "${IC_REPO:=$(pwd)/ic}"                 # Path to the dfinity/ic submodule (do NOT auto-update here)
+: "${IC_REPO:=$(pwd)/ic}"                 # Path to the dfinity/ic submodule (no auto-update here)
 : "${TARGET:=wasm32-unknown-unknown}"     # Cargo target
 : "${PROFILE:=release}"                   # 'release' | 'debug' | custom profile
 : "${SNS_SET:=governance,root,swap,ledger,index}"   # What to build
 : "${DFX_JSON:=$(pwd)/dfx.json}"          # Path to dfx.json
+: "${NO_SHRINK:=}"                        # If set (non-empty) -> skip ic-wasm shrink optimization
 # ===================================================================
 
 log() { echo -e "\033[1;34m[ sns-build ]\033[0m $*"; }
@@ -19,10 +20,13 @@ ensure_prereqs() {
   [[ -f "$DFX_JSON"    ]] || die "dfx.json not found at: $DFX_JSON"
   need_bin cargo   || die "cargo not found"
   need_bin rustup  || die "rustup not found"
-  need_bin ic-wasm || die "ic-wasm not found (project prerequisite)"
   # JSON parser: prefer jq; fallback to node
   if ! need_bin jq && ! need_bin node; then
     die "Neither 'jq' nor 'node' found. Install one to parse dfx.json."
+  fi
+  # ic-wasm is only required if NO_SHRINK is empty
+  if [[ -z "$NO_SHRINK" ]]; then
+    need_bin ic-wasm || die "ic-wasm not found (needed for shrink) — set NO_SHRINK=1 to skip."
   fi
   rustup target add "$TARGET" >/dev/null
 }
@@ -91,23 +95,14 @@ find_newest_wasm_since() {
   ' "$dir" "$since_ts"
 }
 
-# Shrink wasm binary
-optimize_wasm() {
+# Optional optimization with ic-wasm (skipped if NO_SHRINK is set)
+maybe_shrink_wasm() {
   local in="$1" out="$2"
-  ic-wasm "$in" -o "$out" shrink
-}
-
-# Extract Candid via ic-wasm metadata; write to file if present
-extract_did_from_wasm() {
-  local wasm="$1" did_out="$2"
-  if ic-wasm "$wasm" metadata candid:service > "$did_out".tmp 2>/dev/null; then
-    if [[ -s "$did_out".tmp ]]; then
-      mv -f "$did_out".tmp "$did_out"
-      return 0
-    fi
+  if [[ -n "$NO_SHRINK" ]]; then
+    cp -f "$in" "$out"
+  else
+    ic-wasm "$in" -o "$out" shrink
   fi
-  rm -f "$did_out".tmp
-  return 1
 }
 
 ensure_parent_dir() { mkdir -p "$(dirname "$1")"; }
@@ -123,7 +118,7 @@ cargo_build() {
   fi
 }
 
-# Resolve ledger/index locations inside mono-repo and set their expected basenames
+# Resolve ledger/index locations and expected basenames
 detect_ledger_paths() {
   if [[ -d "$IC_REPO/rs/ledger_suite/icrc1/ledger" ]]; then
     LEDGER_DIR="rs/ledger_suite/icrc1/ledger"
@@ -132,19 +127,36 @@ detect_ledger_paths() {
   fi
   [[ -n "${LEDGER_DIR:-}" ]] || die "ICRC-1 ledger dir not found in 'rs/ledger_suite'."
   LEDGER_BASENAME="ic-icrc1-ledger.wasm"
+  LEDGER_DID_SRC="$IC_REPO/rs/ledger_suite/icrc1/ledger/ledger.did"
 
   if   [[ -d "$IC_REPO/rs/ledger_suite/icrc1/index-ng" ]]; then
     INDEX_DIR="rs/ledger_suite/icrc1/index-ng"
     INDEX_BASENAME="ic-icrc1-index-ng.wasm"
+    INDEX_DID_SRC="$IC_REPO/rs/ledger_suite/icrc1/index-ng/index-ng.did"
   elif [[ -d "$IC_REPO/rs/ledger_suite/icrc1/index" ]]; then
     INDEX_DIR="rs/ledger_suite/icrc1/index"
     INDEX_BASENAME="ic-icrc1-index.wasm"
+    # If old index, typical did name is 'index.did'; adjust if needed in your commit.
+    INDEX_DID_SRC="$IC_REPO/rs/ledger_suite/icrc1/index/index.did"
   else
     die "ICRC-1 index(-ng) dir not found in 'rs/ledger_suite'."
   fi
 }
 
-# Build crate and place artifacts according to dfx.json; prefer expected wasm basename
+# Map SNS canister -> DID source path in the repo
+resolve_sns_did_src() {
+  local can_key="$1"
+  case "$can_key" in
+    sns_governance) echo "$IC_REPO/rs/sns/governance/canister/governance.did" ;;
+    sns_root)       echo "$IC_REPO/rs/sns/root/canister/root.did" ;;
+    sns_swap)       echo "$IC_REPO/rs/sns/swap/canister/swap.did" ;;
+    sns_ledger)     echo "$LEDGER_DID_SRC" ;;
+    sns_index)      echo "$INDEX_DID_SRC" ;;
+    *)              echo "" ;;
+  esac
+}
+
+# Build crate and place artifacts per dfx.json; copy .did from repo
 build_and_place() {
   local can_key="$1" src_rel="$2" expected_basename="$3"
 
@@ -164,33 +176,36 @@ build_and_place() {
   local tgt="$IC_REPO/target/$TARGET/$(profile_dir)"
   [[ -d "$tgt" ]] || die "Cargo target dir missing: $tgt"
 
-  # 1) Try exact expected basename
+  # Prefer exact expected basename; otherwise, newest since; otherwise, newest any.
   local wasm=""
   if [[ -n "$expected_basename" && -f "$tgt/$expected_basename" ]]; then
     wasm="$tgt/$expected_basename"
   else
-    # 2) Try newest since start_ts (fresh rebuild)
     wasm="$(find_newest_wasm_since "$tgt" "$start_ts" || true)"
-    # 3) Fallback: newest any (covers cached builds with older mtime)
     [[ -n "$wasm" ]] || wasm="$(find_newest_wasm_any "$tgt" || true)"
   fi
   [[ -f "${wasm:-}" ]] || die "No wasm artifact found for ${can_key} in $tgt"
 
-  # Optimize → store exactly where dfx.json expects
+  # Optimize (or copy) → store exactly where dfx.json expects
   ensure_parent_dir "$wasm_out"
-  local opt_tmp="$(dirname "$wasm_out")/.${can_key}.opt.wasm"
-  optimize_wasm "$wasm" "$opt_tmp"
-  mv -f "$opt_tmp" "$wasm_out"
+  local out_tmp="$(dirname "$wasm_out")/.${can_key}.tmp.wasm"
+  maybe_shrink_wasm "$wasm" "$out_tmp"
+  mv -f "$out_tmp" "$wasm_out"
 
-  # Extract Candid → store exactly where dfx.json expects
+  # Copy .did from the repo (no metadata extraction)
   ensure_parent_dir "$candid_out"
-  if ! extract_did_from_wasm "$wasm_out" "$candid_out"; then
-    local did_src; did_src="$(ls "$src_dir"/*.did 2>/dev/null | head -n1 || true)"
-    if [[ -n "$did_src" ]]; then
-      cp -f "$did_src" "$candid_out"
-      log "(!) candid extracted from local .did (no metadata in wasm) → $candid_out"
+  local did_src; did_src="$(resolve_sns_did_src "$can_key")"
+  if [[ -n "$did_src" && -f "$did_src" ]]; then
+    cp -f "$did_src" "$candid_out"
+  else
+    # Fallback: try to find any *.did in crate dir if mapping changed in this commit
+    local fallback_did
+    fallback_did="$(ls "$src_dir"/*.did 2>/dev/null | head -n1 || true)"
+    if [[ -n "$fallback_did" ]]; then
+      cp -f "$fallback_did" "$candid_out"
+      log "(!) candid copied from crate-local DID (mapping updated?) → $candid_out"
     else
-      err "(!) candid not found for ${can_key} (no wasm metadata and no crate .did)"
+      err "(!) DID source not found for ${can_key}. Please update mapping."
     fi
   fi
 
