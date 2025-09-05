@@ -422,13 +422,13 @@ export class PocketICService {
     wasmModule,
     wasmModuleHash,
     updateStrategy,
-    initArg,
+    initArgB64,
   }: {
     canisterId: string;
     wasmModule: Buffer;
     wasmModuleHash: string;
     updateStrategy?: UpdateStrategy;
-    initArg?: Buffer;
+    initArgB64?: string;
   }): Promise<void> {
     if (!this.agent) throw new Error('Agent is not initialized');
     const mgmt = this.getMgmtActor();
@@ -437,11 +437,16 @@ export class PocketICService {
     const uploadedChunks = await this.uploadWasmInChunks(wasmModule, canisterId);
     const wasmHashBlob = Uint8Array.from(Buffer.from(wasmModuleHash, 'hex'));
 
+    const argBytes =
+      initArgB64 && initArgB64.length > 0
+        ? new Uint8Array(Buffer.from(initArgB64, 'base64'))
+        : new Uint8Array();
+
     await (mgmt as any).install_chunked_code({
       target_canister: id,
       chunk_hashes_list: uploadedChunks,
       wasm_module_hash: wasmHashBlob,
-      arg: initArg ? new Uint8Array(initArg) : new Uint8Array(),
+      arg: argBytes,
       mode: updateStrategy === 'reinstall' ? { reinstall: null } : { upgrade: [] },
       sender_canister_version: [],
     });

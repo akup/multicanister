@@ -95,14 +95,15 @@ export class DeployService {
       const cores = await pocketIcCoreService.listCores();
       const coreCanisterData = cores[key];
 
-      await deployCoreCanisterToPocketIC(
-        key,
-        value,
+      await deployCoreCanisterToPocketIC({
+        canisterName: key,
+        wasmName: value,
         wasmPath,
-        dfxCanister,
+        canisterConfig: dfxCanister,
         coreCanisterData,
-        deployedCanisterIds
-      );
+        deployedCanisterIds,
+        dfxProjectRoot: dfxProject.root,
+      });
     }
 
     return deployedCanisterIds.factory;

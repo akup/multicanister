@@ -17,6 +17,8 @@ export interface DfxCanisterConfig {
   type: CanisterType;
   wasm: string;
   gzip?: boolean;
+  init_args?: string;
+  init_args_file?: string;
   // Allows for other properties like 'remote', 'frontend', etc.
   [key: string]: unknown;
 }

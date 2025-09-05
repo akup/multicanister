@@ -22,7 +22,9 @@ export const buildCanister = async (
   //Change working directory to the dfx project root
   process.chdir(dfxProjectRoot);
 
+  console.log('before build canister');
   await _buildCanisterWithoutDfx(canisterName, dfxProjectCanister);
+  console.log('after build canister');
 
   console.log('Optimizing wasm code:', dfxProjectCanister.wasm);
 
@@ -50,6 +52,7 @@ const _buildCanisterWithoutDfx = async (
   canisterName: string,
   dfxProjectCanister: DfxProjectCanister
 ): Promise<void> => {
+  console.log(dfxProjectCanister);
   if (dfxProjectCanister.type === 'custom') {
     // If there's no build command, it's a pre-compiled wasm. Skip the build step.
     if (!dfxProjectCanister.build) {

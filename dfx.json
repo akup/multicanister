@@ -36,7 +36,7 @@
       "type": "custom",
       "candid": "canisters/sns/did/sns-governance-canister.wasm.did",
       "wasm": "canisters/sns/sns-governance-canister.wasm",
-      "init_args": "(record { root_canister_id = opt principal \"{{canisterId:sns_root}}\"; id_to_nervous_system_functions = vec {}; metrics = null; maturity_modulation = null; mode = (2 : int32); parameters = opt record { neuron_minimum_stake_e8s = opt (100_000_000 : nat64); max_dissolve_delay_seconds = opt (252_460_800 : nat64); max_neuron_age_for_age_bonus = opt (126_230_400 : nat64); max_dissolve_delay_bonus_percentage = opt (100 : nat64); max_age_bonus_percentage = opt (25 : nat64); initial_voting_period_seconds = opt (345_600 : nat64); wait_for_quiet_deadline_increase_seconds = opt (86_400 : nat64); transaction_fee_e8s = opt (10_000 : nat64); reject_cost_e8s = opt (100_000_000 : nat64) }; is_finalizing_disburse_maturity = null; deployed_version = null; cached_upgrade_steps = null; sns_initialization_parameters = \"\"; latest_reward_event = null; pending_version = null; swap_canister_id = opt principal \"{{canisterId:sns_swap}}\"; ledger_canister_id = opt principal \"{{canisterId:sns_ledger}}\"; proposals = vec {}; in_flight_commands = vec {}; sns_metadata = null; neurons = vec {}; genesis_timestamp_seconds = (0 : nat64); target_version = null; timers = null; upgrade_journal = null })"
+      "init_arg_file": "canisters/sns/args/sns-governance-canister.wasm.idl"
 
     },
     "sns_ledger": {

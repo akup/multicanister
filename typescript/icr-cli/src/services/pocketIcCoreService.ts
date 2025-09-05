@@ -55,12 +55,17 @@ export class PocketIcCoreService {
     return (await response.json()) as Record<string, string>;
   }
 
-  async uploadWasm(
-    wasmPath: string,
-    wasmSha256: string,
-    canisterName: string,
-    initArgHex?: string
-  ): Promise<UploadResponse> {
+  async uploadWasm({
+    wasmPath,
+    wasmSha256,
+    canisterName,
+    initArgB64,
+  }: {
+    wasmPath: string;
+    wasmSha256: string;
+    canisterName: string;
+    initArgB64?: string;
+  }): Promise<UploadResponse> {
     const formData = new FormData();
     const fileBuffer = await fs.promises.readFile(wasmPath);
     const file = new File([fileBuffer], 'wasm');
@@ -68,8 +73,8 @@ export class PocketIcCoreService {
     formData.append('sha256', wasmSha256);
     formData.append('name', canisterName);
 
-    if (initArgHex) {
-      formData.append('init_arg_hex', initArgHex);
+    if (initArgB64) {
+      formData.append('initArgB64', initArgB64);
     }
 
     const { default: fetch } = await import('node-fetch');

@@ -1,0 +1,363 @@
+(
+  record {
+    root_canister_id = opt principal "ulvla-h7777-77774-qaacq-cai";
+    timers = null;
+    cached_upgrade_steps = null;
+    id_to_nervous_system_functions = vec {};
+    metrics = null;
+    maturity_modulation = null;
+    upgrade_journal = null;
+    mode = 2 : int32;
+    parameters = opt record {
+      default_followees = opt record { followees = vec {} };
+      max_dissolve_delay_seconds = opt (252_460_800 : nat64);
+      max_dissolve_delay_bonus_percentage = opt (100 : nat64);
+      max_followees_per_function = opt (15 : nat64);
+      automatically_advance_target_version = opt true;
+      neuron_claimer_permissions = opt record {
+        permissions = vec { 0 : int32; 1 : int32; 2 : int32; 3 : int32; 4 : int32; 5 : int32; 6 : int32; 7 : int32; 8 : int32; 9 : int32; 10 : int32;};
+      };
+      neuron_minimum_stake_e8s = opt (100_000_000 : nat64);
+      max_neuron_age_for_age_bonus = opt (126_230_400 : nat64);
+      initial_voting_period_seconds = opt (345_600 : nat64);
+      neuron_minimum_dissolve_delay_to_vote_seconds = opt (2_630_016 : nat64);
+      reject_cost_e8s = opt (100_000_000 : nat64);
+      max_proposals_to_keep_per_action = opt (100 : nat32);
+      wait_for_quiet_deadline_increase_seconds = opt (86_400 : nat64);
+      max_number_of_neurons = opt (200_000 : nat64);
+      transaction_fee_e8s = opt (10_000 : nat64);
+      max_number_of_proposals_with_ballots = opt (700 : nat64);
+      max_age_bonus_percentage = opt (25 : nat64);
+      neuron_grantable_permissions = opt record {
+        permissions = vec { 0 : int32; 1 : int32; 2 : int32; 3 : int32; 4 : int32; 5 : int32; 6 : int32; 7 : int32; 8 : int32; 9 : int32; 10 : int32;};
+      };
+      voting_rewards_parameters = opt record {
+        final_reward_rate_basis_points = opt (225 : nat64);
+        initial_reward_rate_basis_points = opt (1_000 : nat64);
+        reward_rate_transition_duration_seconds = opt (378_691_200 : nat64);
+        round_duration_seconds = opt (86_400 : nat64);
+      };
+      maturity_modulation_disabled = opt false;
+      max_number_of_principals_per_neuron = opt (5 : nat64);
+    };
+    is_finalizing_disburse_maturity = null;
+    deployed_version = null;
+    sns_initialization_parameters = "transaction_fee_e8s: 10000\ntoken_name: MulticanisterOPS Token\ntoken_symbol: MCO\nproposal_reject_cost_e8s: 100000000\nneuron_minimum_stake_e8s: 100000000\nfallback_controller_principal_ids:\n- blmyj-3vn2k-4bepw-gjtre-gx7au-xcec2-zitym-kxm7j-yzgqg-k6ztg-fae\nlogo: <redacted-to-save-space>\nurl: https://mydapp.com\nname: MulticanisterOps\ndescription: MulticanisterOps local testflight\nneuron_minimum_dissolve_delay_to_vote_seconds: 2630016\ninitial_reward_rate_basis_points: 1000\nfinal_reward_rate_basis_points: 225\nreward_rate_transition_duration_seconds: 378691200\nmax_dissolve_delay_seconds: 252460800\nmax_neuron_age_seconds_for_age_bonus: 126230400\nmax_dissolve_delay_bonus_percentage: 100\nmax_age_bonus_percentage: 25\ninitial_voting_period_seconds: 345600\nwait_for_quiet_deadline_increase_seconds: 86400\nconfirmation_text: null\nrestricted_countries:\n  iso_codes:\n  - AQ\ndapp_canisters:\n  canisters: []\nmin_participants: 57\nmin_icp_e8s: null\nmax_icp_e8s: null\nmin_direct_participation_icp_e8s: 10000000000000\nmax_direct_participation_icp_e8s: 100000000000000\nmin_participant_icp_e8s: 10000000000\nmax_participant_icp_e8s: 1000000000000\nswap_start_timestamp_seconds: 0\nswap_due_timestamp_seconds: 0\nneuron_basket_construction_parameters:\n  count: 2\n  dissolve_delay_interval_seconds: 2630016\nnns_proposal_id: 0\nneurons_fund_participation: false\ntoken_logo: <redacted-to-save-space>\nneurons_fund_participation_constraints: null\ninitial_token_distribution: !FractionalDeveloperVotingPower\n  developer_distribution:\n    developer_neurons:\n    - controller: blmyj-3vn2k-4bepw-gjtre-gx7au-xcec2-zitym-kxm7j-yzgqg-k6ztg-fae\n      stake_e8s: 2000000000000\n      memo: 0\n      dissolve_delay_seconds: 63115200\n      vesting_period_seconds: 126230400\n    - controller: blmyj-3vn2k-4bepw-gjtre-gx7au-xcec2-zitym-kxm7j-yzgqg-k6ztg-fae\n      stake_e8s: 2000000000000\n      memo: 1\n      dissolve_delay_seconds: 63115200\n      vesting_period_seconds: 126230400\n    - controller: blmyj-3vn2k-4bepw-gjtre-gx7au-xcec2-zitym-kxm7j-yzgqg-k6ztg-fae\n      stake_e8s: 2000000000000\n      memo: 2\n      dissolve_delay_seconds: 63115200\n      vesting_period_seconds: 126230400\n    - controller: blmyj-3vn2k-4bepw-gjtre-gx7au-xcec2-zitym-kxm7j-yzgqg-k6ztg-fae\n      stake_e8s: 2000000000000\n      memo: 3\n      dissolve_delay_seconds: 63115200\n      vesting_period_seconds: 126230400\n    - controller: blmyj-3vn2k-4bepw-gjtre-gx7au-xcec2-zitym-kxm7j-yzgqg-k6ztg-fae\n      stake_e8s: 2000000000000\n      memo: 4\n      dissolve_delay_seconds: 63115200\n      vesting_period_seconds: 126230400\n    - controller: blmyj-3vn2k-4bepw-gjtre-gx7au-xcec2-zitym-kxm7j-yzgqg-k6ztg-fae\n      stake_e8s: 2000000000000\n      memo: 5\n      dissolve_delay_seconds: 63115200\n      vesting_period_seconds: 126230400\n    - controller: blmyj-3vn2k-4bepw-gjtre-gx7au-xcec2-zitym-kxm7j-yzgqg-k6ztg-fae\n      stake_e8s: 2000000000000\n      memo: 6\n      dissolve_delay_seconds: 63115200\n      vesting_period_seconds: 126230400\n    - controller: blmyj-3vn2k-4bepw-gjtre-gx7au-xcec2-zitym-kxm7j-yzgqg-k6ztg-fae\n      stake_e8s: 2000000000000\n      memo: 7\n      dissolve_delay_seconds: 63115200\n      vesting_period_seconds: 126230400\n    - controller: blmyj-3vn2k-4bepw-gjtre-gx7au-xcec2-zitym-kxm7j-yzgqg-k6ztg-fae\n      stake_e8s: 2000000000000\n      memo: 8\n      dissolve_delay_seconds: 63115200\n      vesting_period_seconds: 126230400\n    - controller: blmyj-3vn2k-4bepw-gjtre-gx7au-xcec2-zitym-kxm7j-yzgqg-k6ztg-fae\n      stake_e8s: 2000000000000\n      memo: 9\n      dissolve_delay_seconds: 63115200\n      vesting_period_seconds: 126230400\n  treasury_distribution:\n    total_e8s: 200000000000000\n  swap_distribution:\n    total_e8s: 50000000000000\n    initial_swap_amount_e8s: 50000000000000\n";
+    latest_reward_event = null;
+    pending_version = null;
+    swap_canister_id = opt principal "ucwa4-rx777-77774-qaada-cai";
+    ledger_canister_id = opt principal "umunu-kh777-77774-qaaca-cai";
+    proposals = vec {};
+    in_flight_commands = vec {};
+    sns_metadata = opt record {
+      url = opt "https://mydapp.com";
+      logo = opt "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGMAAQAABQABDQottAAAAABJRU5ErkJggg==";
+      name = opt "MulticanisterOps";
+      description = opt "MulticanisterOps local testflight";
+    };
+    neurons = vec {
+      record {
+        "11c51be9dccee2571ed35db8b7392d0251a6127a363bf17ecc93a40e27c615bb";
+        record {
+          id = opt record {
+            id = blob "\11\c5\1b\e9\dc\ce\e2\57\1e\d3\5d\b8\b7\39\2d\02\51\a6\12\7a\36\3b\f1\7e\cc\93\a4\0e\27\c6\15\bb";
+          };
+          staked_maturity_e8s_equivalent = null;
+          permissions = vec {
+            record {
+              "principal" = opt principal "blmyj-3vn2k-4bepw-gjtre-gx7au-xcec2-zitym-kxm7j-yzgqg-k6ztg-fae";
+              permission_type = vec { 0 : int32; 1 : int32; 2 : int32; 3 : int32; 4 : int32; 5 : int32; 6 : int32; 7 : int32; 8 : int32; 9 : int32; 10 : int32;};
+            };
+          };
+          maturity_e8s_equivalent = 0 : nat64;
+          cached_neuron_stake_e8s = 2_000_000_000_000 : nat64;
+          created_timestamp_seconds = 0 : nat64;
+          topic_followees = null;
+          source_nns_neuron_id = null;
+          auto_stake_maturity = null;
+          aging_since_timestamp_seconds = 0 : nat64;
+          dissolve_state = opt variant {
+            DissolveDelaySeconds = 63_115_200 : nat64
+          };
+          voting_power_percentage_multiplier = 100 : nat64;
+          vesting_period_seconds = opt (126_230_400 : nat64);
+          disburse_maturity_in_progress = vec {};
+          followees = vec {};
+          neuron_fees_e8s = 0 : nat64;
+        };
+      };
+      record {
+        "28aaf26818e9e52a5ac5816933799f84cbba7ae038c692512fd48ecff6c50a73";
+        record {
+          id = opt record {
+            id = blob "\28\aa\f2\68\18\e9\e5\2a\5a\c5\81\69\33\79\9f\84\cb\ba\7a\e0\38\c6\92\51\2f\d4\8e\cf\f6\c5\0a\73";
+          };
+          staked_maturity_e8s_equivalent = null;
+          permissions = vec {
+            record {
+              "principal" = opt principal "blmyj-3vn2k-4bepw-gjtre-gx7au-xcec2-zitym-kxm7j-yzgqg-k6ztg-fae";
+              permission_type = vec { 0 : int32; 1 : int32; 2 : int32; 3 : int32; 4 : int32; 5 : int32; 6 : int32; 7 : int32; 8 : int32; 9 : int32; 10 : int32;};
+            };
+          };
+          maturity_e8s_equivalent = 0 : nat64;
+          cached_neuron_stake_e8s = 2_000_000_000_000 : nat64;
+          created_timestamp_seconds = 0 : nat64;
+          topic_followees = null;
+          source_nns_neuron_id = null;
+          auto_stake_maturity = null;
+          aging_since_timestamp_seconds = 0 : nat64;
+          dissolve_state = opt variant {
+            DissolveDelaySeconds = 63_115_200 : nat64
+          };
+          voting_power_percentage_multiplier = 100 : nat64;
+          vesting_period_seconds = opt (126_230_400 : nat64);
+          disburse_maturity_in_progress = vec {};
+          followees = vec {};
+          neuron_fees_e8s = 0 : nat64;
+        };
+      };
+      record {
+        "3e501b73de8893db1e886cdf6985bd4a07391b6aa8991c2096351550ba3066db";
+        record {
+          id = opt record {
+            id = blob "\3e\50\1b\73\de\88\93\db\1e\88\6c\df\69\85\bd\4a\07\39\1b\6a\a8\99\1c\20\96\35\15\50\ba\30\66\db";
+          };
+          staked_maturity_e8s_equivalent = null;
+          permissions = vec {
+            record {
+              "principal" = opt principal "blmyj-3vn2k-4bepw-gjtre-gx7au-xcec2-zitym-kxm7j-yzgqg-k6ztg-fae";
+              permission_type = vec { 0 : int32; 1 : int32; 2 : int32; 3 : int32; 4 : int32; 5 : int32; 6 : int32; 7 : int32; 8 : int32; 9 : int32; 10 : int32;};
+            };
+          };
+          maturity_e8s_equivalent = 0 : nat64;
+          cached_neuron_stake_e8s = 2_000_000_000_000 : nat64;
+          created_timestamp_seconds = 0 : nat64;
+          topic_followees = null;
+          source_nns_neuron_id = null;
+          auto_stake_maturity = null;
+          aging_since_timestamp_seconds = 0 : nat64;
+          dissolve_state = opt variant {
+            DissolveDelaySeconds = 63_115_200 : nat64
+          };
+          voting_power_percentage_multiplier = 100 : nat64;
+          vesting_period_seconds = opt (126_230_400 : nat64);
+          disburse_maturity_in_progress = vec {};
+          followees = vec {};
+          neuron_fees_e8s = 0 : nat64;
+        };
+      };
+      record {
+        "4db4721b3ad7b92d3948fa930634ad5a7dd5ebaf431e2cf9686bc9a53c7c08a2";
+        record {
+          id = opt record {
+            id = blob "\4d\b4\72\1b\3a\d7\b9\2d\39\48\fa\93\06\34\ad\5a\7d\d5\eb\af\43\1e\2c\f9\68\6b\c9\a5\3c\7c\08\a2";
+          };
+          staked_maturity_e8s_equivalent = null;
+          permissions = vec {
+            record {
+              "principal" = opt principal "blmyj-3vn2k-4bepw-gjtre-gx7au-xcec2-zitym-kxm7j-yzgqg-k6ztg-fae";
+              permission_type = vec { 0 : int32; 1 : int32; 2 : int32; 3 : int32; 4 : int32; 5 : int32; 6 : int32; 7 : int32; 8 : int32; 9 : int32; 10 : int32;};
+            };
+          };
+          maturity_e8s_equivalent = 0 : nat64;
+          cached_neuron_stake_e8s = 2_000_000_000_000 : nat64;
+          created_timestamp_seconds = 0 : nat64;
+          topic_followees = null;
+          source_nns_neuron_id = null;
+          auto_stake_maturity = null;
+          aging_since_timestamp_seconds = 0 : nat64;
+          dissolve_state = opt variant {
+            DissolveDelaySeconds = 63_115_200 : nat64
+          };
+          voting_power_percentage_multiplier = 100 : nat64;
+          vesting_period_seconds = opt (126_230_400 : nat64);
+          disburse_maturity_in_progress = vec {};
+          followees = vec {};
+          neuron_fees_e8s = 0 : nat64;
+        };
+      };
+      record {
+        "5cb9cdddd763eb4bd554d8b486fd226b259dd8ef35f6a4a2833722268b180986";
+        record {
+          id = opt record {
+            id = blob "\5c\b9\cd\dd\d7\63\eb\4b\d5\54\d8\b4\86\fd\22\6b\25\9d\d8\ef\35\f6\a4\a2\83\37\22\26\8b\18\09\86";
+          };
+          staked_maturity_e8s_equivalent = null;
+          permissions = vec {
+            record {
+              "principal" = opt principal "blmyj-3vn2k-4bepw-gjtre-gx7au-xcec2-zitym-kxm7j-yzgqg-k6ztg-fae";
+              permission_type = vec { 0 : int32; 1 : int32; 2 : int32; 3 : int32; 4 : int32; 5 : int32; 6 : int32; 7 : int32; 8 : int32; 9 : int32; 10 : int32;};
+            };
+          };
+          maturity_e8s_equivalent = 0 : nat64;
+          cached_neuron_stake_e8s = 2_000_000_000_000 : nat64;
+          created_timestamp_seconds = 0 : nat64;
+          topic_followees = null;
+          source_nns_neuron_id = null;
+          auto_stake_maturity = null;
+          aging_since_timestamp_seconds = 0 : nat64;
+          dissolve_state = opt variant {
+            DissolveDelaySeconds = 63_115_200 : nat64
+          };
+          voting_power_percentage_multiplier = 100 : nat64;
+          vesting_period_seconds = opt (126_230_400 : nat64);
+          disburse_maturity_in_progress = vec {};
+          followees = vec {};
+          neuron_fees_e8s = 0 : nat64;
+        };
+      };
+      record {
+        "75bac4c047d3ea6c3f3f669f93782c9a39ce4fd54af23e6f2d96fe0938eab52d";
+        record {
+          id = opt record {
+            id = blob "\75\ba\c4\c0\47\d3\ea\6c\3f\3f\66\9f\93\78\2c\9a\39\ce\4f\d5\4a\f2\3e\6f\2d\96\fe\09\38\ea\b5\2d";
+          };
+          staked_maturity_e8s_equivalent = null;
+          permissions = vec {
+            record {
+              "principal" = opt principal "blmyj-3vn2k-4bepw-gjtre-gx7au-xcec2-zitym-kxm7j-yzgqg-k6ztg-fae";
+              permission_type = vec { 0 : int32; 1 : int32; 2 : int32; 3 : int32; 4 : int32; 5 : int32; 6 : int32; 7 : int32; 8 : int32; 9 : int32; 10 : int32;};
+            };
+          };
+          maturity_e8s_equivalent = 0 : nat64;
+          cached_neuron_stake_e8s = 2_000_000_000_000 : nat64;
+          created_timestamp_seconds = 0 : nat64;
+          topic_followees = null;
+          source_nns_neuron_id = null;
+          auto_stake_maturity = null;
+          aging_since_timestamp_seconds = 0 : nat64;
+          dissolve_state = opt variant {
+            DissolveDelaySeconds = 63_115_200 : nat64
+          };
+          voting_power_percentage_multiplier = 100 : nat64;
+          vesting_period_seconds = opt (126_230_400 : nat64);
+          disburse_maturity_in_progress = vec {};
+          followees = vec {};
+          neuron_fees_e8s = 0 : nat64;
+        };
+      };
+      record {
+        "7bb839a35aac10460092622cafa411e9ae86c68b65644b6fe5e740576557f096";
+        record {
+          id = opt record {
+            id = blob "\7b\b8\39\a3\5a\ac\10\46\00\92\62\2c\af\a4\11\e9\ae\86\c6\8b\65\64\4b\6f\e5\e7\40\57\65\57\f0\96";
+          };
+          staked_maturity_e8s_equivalent = null;
+          permissions = vec {
+            record {
+              "principal" = opt principal "blmyj-3vn2k-4bepw-gjtre-gx7au-xcec2-zitym-kxm7j-yzgqg-k6ztg-fae";
+              permission_type = vec { 0 : int32; 1 : int32; 2 : int32; 3 : int32; 4 : int32; 5 : int32; 6 : int32; 7 : int32; 8 : int32; 9 : int32; 10 : int32;};
+            };
+          };
+          maturity_e8s_equivalent = 0 : nat64;
+          cached_neuron_stake_e8s = 2_000_000_000_000 : nat64;
+          created_timestamp_seconds = 0 : nat64;
+          topic_followees = null;
+          source_nns_neuron_id = null;
+          auto_stake_maturity = null;
+          aging_since_timestamp_seconds = 0 : nat64;
+          dissolve_state = opt variant {
+            DissolveDelaySeconds = 63_115_200 : nat64
+          };
+          voting_power_percentage_multiplier = 100 : nat64;
+          vesting_period_seconds = opt (126_230_400 : nat64);
+          disburse_maturity_in_progress = vec {};
+          followees = vec {};
+          neuron_fees_e8s = 0 : nat64;
+        };
+      };
+      record {
+        "847e8a9618e364d9d74ae49b0640f3c1c567b3582c5bee9a963652615c0b2233";
+        record {
+          id = opt record {
+            id = blob "\84\7e\8a\96\18\e3\64\d9\d7\4a\e4\9b\06\40\f3\c1\c5\67\b3\58\2c\5b\ee\9a\96\36\52\61\5c\0b\22\33";
+          };
+          staked_maturity_e8s_equivalent = null;
+          permissions = vec {
+            record {
+              "principal" = opt principal "blmyj-3vn2k-4bepw-gjtre-gx7au-xcec2-zitym-kxm7j-yzgqg-k6ztg-fae";
+              permission_type = vec { 0 : int32; 1 : int32; 2 : int32; 3 : int32; 4 : int32; 5 : int32; 6 : int32; 7 : int32; 8 : int32; 9 : int32; 10 : int32;};
+            };
+          };
+          maturity_e8s_equivalent = 0 : nat64;
+          cached_neuron_stake_e8s = 2_000_000_000_000 : nat64;
+          created_timestamp_seconds = 0 : nat64;
+          topic_followees = null;
+          source_nns_neuron_id = null;
+          auto_stake_maturity = null;
+          aging_since_timestamp_seconds = 0 : nat64;
+          dissolve_state = opt variant {
+            DissolveDelaySeconds = 63_115_200 : nat64
+          };
+          voting_power_percentage_multiplier = 100 : nat64;
+          vesting_period_seconds = opt (126_230_400 : nat64);
+          disburse_maturity_in_progress = vec {};
+          followees = vec {};
+          neuron_fees_e8s = 0 : nat64;
+        };
+      };
+      record {
+        "d70d5856918e982c6b52a6e2d1493e8b861344fc28733620a71440aee82058b6";
+        record {
+          id = opt record {
+            id = blob "\d7\0d\58\56\91\8e\98\2c\6b\52\a6\e2\d1\49\3e\8b\86\13\44\fc\28\73\36\20\a7\14\40\ae\e8\20\58\b6";
+          };
+          staked_maturity_e8s_equivalent = null;
+          permissions = vec {
+            record {
+              "principal" = opt principal "blmyj-3vn2k-4bepw-gjtre-gx7au-xcec2-zitym-kxm7j-yzgqg-k6ztg-fae";
+              permission_type = vec { 0 : int32; 1 : int32; 2 : int32; 3 : int32; 4 : int32; 5 : int32; 6 : int32; 7 : int32; 8 : int32; 9 : int32; 10 : int32;};
+            };
+          };
+          maturity_e8s_equivalent = 0 : nat64;
+          cached_neuron_stake_e8s = 2_000_000_000_000 : nat64;
+          created_timestamp_seconds = 0 : nat64;
+          topic_followees = null;
+          source_nns_neuron_id = null;
+          auto_stake_maturity = null;
+          aging_since_timestamp_seconds = 0 : nat64;
+          dissolve_state = opt variant {
+            DissolveDelaySeconds = 63_115_200 : nat64
+          };
+          voting_power_percentage_multiplier = 100 : nat64;
+          vesting_period_seconds = opt (126_230_400 : nat64);
+          disburse_maturity_in_progress = vec {};
+          followees = vec {};
+          neuron_fees_e8s = 0 : nat64;
+        };
+      };
+      record {
+        "e8510aaf9c331d4685226aba7be17bb2d48fd6032e4b5a160c805c015615f9ad";
+        record {
+          id = opt record {
+            id = blob "\e8\51\0a\af\9c\33\1d\46\85\22\6a\ba\7b\e1\7b\b2\d4\8f\d6\03\2e\4b\5a\16\0c\80\5c\01\56\15\f9\ad";
+          };
+          staked_maturity_e8s_equivalent = null;
+          permissions = vec {
+            record {
+              "principal" = opt principal "blmyj-3vn2k-4bepw-gjtre-gx7au-xcec2-zitym-kxm7j-yzgqg-k6ztg-fae";
+              permission_type = vec { 0 : int32; 1 : int32; 2 : int32; 3 : int32; 4 : int32; 5 : int32; 6 : int32; 7 : int32; 8 : int32; 9 : int32; 10 : int32;};
+            };
+          };
+          maturity_e8s_equivalent = 0 : nat64;
+          cached_neuron_stake_e8s = 2_000_000_000_000 : nat64;
+          created_timestamp_seconds = 0 : nat64;
+          topic_followees = null;
+          source_nns_neuron_id = null;
+          auto_stake_maturity = null;
+          aging_since_timestamp_seconds = 0 : nat64;
+          dissolve_state = opt variant {
+            DissolveDelaySeconds = 63_115_200 : nat64
+          };
+          voting_power_percentage_multiplier = 100 : nat64;
+          vesting_period_seconds = opt (126_230_400 : nat64);
+          disburse_maturity_in_progress = vec {};
+          followees = vec {};
+          neuron_fees_e8s = 0 : nat64;
+        };
+      };
+    };
+    target_version = null;
+    genesis_timestamp_seconds = 0 : nat64;
+  },
+)

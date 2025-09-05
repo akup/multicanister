@@ -90,7 +90,7 @@ router.post('/upload', upload.single('file'), async (req: Request, res: Response
     }
     uploadedFilePath = req.file.path; // Get path from disk storage
 
-    let { name, sha256, branch, tag, commit, init_arg_hex } = req.body;
+    let { name, sha256, branch, tag, commit, initArgB64 } = req.body;
 
     if (!branch) {
       branch = 'main';
@@ -146,7 +146,7 @@ router.post('/upload', upload.single('file'), async (req: Request, res: Response
       canisterId: canisterId,
       wasmModule: fileBuffer, // Use the buffer read from the file
       wasmModuleHash: wasmHash,
-      initArg: init_arg_hex ? Buffer.from(init_arg_hex, 'hex') : undefined,
+      initArgB64,
       updateStrategy:
         // canisterStatus === 'corrupted' ? (updateStrategy as UpdateStrategy) : 'upgrade',     // temporary disabling, look beforehand
         updateStrategy,
