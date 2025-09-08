@@ -129,18 +129,17 @@ router.post('/upload', upload.single('file'), async (req: Request, res: Response
     }
     const canisterId = existingCanisterDetails.canisterIds[0];
 
-    // === Temporary disabling because of the bug in gateway-pocketIC connection ===
-    // const canisterStatus = await pocketICService.checkCanisterHashAndRunning(
-    //   canisterId,
-    //   existingCanisterDetails.wasmHash
-    // );
+    const canisterStatus = await pocketICService.checkCanisterHashAndRunning(
+      canisterId,
+      existingCanisterDetails.wasmHash
+    );
 
-    // if (canisterStatus === 'running' && existingCanisterDetails.wasmHash === wasmHash) {
-    //   return res.status(200).json({
-    //     message: 'Canister with same hash already exists and deployed',
-    //     data: existingCanisterDetails,
-    //   });
-    // }
+    if (canisterStatus === 'running' && existingCanisterDetails.wasmHash === wasmHash) {
+      return res.status(200).json({
+        message: 'Canister with same hash already exists and deployed',
+        data: existingCanisterDetails,
+      });
+    }
 
     await pocketICService.installCode({
       canisterId: canisterId,
