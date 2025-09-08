@@ -97,12 +97,12 @@ export class DeployService {
     const deploymentOrder = [...requiredCoreKeys, ...optionalCoreKeys];
     const canisterNamesToDeploy = deploymentOrder.filter(key => coreInfo[key as keyof CoreInfo]);
 
-    // 2. Вызываем новый эндпоинт, чтобы создать канистры и получить их ID
+    // 2. Call the new endpoint to create canisters and get their IDs
     console.log(chalk.white(' - Ensuring all core canisters exist...'));
     const deployedCanisterIds = await pocketIcCoreService.getCanisterIds(canisterNamesToDeploy);
     console.log('Received canister IDs:', deployedCanisterIds);
 
-    // 3. Теперь итерируемся и устанавливаем код в уже созданные канистры
+    // 3. Now iterate and install the code into the already created canisters
     for (const key of deploymentOrder) {
       const value = coreInfo[key as keyof CoreInfo];
       if (!value) continue;
@@ -110,7 +110,7 @@ export class DeployService {
       const [dfxCanister, dfxProject] = dfxProjectsByActorName[value];
       const wasmPath = dfxProject.root + dfxCanister.wasm;
 
-      // Получаем данные о состоянии (хэш и т.д.) с сервера
+      // Fetch state data (hash, etc.) from the server
       const cores = await pocketIcCoreService.listCores();
       const coreCanisterData = cores[key];
 
