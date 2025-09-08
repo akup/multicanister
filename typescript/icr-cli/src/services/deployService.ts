@@ -59,6 +59,23 @@ function getGitInfo(): GitInfo {
   return { branch, tag, isGitRepo, gitAvailable };
 }
 
+function getUserPrincipal(userName: string): string {
+  try {
+    const principal = execSync(`dfx identity get-principal ${userName}`, {
+      encoding: 'utf8',
+    }).trim();
+    if (!principal) {
+      throw new Error('Principal is empty.');
+    }
+    console.log(chalk.blue(` - Using principal for identity '${userName}': ${principal}`));
+    return principal;
+  } catch (e) {
+    throw new Error(
+      `Failed to get principal for DFX identity '${userName}'. Make sure it exists. Error: ${(e as Error).message}`
+    );
+  }
+}
+
 export class DeployService {
   // Here we deploy the core: create and install all actors from core.json
   // that are not currently running in remote PIC or have been changed
@@ -66,10 +83,12 @@ export class DeployService {
     coreInfo,
     dfxProjectsByActorName,
     picCoreUrl,
+    userPrincipal,
   }: {
     coreInfo: CoreInfo;
     dfxProjectsByActorName: Record<string, [DfxProjectCanister, DfxProject]>;
     picCoreUrl: URL;
+    userPrincipal: string;
   }): Promise<string | undefined> {
     console.log(chalk.whiteBright('Deploying core to pocket IC...'));
 
@@ -103,6 +122,7 @@ export class DeployService {
         coreCanisterData,
         deployedCanisterIds,
         dfxProjectRoot: dfxProject.root,
+        userPrincipal,
       });
     }
 

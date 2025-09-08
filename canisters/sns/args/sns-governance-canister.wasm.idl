@@ -42,7 +42,7 @@
     };
     is_finalizing_disburse_maturity = null;
     deployed_version = null;
-    sns_initialization_parameters = "transaction_fee_e8s: 10000\ntoken_name: MulticanisterOPS Token\ntoken_symbol: MCO\nproposal_reject_cost_e8s: 100000000\nneuron_minimum_stake_e8s: 100000000\nfallback_controller_principal_ids:\n- blmyj-3vn2k-4bepw-gjtre-gx7au-xcec2-zitym-kxm7j-yzgqg-k6ztg-fae\nlogo: <redacted-to-save-space>\nurl: https://mydapp.com\nname: MulticanisterOps\ndescription: MulticanisterOps local testflight\nneuron_minimum_dissolve_delay_to_vote_seconds: 2630016\ninitial_reward_rate_basis_points: 1000\nfinal_reward_rate_basis_points: 225\nreward_rate_transition_duration_seconds: 378691200\nmax_dissolve_delay_seconds: 252460800\nmax_neuron_age_seconds_for_age_bonus: 126230400\nmax_dissolve_delay_bonus_percentage: 100\nmax_age_bonus_percentage: 25\ninitial_voting_period_seconds: 345600\nwait_for_quiet_deadline_increase_seconds: 86400\nconfirmation_text: null\nrestricted_countries:\n  iso_codes:\n  - AQ\ndapp_canisters:\n  canisters: []\nmin_participants: 57\nmin_icp_e8s: null\nmax_icp_e8s: null\nmin_direct_participation_icp_e8s: 10000000000000\nmax_direct_participation_icp_e8s: 100000000000000\nmin_participant_icp_e8s: 10000000000\nmax_participant_icp_e8s: 1000000000000\nswap_start_timestamp_seconds: 0\nswap_due_timestamp_seconds: 0\nneuron_basket_construction_parameters:\n  count: 2\n  dissolve_delay_interval_seconds: 2630016\nnns_proposal_id: 0\nneurons_fund_participation: false\ntoken_logo: <redacted-to-save-space>\nneurons_fund_participation_constraints: null\ninitial_token_distribution: !FractionalDeveloperVotingPower\n  developer_distribution:\n    developer_neurons:\n    - controller: blmyj-3vn2k-4bepw-gjtre-gx7au-xcec2-zitym-kxm7j-yzgqg-k6ztg-fae\n      stake_e8s: 2000000000000\n      memo: 0\n      dissolve_delay_seconds: 63115200\n      vesting_period_seconds: 126230400\n    - controller: blmyj-3vn2k-4bepw-gjtre-gx7au-xcec2-zitym-kxm7j-yzgqg-k6ztg-fae\n      stake_e8s: 2000000000000\n      memo: 1\n      dissolve_delay_seconds: 63115200\n      vesting_period_seconds: 126230400\n    - controller: blmyj-3vn2k-4bepw-gjtre-gx7au-xcec2-zitym-kxm7j-yzgqg-k6ztg-fae\n      stake_e8s: 2000000000000\n      memo: 2\n      dissolve_delay_seconds: 63115200\n      vesting_period_seconds: 126230400\n    - controller: blmyj-3vn2k-4bepw-gjtre-gx7au-xcec2-zitym-kxm7j-yzgqg-k6ztg-fae\n      stake_e8s: 2000000000000\n      memo: 3\n      dissolve_delay_seconds: 63115200\n      vesting_period_seconds: 126230400\n    - controller: blmyj-3vn2k-4bepw-gjtre-gx7au-xcec2-zitym-kxm7j-yzgqg-k6ztg-fae\n      stake_e8s: 2000000000000\n      memo: 4\n      dissolve_delay_seconds: 63115200\n      vesting_period_seconds: 126230400\n    - controller: blmyj-3vn2k-4bepw-gjtre-gx7au-xcec2-zitym-kxm7j-yzgqg-k6ztg-fae\n      stake_e8s: 2000000000000\n      memo: 5\n      dissolve_delay_seconds: 63115200\n      vesting_period_seconds: 126230400\n    - controller: blmyj-3vn2k-4bepw-gjtre-gx7au-xcec2-zitym-kxm7j-yzgqg-k6ztg-fae\n      stake_e8s: 2000000000000\n      memo: 6\n      dissolve_delay_seconds: 63115200\n      vesting_period_seconds: 126230400\n    - controller: blmyj-3vn2k-4bepw-gjtre-gx7au-xcec2-zitym-kxm7j-yzgqg-k6ztg-fae\n      stake_e8s: 2000000000000\n      memo: 7\n      dissolve_delay_seconds: 63115200\n      vesting_period_seconds: 126230400\n    - controller: blmyj-3vn2k-4bepw-gjtre-gx7au-xcec2-zitym-kxm7j-yzgqg-k6ztg-fae\n      stake_e8s: 2000000000000\n      memo: 8\n      dissolve_delay_seconds: 63115200\n      vesting_period_seconds: 126230400\n    - controller: blmyj-3vn2k-4bepw-gjtre-gx7au-xcec2-zitym-kxm7j-yzgqg-k6ztg-fae\n      stake_e8s: 2000000000000\n      memo: 9\n      dissolve_delay_seconds: 63115200\n      vesting_period_seconds: 126230400\n  treasury_distribution:\n    total_e8s: 200000000000000\n  swap_distribution:\n    total_e8s: 50000000000000\n    initial_swap_amount_e8s: 50000000000000\n";
+    sns_initialization_parameters = "transaction_fee_e8s: 10000\ntoken_name: MulticanisterOPS Token\ntoken_symbol: MCO\nproposal_reject_cost_e8s: 100000000\nneuron_minimum_stake_e8s: 100000000\nfallback_controller_principal_ids:\n- {{principal:default}}\nlogo: <redacted-to-save-space>\nurl: https://mydapp.com\nname: MulticanisterOps\ndescription: MulticanisterOps local testflight\nneuron_minimum_dissolve_delay_to_vote_seconds: 2630016\ninitial_reward_rate_basis_points: 1000\nfinal_reward_rate_basis_points: 225\nreward_rate_transition_duration_seconds: 378691200\nmax_dissolve_delay_seconds: 252460800\nmax_neuron_age_seconds_for_age_bonus: 126230400\nmax_dissolve_delay_bonus_percentage: 100\nmax_age_bonus_percentage: 25\ninitial_voting_period_seconds: 345600\nwait_for_quiet_deadline_increase_seconds: 86400\nconfirmation_text: null\nrestricted_countries:\n  iso_codes:\n  - AQ\ndapp_canisters:\n  canisters: []\nmin_participants: 57\nmin_icp_e8s: null\nmax_icp_e8s: null\nmin_direct_participation_icp_e8s: 10000000000000\nmax_direct_participation_icp_e8s: 100000000000000\nmin_participant_icp_e8s: 10000000000\nmax_participant_icp_e8s: 1000000000000\nswap_start_timestamp_seconds: 0\nswap_due_timestamp_seconds: 0\nneuron_basket_construction_parameters:\n  count: 2\n  dissolve_delay_interval_seconds: 2630016\nnns_proposal_id: 0\nneurons_fund_participation: false\ntoken_logo: <redacted-to-save-space>\nneurons_fund_participation_constraints: null\ninitial_token_distribution: !FractionalDeveloperVotingPower\n  developer_distribution:\n    developer_neurons:\n    - controller: {{principal:default}}\n      stake_e8s: 2000000000000\n      memo: 0\n      dissolve_delay_seconds: 63115200\n      vesting_period_seconds: 126230400\n    - controller: {{principal:default}}\n      stake_e8s: 2000000000000\n      memo: 1\n      dissolve_delay_seconds: 63115200\n      vesting_period_seconds: 126230400\n    - controller: {{principal:default}}\n      stake_e8s: 2000000000000\n      memo: 2\n      dissolve_delay_seconds: 63115200\n      vesting_period_seconds: 126230400\n    - controller: {{principal:default}}\n      stake_e8s: 2000000000000\n      memo: 3\n      dissolve_delay_seconds: 63115200\n      vesting_period_seconds: 126230400\n    - controller: {{principal:default}}\n      stake_e8s: 2000000000000\n      memo: 4\n      dissolve_delay_seconds: 63115200\n      vesting_period_seconds: 126230400\n    - controller: {{principal:default}}\n      stake_e8s: 2000000000000\n      memo: 5\n      dissolve_delay_seconds: 63115200\n      vesting_period_seconds: 126230400\n    - controller: {{principal:default}}\n      stake_e8s: 2000000000000\n      memo: 6\n      dissolve_delay_seconds: 63115200\n      vesting_period_seconds: 126230400\n    - controller: {{principal:default}}\n      stake_e8s: 2000000000000\n      memo: 7\n      dissolve_delay_seconds: 63115200\n      vesting_period_seconds: 126230400\n    - controller: {{principal:default}}\n      stake_e8s: 2000000000000\n      memo: 8\n      dissolve_delay_seconds: 63115200\n      vesting_period_seconds: 126230400\n    - controller: {{principal:default}}\n      stake_e8s: 2000000000000\n      memo: 9\n      dissolve_delay_seconds: 63115200\n      vesting_period_seconds: 126230400\n  treasury_distribution:\n    total_e8s: 200000000000000\n  swap_distribution:\n    total_e8s: 50000000000000\n    initial_swap_amount_e8s: 50000000000000\n";
     latest_reward_event = null;
     pending_version = null;
     swap_canister_id = opt principal "ucwa4-rx777-77774-qaada-cai";
@@ -65,7 +65,7 @@
           staked_maturity_e8s_equivalent = null;
           permissions = vec {
             record {
-              "principal" = opt principal "blmyj-3vn2k-4bepw-gjtre-gx7au-xcec2-zitym-kxm7j-yzgqg-k6ztg-fae";
+              "principal" = opt principal "{{principal:default}}";
               permission_type = vec { 0 : int32; 1 : int32; 2 : int32; 3 : int32; 4 : int32; 5 : int32; 6 : int32; 7 : int32; 8 : int32; 9 : int32; 10 : int32;};
             };
           };
@@ -95,7 +95,7 @@
           staked_maturity_e8s_equivalent = null;
           permissions = vec {
             record {
-              "principal" = opt principal "blmyj-3vn2k-4bepw-gjtre-gx7au-xcec2-zitym-kxm7j-yzgqg-k6ztg-fae";
+              "principal" = opt principal "{{principal:default}}";
               permission_type = vec { 0 : int32; 1 : int32; 2 : int32; 3 : int32; 4 : int32; 5 : int32; 6 : int32; 7 : int32; 8 : int32; 9 : int32; 10 : int32;};
             };
           };
@@ -125,7 +125,7 @@
           staked_maturity_e8s_equivalent = null;
           permissions = vec {
             record {
-              "principal" = opt principal "blmyj-3vn2k-4bepw-gjtre-gx7au-xcec2-zitym-kxm7j-yzgqg-k6ztg-fae";
+              "principal" = opt principal "{{principal:default}}";
               permission_type = vec { 0 : int32; 1 : int32; 2 : int32; 3 : int32; 4 : int32; 5 : int32; 6 : int32; 7 : int32; 8 : int32; 9 : int32; 10 : int32;};
             };
           };
@@ -155,7 +155,7 @@
           staked_maturity_e8s_equivalent = null;
           permissions = vec {
             record {
-              "principal" = opt principal "blmyj-3vn2k-4bepw-gjtre-gx7au-xcec2-zitym-kxm7j-yzgqg-k6ztg-fae";
+              "principal" = opt principal "{{principal:default}}";
               permission_type = vec { 0 : int32; 1 : int32; 2 : int32; 3 : int32; 4 : int32; 5 : int32; 6 : int32; 7 : int32; 8 : int32; 9 : int32; 10 : int32;};
             };
           };
@@ -185,7 +185,7 @@
           staked_maturity_e8s_equivalent = null;
           permissions = vec {
             record {
-              "principal" = opt principal "blmyj-3vn2k-4bepw-gjtre-gx7au-xcec2-zitym-kxm7j-yzgqg-k6ztg-fae";
+              "principal" = opt principal "{{principal:default}}";
               permission_type = vec { 0 : int32; 1 : int32; 2 : int32; 3 : int32; 4 : int32; 5 : int32; 6 : int32; 7 : int32; 8 : int32; 9 : int32; 10 : int32;};
             };
           };
@@ -215,7 +215,7 @@
           staked_maturity_e8s_equivalent = null;
           permissions = vec {
             record {
-              "principal" = opt principal "blmyj-3vn2k-4bepw-gjtre-gx7au-xcec2-zitym-kxm7j-yzgqg-k6ztg-fae";
+              "principal" = opt principal "{{principal:default}}";
               permission_type = vec { 0 : int32; 1 : int32; 2 : int32; 3 : int32; 4 : int32; 5 : int32; 6 : int32; 7 : int32; 8 : int32; 9 : int32; 10 : int32;};
             };
           };
@@ -245,7 +245,7 @@
           staked_maturity_e8s_equivalent = null;
           permissions = vec {
             record {
-              "principal" = opt principal "blmyj-3vn2k-4bepw-gjtre-gx7au-xcec2-zitym-kxm7j-yzgqg-k6ztg-fae";
+              "principal" = opt principal "{{principal:default}}";
               permission_type = vec { 0 : int32; 1 : int32; 2 : int32; 3 : int32; 4 : int32; 5 : int32; 6 : int32; 7 : int32; 8 : int32; 9 : int32; 10 : int32;};
             };
           };
@@ -275,7 +275,7 @@
           staked_maturity_e8s_equivalent = null;
           permissions = vec {
             record {
-              "principal" = opt principal "blmyj-3vn2k-4bepw-gjtre-gx7au-xcec2-zitym-kxm7j-yzgqg-k6ztg-fae";
+              "principal" = opt principal "{{principal:default}}";
               permission_type = vec { 0 : int32; 1 : int32; 2 : int32; 3 : int32; 4 : int32; 5 : int32; 6 : int32; 7 : int32; 8 : int32; 9 : int32; 10 : int32;};
             };
           };
@@ -305,7 +305,7 @@
           staked_maturity_e8s_equivalent = null;
           permissions = vec {
             record {
-              "principal" = opt principal "blmyj-3vn2k-4bepw-gjtre-gx7au-xcec2-zitym-kxm7j-yzgqg-k6ztg-fae";
+              "principal" = opt principal "{{principal:default}}";
               permission_type = vec { 0 : int32; 1 : int32; 2 : int32; 3 : int32; 4 : int32; 5 : int32; 6 : int32; 7 : int32; 8 : int32; 9 : int32; 10 : int32;};
             };
           };
@@ -335,7 +335,7 @@
           staked_maturity_e8s_equivalent = null;
           permissions = vec {
             record {
-              "principal" = opt principal "blmyj-3vn2k-4bepw-gjtre-gx7au-xcec2-zitym-kxm7j-yzgqg-k6ztg-fae";
+              "principal" = opt principal "{{principal:default}}";
               permission_type = vec { 0 : int32; 1 : int32; 2 : int32; 3 : int32; 4 : int32; 5 : int32; 6 : int32; 7 : int32; 8 : int32; 9 : int32; 10 : int32;};
             };
           };

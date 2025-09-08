@@ -30,32 +30,32 @@
       "type": "custom",
       "candid": "canisters/sns/did/sns-root-canister.wasm.did",
       "wasm": "canisters/sns/sns-root-canister.wasm",
-      "init_args": "(record { governance_canister_id = principal \"{{canisterId:sns_governance}}\"; ledger_canister_id = principal \"{{canisterId:sns_ledger}}\"; swap_canister_id = principal \"{{canisterId:sns_swap}}\"; index_canister_id = principal \"{{canisterId:sns_index}}\"; dapps = vec {}; archive_canister_ids = vec {}; latest_version = opt record {major=0; minor=0; patch=0}})"
+      "init_args_file": "canisters/sns/args/sns-root-canister.wasm.idl"
     },
     "sns_governance": {
       "type": "custom",
       "candid": "canisters/sns/did/sns-governance-canister.wasm.did",
       "wasm": "canisters/sns/sns-governance-canister.wasm",
-      "init_arg_file": "canisters/sns/args/sns-governance-canister.wasm.idl"
+      "init_args_file": "canisters/sns/args/sns-governance-canister.wasm.idl"
 
     },
     "sns_ledger": {
       "type": "custom",
       "candid": "canisters/sns/did/ic-icrc1-ledger.wasm.did",
       "wasm": "canisters/sns/ic-icrc1-ledger.wasm",
-      "init_args": "(record { minting_account = record { owner = principal \"{{canisterId:sns_governance}}\" }; initial_balances = vec {}; transfer_fee = 10_000; token_name = \"My SNS Token\"; token_symbol = \"MST\"; metadata = vec {}; archive_options = record { num_blocks_to_archive = 1000; trigger_threshold = 2000; controller_id = principal \"{{canisterId:sns_root}}\" } })"
+      "init_args_file": "canisters/sns/args/ic-icrc1-ledger.wasm.idl"
     },
     "sns_swap": {
       "type": "custom",
       "candid": "canisters/sns/did/sns-swap-canister.wasm.did",
       "wasm": "canisters/sns/sns-swap-canister.wasm",
-      "init_args": "(record { nns_governance_canister_id = principal \"rrkah-fqaaa-aaaaa-aaaaq-cai\"; sns_governance_canister_id = principal \"{{canisterId:sns_governance}}\"; sns_root_canister_id = principal \"{{canisterId:sns_root}}\"; sns_ledger_canister_id = principal \"{{canisterId:sns_ledger}}\"; fallback_controller_principal_ids = vec { principal \"blmyj-3vn2k-4bepw-gjtre-gx7au-xcec2-zitym-kxm7j-yzgqg-k6ztg-fae\" }; transaction_fee_e8s = opt (10_000 : nat64); neuron_basket_construction_parameters = opt record { count = (2 : nat32); dissolve_delay_interval_seconds = (2630016 : nat64) }; })"
+      "init_args_file": "canisters/sns/args/sns-swap-canister.wasm.idl"
     },
     "sns_index": {
       "type": "custom",
       "candid": "canisters/sns/did/ic-icrc1-index-ng.wasm.did",
       "wasm": "canisters/sns/ic-icrc1-index-ng.wasm",
-      "init_args": "(record { ledger_id = principal \"{{canisterId:sns_ledger}}\" })"
+      "init_args_file": "canisters/sns/args/ic-icrc1-index-ng.wasm.idl"
     }
   },
   "defaults": {

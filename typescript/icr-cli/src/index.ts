@@ -242,10 +242,20 @@ const startICRCli = async (): Promise<void> => {
           //Deploying for deploy command
           let factoryCanisterId: string | undefined = undefined;
           if (commandHandled === 'deploy' && !commandArgs.skipCore) {
+            const usersManager = new UsersManagment('./users.json');
+            const userName = commandArgs.user as string;
+            const user = usersManager.getUser(userName);
+            if (!user) {
+              console.log(chalk.red(`User '${userName}' not found in users.json`));
+              return;
+            }
+            const userPrincipal = user.getPrincipal().toString();
+
             factoryCanisterId = await DeployService.deployCore({
               coreInfo,
               dfxProjectsByActorName: dfxProjects,
               picCoreUrl: picCoreUrl as URL,
+              userPrincipal,
             });
           }
 

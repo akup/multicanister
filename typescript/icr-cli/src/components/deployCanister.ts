@@ -4,7 +4,7 @@ import * as crypto from 'crypto';
 import * as fs from 'fs';
 import * as path from 'path';
 import { CoreMetadata, PocketIcCoreService } from '../services/pocketIcCoreService';
-import { execSync } from 'child_process';
+import { execSync, spawnSync } from 'child_process';
 
 const CHUNK_SIZE = 1024 * 1024; // 1MB chunks
 
@@ -33,11 +33,16 @@ function inferInitTypeFromDid(didPath: string): string {
  * @param deployedCanisterIds A map of canister names to their deployed IDs.
  * @returns The resolved arguments string.
  */
-function resolvePlaceholders(
-  argsString: string,
-  deployedCanisterIds: Record<string, string>
-): string {
-  return argsString.replace(/{{canisterId:(\w+)}}/g, (match, canisterName) => {
+function resolvePlaceholders({
+  argsString,
+  deployedCanisterIds,
+  userPrincipal,
+}: {
+  argsString: string;
+  deployedCanisterIds: Record<string, string>;
+  userPrincipal: string;
+}): string {
+  let resolved = argsString.replace(/{{canisterId:(\w+)}}/g, (match, canisterName) => {
     const canisterId = deployedCanisterIds[canisterName];
     if (!canisterId) {
       throw new Error(
@@ -47,6 +52,17 @@ function resolvePlaceholders(
     console.log(chalk.gray(`    - Resolved placeholder for '${canisterName}' to '${canisterId}'`));
     return canisterId;
   });
+
+  resolved = resolved.replace(/{{principal:(\w+)}}/g, (match, placeholderName) => {
+    console.log(
+      chalk.gray(
+        `    - Resolved placeholder for principal '${placeholderName}' to '${userPrincipal}'`
+      )
+    );
+    return userPrincipal;
+  });
+
+  return resolved;
 }
 
 export const deployCoreCanisterToPocketIC = async ({
@@ -57,6 +73,7 @@ export const deployCoreCanisterToPocketIC = async ({
   coreCanisterData,
   deployedCanisterIds,
   dfxProjectRoot,
+  userPrincipal,
 }: {
   canisterName: string;
   wasmName: string;
@@ -65,6 +82,7 @@ export const deployCoreCanisterToPocketIC = async ({
   coreCanisterData: CoreMetadata | undefined;
   deployedCanisterIds: Record<string, string>;
   dfxProjectRoot: string;
+  userPrincipal: string;
 }): Promise<string> => {
   const hash = crypto.createHash('sha256');
   const wasmSha256 = await new Promise<string>((resolve, reject) => {
@@ -117,7 +135,11 @@ export const deployCoreCanisterToPocketIC = async ({
   if (typeof rawArgsString === 'string' && rawArgsString.trim().length > 0) {
     console.log(chalk.blue(` - Encoding initialization arguments for ${canisterName}...`));
     try {
-      const resolvedArgs = resolvePlaceholders(rawArgsString, deployedCanisterIds);
+      const resolvedArgs = resolvePlaceholders({
+        argsString: rawArgsString,
+        deployedCanisterIds,
+        userPrincipal,
+      });
 
       console.log(chalk.gray(`Resolved init args for ${canisterName}:`));
       console.log(resolvedArgs);
@@ -136,9 +158,24 @@ export const deployCoreCanisterToPocketIC = async ({
         : `(${resolvedArgs.trim()})`;
 
       const typeSpec = `(${initType || ''})`;
-      const cmd = `didc encode --format hex -d '${candidPath}' -t '${typeSpec}' '${argsText}'`;
+      const didcResult = spawnSync('didc', [
+        'encode',
+        '--format',
+        'hex',
+        '-d',
+        candidPath,
+        '-t',
+        typeSpec,
+        argsText,
+      ]);
 
-      const hexString = execSync(cmd).toString().trim();
+      if (didcResult.status !== 0) {
+        throw new Error(
+          `didc failed with status ${didcResult.status}:\n${didcResult.stderr.toString()}`
+        );
+      }
+
+      const hexString = didcResult.stdout.toString().trim();
       const raw: Buffer = Buffer.from(hexString, 'hex');
       initArgB64 = raw.toString('base64');
 
