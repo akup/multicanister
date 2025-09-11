@@ -18,7 +18,7 @@ export class DfxProject {
 }
 
 export function prepareDfx(): Record<string, [DfxCanisterConfig, DfxProject]> | null {
-  //Здесь мы собираем все dfx.json файлы из всех поддиректорий и составляем Record с именем canister и массивом из информации о канистре и dfx.json проекте.
+  //Here we gather all dfx.json files from all subdirectories and build a Record keyed by canister name with an array containing the canister info and the dfx.json project.
   const dfxByActorName: Record<string, [DfxCanisterConfig, DfxProject]> = {};
 
   // Recursively find all dfx.json files in subdirectories (excluding the root one)
@@ -28,6 +28,14 @@ export function prepareDfx(): Record<string, [DfxCanisterConfig, DfxProject]> | 
       const fullPath = path.join(dir, name);
       const stat = fs.statSync(fullPath);
       if (stat.isDirectory()) {
+        // Check if the directory is a git submodule by looking for a .git file (not directory).
+        // This is a reliable way to identify and skip submodules.
+        const gitFilePath = path.join(fullPath, '.git');
+        if (fs.existsSync(gitFilePath) && fs.statSync(gitFilePath).isFile()) {
+          console.log(chalk.gray(` - Skipping submodule directory: ${fullPath}`));
+          continue;
+        }
+
         // Skip node_modules and other non-project directories
         if (
           name.includes('node_modules') ||
