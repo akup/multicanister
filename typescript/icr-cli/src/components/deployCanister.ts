@@ -111,82 +111,100 @@ export const deployCoreCanisterToPocketIC = async ({
 
   let initArgB64: string | undefined = undefined;
 
-  let rawArgsString: string | undefined = undefined;
+  // Trying to read generated SNS init args
+  const generatedArgPath = path.join(
+    dfxProjectRoot,
+    'canisters',
+    'sns',
+    'args_generated',
+    `${canisterName}.arg.bin`
+  );
 
-  if (canisterConfig.init_args) {
-    rawArgsString = canisterConfig.init_args;
-    if (canisterConfig.init_args_file) {
-      console.log(
-        chalk.yellow(
-          `  - Warning: Both 'init_args' and 'init_args_file' are specified for canister '${canisterName}'. Using 'init_args'.`
-        )
-      );
-    }
-  } else if (canisterConfig.init_args_file) {
-    const argsFilePath = path.join(dfxProjectRoot, canisterConfig.init_args_file);
-    try {
-      console.log(chalk.blue(` - Reading init args from file: ${argsFilePath}`));
-      rawArgsString = fs.readFileSync(argsFilePath, 'utf-8');
-    } catch (e) {
-      throw new Error(`Failed to read init_args_file '${argsFilePath}': ${(e as Error).message}`);
-    }
-  }
-
-  if (typeof rawArgsString === 'string' && rawArgsString.trim().length > 0) {
-    console.log(chalk.blue(` - Encoding initialization arguments for ${canisterName}...`));
-    try {
-      const resolvedArgs = resolvePlaceholders({
-        argsString: rawArgsString,
-        deployedCanisterIds,
-        userPrincipal,
-      });
-
-      console.log(chalk.gray(`Resolved init args for ${canisterName}:`));
-      console.log(resolvedArgs);
-
-      execSync('didc --version', { stdio: 'ignore' });
-
-      if (!canisterConfig.candid) {
-        throw new Error(`Candid path is missing in canister config for '${canisterName}'.`);
-      }
-
-      const candidPath = path.join(dfxProjectRoot, canisterConfig.candid);
-      const initType = inferInitTypeFromDid(candidPath);
-
-      const argsText = resolvedArgs.trim().startsWith('(')
-        ? resolvedArgs.trim()
-        : `(${resolvedArgs.trim()})`;
-
-      const typeSpec = `(${initType || ''})`;
-      const didcResult = spawnSync('didc', [
-        'encode',
-        '--format',
-        'hex',
-        '-d',
-        candidPath,
-        '-t',
-        typeSpec,
-        argsText,
-      ]);
-
-      if (didcResult.status !== 0) {
-        throw new Error(
-          `didc failed with status ${didcResult.status}:\n${didcResult.stderr.toString()}`
+  if (fs.existsSync(generatedArgPath)) {
+    console.log(chalk.blue(` - Using pre-generated init args from: ${generatedArgPath}`));
+    const rawArgBuffer = fs.readFileSync(generatedArgPath);
+    initArgB64 = rawArgBuffer.toString('base64');
+    console.log(
+      chalk.gray(`Encoded init arg: ${rawArgBuffer.length} bytes -> ${initArgB64.length} b64 chars`)
+    );
+  } else {
+    // Fallback to the old logic for non-SNS canisters (or if generation failed)
+    let rawArgsString: string | undefined = undefined;
+    if (canisterConfig.init_args) {
+      rawArgsString = canisterConfig.init_args;
+      if (canisterConfig.init_args_file) {
+        console.log(
+          chalk.yellow(
+            `  - Warning: Both 'init_args' and 'init_args_file' are specified for canister '${canisterName}'. Using 'init_args'.`
+          )
         );
       }
+    } else if (canisterConfig.init_args_file) {
+      const argsFilePath = path.join(dfxProjectRoot, canisterConfig.init_args_file);
+      try {
+        console.log(chalk.blue(` - Reading init args from file: ${argsFilePath}`));
+        rawArgsString = fs.readFileSync(argsFilePath, 'utf-8');
+      } catch (e) {
+        throw new Error(`Failed to read init_args_file '${argsFilePath}': ${(e as Error).message}`);
+      }
+    }
 
-      const hexString = didcResult.stdout.toString().trim();
-      const raw: Buffer = Buffer.from(hexString, 'hex');
-      initArgB64 = raw.toString('base64');
+    if (typeof rawArgsString === 'string' && rawArgsString.trim().length > 0) {
+      console.log(chalk.blue(` - Encoding initialization arguments for ${canisterName}...`));
+      try {
+        const resolvedArgs = resolvePlaceholders({
+          argsString: rawArgsString,
+          deployedCanisterIds,
+          userPrincipal,
+        });
 
-      console.log(
-        chalk.gray(`Encoded init arg: ${raw.length} bytes -> ${initArgB64.length} b64 chars`)
-      );
-    } catch (e) {
-      console.error(
-        chalk.red('Failed to encode arguments with didc. Is didc installed and in your PATH?')
-      );
-      throw e;
+        console.log(chalk.gray(`Resolved init args for ${canisterName}:`));
+        console.log(resolvedArgs);
+
+        execSync('didc --version', { stdio: 'ignore' });
+
+        if (!canisterConfig.candid) {
+          throw new Error(`Candid path is missing in canister config for '${canisterName}'.`);
+        }
+
+        const candidPath = path.join(dfxProjectRoot, canisterConfig.candid);
+        const initType = inferInitTypeFromDid(candidPath);
+
+        const argsText = resolvedArgs.trim().startsWith('(')
+          ? resolvedArgs.trim()
+          : `(${resolvedArgs.trim()})`;
+
+        const typeSpec = `(${initType || ''})`;
+        const didcResult = spawnSync('didc', [
+          'encode',
+          '--format',
+          'hex',
+          '-d',
+          candidPath,
+          '-t',
+          typeSpec,
+          argsText,
+        ]);
+
+        if (didcResult.status !== 0) {
+          throw new Error(
+            `didc failed with status ${didcResult.status}:\n${didcResult.stderr.toString()}`
+          );
+        }
+
+        const hexString = didcResult.stdout.toString().trim();
+        const raw: Buffer = Buffer.from(hexString, 'hex');
+        initArgB64 = raw.toString('base64');
+
+        console.log(
+          chalk.gray(`Encoded init arg: ${raw.length} bytes -> ${initArgB64.length} b64 chars`)
+        );
+      } catch (e) {
+        console.error(
+          chalk.red('Failed to encode arguments with didc. Is didc installed and in your PATH?')
+        );
+        throw e;
+      }
     }
   }
 

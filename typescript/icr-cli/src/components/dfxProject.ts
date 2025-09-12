@@ -30,11 +30,11 @@ export function prepareDfx(): Record<string, [DfxCanisterConfig, DfxProject]> | 
       if (stat.isDirectory()) {
         // Check if the directory is a git submodule by looking for a .git file (not directory).
         // This is a reliable way to identify and skip submodules.
-        const gitFilePath = path.join(fullPath, '.git');
-        if (fs.existsSync(gitFilePath) && fs.statSync(gitFilePath).isFile()) {
-          console.log(chalk.gray(` - Skipping submodule directory: ${fullPath}`));
-          continue;
-        }
+        // const gitFilePath = path.join(fullPath, '.git');
+        // if (fs.existsSync(gitFilePath) && fs.statSync(gitFilePath).isFile()) {
+        //   console.log(chalk.gray(` - Skipping submodule directory: ${fullPath}`));
+        //   continue;
+        // }
 
         // Skip node_modules and other non-project directories
         if (

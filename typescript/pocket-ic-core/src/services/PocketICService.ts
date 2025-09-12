@@ -136,7 +136,6 @@ export class PocketICService {
 
     this.managementCanisterAgent = ICManagementCanister.create({ agent });
 
-    // NEW: Renamed for clarity. This pings PocketIC to prevent TTL shutdown.
     const keepAlive = async (): Promise<void> => {
       try {
         await this.pocketIC!.getTime();
@@ -199,7 +198,7 @@ export class PocketICService {
     return this.pocketICProcess?.pid;
   }
 
-  // NEW: This is stage 1 of the two-stage deployment. It creates all canisters first.
+  // Stage 1 of the two-stage deployment. It creates all canisters first.
   public async getCanisterIds(names: string[]): Promise<Record<string, string>> {
     const results: Record<string, string> = {};
     for (const name of names) {
@@ -262,7 +261,7 @@ export class PocketICService {
     return chunkHashes;
   }
 
-  // NEW: This is stage 2 of the two-stage deployment. It installs code into existing canisters.
+  // Stage 2 of the two-stage deployment. It installs code into existing canisters.
   public async installCode({
     canisterId,
     wasmModule,

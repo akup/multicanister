@@ -8,6 +8,7 @@ import { readAppsFile } from './components/appsInfo';
 import { BuildService } from './services/buildService';
 import { DeployService } from './services/deployService';
 import { createUser, UsersManagment } from './components/users/manageUsers';
+import { prepareSnsConfigs } from './components/prepareSnsConfigs';
 
 import * as dotenv from 'dotenv';
 import { PocketIcCoreService } from './services/pocketIcCoreService';
@@ -229,6 +230,8 @@ const startICRCli = async (): Promise<void> => {
 
           //Building for build and deploy commands
           if (commandHandled === 'build' || commandHandled === 'deploy') {
+            prepareSnsConfigs();
+
             if (!commandArgs.skipBuild) {
               if (!commandArgs.skipCore) {
                 await BuildService.buildCore(coreInfo, dfxProjects);

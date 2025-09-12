@@ -1,0 +1,116 @@
+diff --git a/rs/sns/cli/src/deploy.rs b/rs/sns/cli/src/deploy.rs
+index 8400fdef06..0f270dccfb 100644
+--- a/rs/sns/cli/src/deploy.rs
++++ b/rs/sns/cli/src/deploy.rs
+@@ -7,7 +7,7 @@ use std::{
+     str::FromStr,
+ };
+ 
+-use candid::Decode;
++use candid::{Encode,Decode};
+ use serde_json::{json, Value as JsonValue};
+ 
+ use crate::{call_dfx, call_dfx_or_panic, get_identity, hex_encode_candid, DeployTestflightArgs};
+@@ -154,6 +154,8 @@ pub struct DirectSnsDeployerForTests {
+     pub wallet_canister: PrincipalId,
+     pub dfx_identity: PrincipalId,
+     pub testflight: bool,
++    /// If set, dump init args here and exit early.
++    pub dump_init_args_to: Option<PathBuf>,
+ }
+ 
+ impl DirectSnsDeployerForTests {
+@@ -192,6 +194,7 @@ impl DirectSnsDeployerForTests {
+             wallet_canister,
+             dfx_identity,
+             testflight: true,
++            dump_init_args_to: args.dump_init_args,
+         })
+     }
+ 
+@@ -478,4 +481,55 @@ impl DirectSnsDeployerForTests {
+             sns_canister_name,
+         ]);
+     }
++
++    /// Dump init args for all SNS canisters and exit (no installation).
++    pub fn dump_init_args(&self) -> Result<()> {
++        let Some(dir) = &self.dump_init_args_to else {
++            return Ok(());
++        };
++        create_dir_all(dir)?;
++
++        // Helper to encode payload bytes once.
++        fn enc<T: candid::CandidType>(v: &T) -> Vec<u8> {
++            candid::Encode!(v).expect("Candid encode failed")
++        }
++
++        // Prepare tuples: (logical name, canister id, candid-bytes)
++        let items: [(&str, PrincipalId, Vec<u8>); 5] = [
++            ("governance", self.sns_canisters.governance, enc(&self.sns_canister_payloads.governance)),
++            ("ledger",     self.sns_canisters.ledger,     enc(&self.sns_canister_payloads.ledger)),
++            ("root",       self.sns_canisters.root,       enc(&self.sns_canister_payloads.root)),
++            ("swap",       self.sns_canisters.swap,       enc(&self.sns_canister_payloads.swap)),
++            // Note: payload field is `index_ng`, canister alias remains `sns_index`.
++            ("index",      self.sns_canisters.index,      enc(&self.sns_canister_payloads.index_ng)),
++        ];
++
++        // Summary JSON.
++        let mut summary = serde_json::Map::new();
++
++        for (name, cid, bytes) in items {
++            let bin_path = dir.join(format!("{name}.arg.bin"));
++            let hex_path = dir.join(format!("{name}.arg.hex"));
++            std::fs::write(&bin_path, &bytes)?;
++            let hex_str = hex::encode(&bytes);
++            std::fs::write(&hex_path, hex_str.as_bytes())?;
++
++            summary.insert(
++                name.to_string(),
++                json!({
++                    "canister_id": cid.to_string(),
++                    "arg_hex": hex_str,
++                    "arg_len": bytes.len()
++                }),
++            );
++        }
++
++        let summary_path = dir.join("sns_init_args.summary.json");
++        std::fs::write(
++            &summary_path,
++            serde_json::to_vec_pretty(&serde_json::Value::Object(summary))?,
++        )?;
++        println!("Wrote SNS init args to {}", dir.display());
++        Ok(())
++    }
+ }
+diff --git a/rs/sns/cli/src/lib.rs b/rs/sns/cli/src/lib.rs
+index 1d9c31139a..518ed19d77 100644
+--- a/rs/sns/cli/src/lib.rs
++++ b/rs/sns/cli/src/lib.rs
+@@ -193,6 +193,10 @@ pub struct DeployTestflightArgs {
+     /// The directory with SNS canister WASMs.
+     #[structopt(default_value = ".", long)]
+     wasms_dir: PathBuf,
++
++    /// Dump init args for all SNS canisters into the given directory and exit (no installation).
++    #[clap(long, value_parser = clap::value_parser!(std::path::PathBuf))]
++    pub dump_init_args: Option<PathBuf>,
+ }
+ 
+ #[derive(Debug, Parser)]
+@@ -297,7 +301,13 @@ pub fn deploy_testflight(args: DeployTestflightArgs) -> Result<()> {
+     let sns_init_payload = args
+         .generate_sns_init_payload()
+         .context("Could not generate the SnsInitPayload")?;
+-    DirectSnsDeployerForTests::new_testflight(args, sns_init_payload)?.deploy()
++    let deployer = DirectSnsDeployerForTests::new_testflight(args, sns_init_payload)?;
++    // If requested, dump init args and return without installing anything.
++    if deployer.dump_init_args_to.is_some() {
++        deployer.dump_init_args()?;
++        return Ok(());
++    }
++    deployer.deploy()
+ }
+ 
+ pub fn add_sns_wasm_for_tests(args: AddSnsWasmForTestsArgs) -> Result<()> {
