@@ -1,0 +1,2 @@
+clusters-folder: "clusters"
+kubectl_timeout: 10

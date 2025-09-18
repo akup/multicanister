@@ -15,7 +15,8 @@
     "@validation-poc/channel-base": "^0.0.0",
     "@validation-poc/protocol": "^0.0.0",
     "bip39": "^3.0.4",
-    "borc": "^3.0.0"
+    "borc": "^3.0.0",
+    "@dfinity/identity": "2.4.1"
   },
   "devDependencies": {
     "esbuild": "^0.13.10",

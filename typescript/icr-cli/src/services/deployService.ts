@@ -5,6 +5,7 @@ import { DfxProject, DfxProjectCanister } from '../components/dfxProject';
 import { PocketIcCoreService } from './pocketIcCoreService';
 import { deployCoreCanisterToPocketIC } from '../components/deployCanister';
 import { execSync } from 'child_process';
+import { URL } from 'url';
 
 import { Identity } from '@dfinity/agent';
 import { FactoryService } from './factoryService';

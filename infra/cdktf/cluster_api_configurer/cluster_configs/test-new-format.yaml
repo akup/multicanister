@@ -1,0 +1,7 @@
+region: ewr
+clusterName: test-new-format
+controlPlaneHighAvailability: true
+workerGroups:
+  system-workloads:
+    count: 3
+    planId: vc2-4c-8gb

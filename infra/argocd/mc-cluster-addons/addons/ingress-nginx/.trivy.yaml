@@ -1,0 +1,53 @@
+# Trivy Configuration for ingress-nginx chart
+# This file configures Trivy scanning behavior for this specific chart
+
+# Security policy configuration
+policy:
+  # Path to policy files
+  paths:
+    - .trivyignore
+  
+  # Policy exceptions
+  exceptions:
+    - id: KSV041
+      reason: "Secrets permissions are required for ingress-nginx functionality. The ingress controller needs access to secrets for TLS certificates and other configurations. This is a standard requirement for ingress controllers."
+    - id: KSV114
+      reason: "Admission webhooks are required for ingress-nginx-controller to get ingress rules for routing. This is a standard requirement for ingress controllers."
+
+# Scan configuration
+scan:
+  # Vulnerability types to scan
+  vuln-type:
+    - os
+    - library
+    - config
+  
+  # Severity levels to report
+  severity:
+    - CRITICAL
+    - HIGH
+    - MEDIUM
+    - LOW
+  
+  # Exit code when vulnerabilities are found
+  exit-code: 0
+  
+  # Ignore unfixed vulnerabilities
+  ignore-unfixed: true
+  
+  # Skip database update
+  skip-db-update: false
+  
+  # Skip Java index update
+  skip-java-db-update: false
+
+# Output configuration
+output:
+  # Output format
+  format: table
+  
+  # Show progress
+  no-progress: false
+  
+  # Show version
+  version: false 

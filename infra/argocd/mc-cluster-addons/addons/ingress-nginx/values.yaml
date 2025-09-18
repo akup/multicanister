@@ -1,0 +1,119 @@
+ingress-nginx:
+  controller:
+    # -- Set the controller to be DaemonSet to run on every matching nodes, according to the nodeSelector and tolerations
+    kind: DaemonSet
+    # -- Set the external traffic policy to Local to allow the ingress-nginx controller to listen on the same node as the ingress-nginx pod
+    service:
+      externalTrafficPolicy: Local
+
+    # -- Additional command line arguments to pass to Ingress-Nginx Controller
+    # extraArgs:
+    #   v: "3" #LogLevel verbosity debug
+
+    # -- Global configuration passed to the ConfigMap consumed by the controller
+    config:
+      # Enable access logging for all hosts
+      access-log-level: info
+      # Custom log format to include host information and error analysis
+      log-format-escape-json: "true"
+      log-format-upstream: '{"time": "$time_iso8601", "remote_addr": "$remote_addr", "x-forward-for": "$http_x_forwarded_for", "status": $status, "vhost": "$host", "request_proto": "$server_protocol", "path": "$request_uri", "request_query": "$args", "request_length": $request_length, "duration": $request_time, "method": "$request_method", "http_referrer": "$http_referer", "http_user_agent": "$http_user_agent", "upstream_addr": "$upstream_addr", "upstream_response_time": "$upstream_response_time", "upstream_status": "$upstream_status", "error_analysis": "$status-$upstream_status"}'
+      # Enable error logging
+      error-log-level: "info"
+      # Ensure access logs are written to stdout for pod logs
+      access-log-path: "/dev/stdout"
+      error-log-path: "/dev/stderr"
+
+    # -- Additional volumes to the controller pod
+    extraVolumes:
+      - name: nginx-logs
+        emptyDir: {}
+
+    # -- Additional volume mounts to the controller main container
+    extraVolumeMounts:
+      - name: nginx-logs
+        mountPath: /var/log/nginx
+
+    # -- Configures the ports that the nginx-controller listens on
+    containerPort:
+      http: 80
+      https: 443
+
+    ## Use host ports 80 and 443
+    ## Disabled by default
+    hostPort:
+      # -- Enable 'hostPort' or not
+      enabled: false
+      ports:
+        # -- 'hostPort' http port
+        http: 80
+        # -- 'hostPort' https port
+        https: 443
+
+    nodeSelector:
+      kubernetes.io/os: linux
+      node-role.kubernetes.io/system-workloads: ""
+    tolerations:
+      - key: node-role
+        operator: Equal
+        value: system-workloads
+        effect: NoExecute
+
+    ## Liveness and readiness probe values
+    ## Ref: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#container-probes
+    ##
+    ## startupProbe:
+    ##   httpGet:
+    ##     # should match container.healthCheckPath
+    ##     path: "/healthz"
+    ##     port: 10254
+    ##     scheme: HTTP
+    ##   initialDelaySeconds: 5
+    ##   periodSeconds: 5
+    ##   timeoutSeconds: 2
+    ##   successThreshold: 1
+    ##   failureThreshold: 5
+    livenessProbe:
+      httpGet:
+        # should match container.healthCheckPath
+        path: "/healthz"
+        port: 10254
+        scheme: HTTP
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      timeoutSeconds: 1
+      successThreshold: 1
+      failureThreshold: 5
+    readinessProbe:
+      httpGet:
+        # should match container.healthCheckPath
+        path: "/healthz"
+        port: 10254
+        scheme: HTTP
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      timeoutSeconds: 1
+      successThreshold: 1
+      failureThreshold: 3
+
+    podAnnotations: {}
+    #replicaCount: 2  # Set to 3 replicas for high availability
+    # -- Minimum available pods set in PodDisruptionBudget.
+    # Define either 'minAvailable' or 'maxUnavailable', never both.
+    #minAvailable: 1
+
+    # Admission webhook configuration
+    admissionWebhooks:
+      enabled: true
+      patch:
+        enabled: true
+        nodeSelector:
+          kubernetes.io/os: linux
+          node-role.kubernetes.io/system-workloads: ""
+        tolerations:
+          - key: node-role
+            operator: Equal
+            value: system-workloads
+            effect: NoExecute
+          - key: node-role.kubernetes.io/control-plane
+            operator: Exists
+            effect: NoSchedule

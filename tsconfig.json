@@ -9,13 +9,11 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     
-    // --- ADDED: Configure path aliases ---
     "baseUrl": ".",
     "paths": {
       "~/*": ["typescript/pocket-ic-core/src/*"]
     },
     
-    // --- ADDED: Specify Node.js environment libraries ---
     // This prevents conflicts with browser-specific types like FormData
     "lib": ["ES2022"],
 

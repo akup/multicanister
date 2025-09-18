@@ -25,10 +25,7 @@ export const getIdentityFromPrivateKey = (privateKey: string): Identity => {
       privateKeyBytes = Buffer.from(privateKey, 'base64');
     }
 
-    // Create Ed25519 identity from private key
-    // We use `as any` here to bypass the compile-time type error caused by
-    // duplicate versions of @dfinity/identity in the monorepo.
-    return Ed25519KeyIdentity.fromSecretKey(privateKeyBytes) as any;
+    return Ed25519KeyIdentity.fromSecretKey(privateKeyBytes);
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     throw new Error(`Failed to generate identity from private key: ${errorMessage}`);

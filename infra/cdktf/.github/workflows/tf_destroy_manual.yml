@@ -1,0 +1,92 @@
+name: Destroy (manual run)
+
+on:
+  workflow_dispatch:
+    inputs:
+      cluster_name:
+        type: choice
+        description: First part of cluster name
+        default: test
+        options:
+        - test
+        - prod
+
+      region:
+        type: choice
+        description: region name
+#Vultr regions with block storage support
+        options: 
+        - ams
+#There are no storage in Frankfurt
+#        - fra
+
+env:
+  terraformVersion: 1.12.0
+  cdktfVersion: 0.20.12
+  nodeVersion: 20
+
+jobs:
+  destroy:
+    runs-on: [self-hosted, linux, tf-infra-control]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.nodeVersion }}
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.terraformVersion }}
+
+      - name: Get branch name
+        run: |
+          echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
+          echo "branch_name=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT
+          echo "names=${GITHUB_REF#refs/heads/}, ${GITHUB_HEAD_REF}, ${GITHUB_HEAD_REF}"
+        id: extract_branch
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Generate module and provider bindings
+#npm install cdktf-cli@${{ env.cdktfVersion }} -g is a hack for cdktf action to work
+        run: |
+          npm install cdktf-cli@${{ env.cdktfVersion }} -g
+          npx cdktf-cli get
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4.0.2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_TF_STATE_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_TF_STATE_SECRET_ACCESS_KEY }}
+          aws-region: eu-central-1
+
+      - name: Run Terraform CDK DESTROY of storages and kube setup
+        uses: hashicorp/terraform-cdk-action@v9
+        env:
+          GITHUB_BRANCH: ${{ steps.extract_branch.outputs.branch }}
+          GITHUB_BRANCH_NAME: ${{ steps.extract_branch.outputs.branch_name }}
+          REGION_NAME: ${{ github.event.inputs.region }}
+          CLUSTER_NAME: ${{ github.event.inputs.cluster_name }}
+        with:
+          cdktfVersion: ${{ env.cdktfVersion }}
+          terraformVersion: ${{ env.terraformVersion }}
+          mode: auto-approve-destroy
+          stackName: set-up-stack
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run Terraform CDK DESTROY of cluster and gateway
+        uses: hashicorp/terraform-cdk-action@v9
+        env:
+          GITHUB_BRANCH: ${{ steps.extract_branch.outputs.branch }}
+          GITHUB_BRANCH_NAME: ${{ steps.extract_branch.outputs.branch_name }}
+          REGION_NAME: ${{ github.event.inputs.region }}
+          CLUSTER_NAME: ${{ github.event.inputs.cluster_name }}
+        with:
+          cdktfVersion: ${{ env.cdktfVersion }}
+          terraformVersion: ${{ env.terraformVersion }}
+          mode: auto-approve-destroy
+          stackName: kubernetes-stack
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+      

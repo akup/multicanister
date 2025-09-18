@@ -1,0 +1,44 @@
+cert-manager: #defined by either the name or alias of your dependency in Chart.yaml,
+  # it's not a cert-manager inner component name, like cert-manager, webhook, cainjector, etc.
+  namespace: security
+
+  # Ensure CRDs are installed first
+  installCRDs: true
+
+  nodeSelector:
+    kubernetes.io/os: linux
+    node-role.kubernetes.io/system-workloads: ""
+  tolerations:
+    - key: node-role
+      operator: Equal
+      value: system-workloads
+      effect: NoExecute
+
+  webhook:
+    nodeSelector:
+      kubernetes.io/os: linux
+      node-role.kubernetes.io/system-workloads: ""
+    tolerations:
+      - key: node-role
+        operator: Equal
+        value: system-workloads
+        effect: NoExecute
+  cainjector:
+    nodeSelector:
+      kubernetes.io/os: linux
+      node-role.kubernetes.io/system-workloads: ""
+    tolerations:
+      - key: node-role
+        operator: Equal
+        value: system-workloads
+        effect: NoExecute
+  startupapicheck:
+    nodeSelector:
+      kubernetes.io/os: linux
+      node-role.kubernetes.io/system-workloads: ""
+    tolerations:
+      - key: node-role
+        operator: Equal
+        value: system-workloads
+        effect: NoExecute
+

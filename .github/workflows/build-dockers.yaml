@@ -1,16 +1,17 @@
-name: Build and Deploy TypeScript Applications
+name: Build and Deploy Dockers
 
 on:
   push:
     branches: [ main, dev-* ]
     paths:
       - 'typescript/**'
-      - '.github/workflows/deploy-ts.yaml'
+      - '.github/workflows/build-dockers.yaml'
+      - '!typescript/icr-cli/**'
   pull_request:
     branches: [ main ]
     paths:
       - 'typescript/**'
-      - '.github/workflows/deploy-ts.yaml'
+      - '.github/workflows/build-dockers.yaml'
   workflow_dispatch:
     inputs:
       application:
@@ -18,21 +19,33 @@ on:
         required: false
         type: string
         default: ''
+        options:
+          - pocket-ic-core
+          - test-app
 
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  build-and-push:
+  build-dockers-to-registry:
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
     
     strategy:
+      fail-fast: false
       matrix:
         app:
+          # This is Pocket IC Core server
+          - name: pocket-ic-core
+            path: typescript/pocket-ic-core
+            dockerfile: Dockerfile
+            context: "."
+
+          # Then list off-chain apps here
+          # This is Test App
           - name: test-app
             path: typescript/test-app
             dockerfile: Dockerfile
@@ -46,13 +59,17 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
-      - name: Set app configuration for manual dispatch
+      - name: Filter matrix for manual dispatch
         if: github.event.inputs.application != ''
         run: |
-          echo "APP_NAME=${{ github.event.inputs.application }}" >> $GITHUB_ENV
-          echo "APP_PATH=${{ github.event.inputs.application }}" >> $GITHUB_ENV
-          echo "APP_CONTEXT=${{ github.event.inputs.application }}" >> $GITHUB_ENV
+          if [ "${{ matrix.app.name }}" != "${{ github.event.inputs.application }}" ]; then
+            echo "Skipping ${{ matrix.app.name }} - not requested"
+            exit 0
+          fi
+          echo "Building requested application: ${{ matrix.app.name }}"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -68,7 +85,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{ github.event.inputs.application != '' && env.APP_NAME || matrix.app.name }}
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{ matrix.app.name }}
           tags: |
             type=ref,event=branch
             type=ref,event=pr
@@ -80,14 +97,14 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: ${{ github.event.inputs.application != '' && env.APP_CONTEXT || matrix.app.context }}
-          file: ${{ github.event.inputs.application != '' && env.APP_CONTEXT || matrix.app.context }}/${{ matrix.app.dockerfile }}
+          context: ${{ matrix.app.context }}
+          file: ${{ matrix.app.path }}/${{ matrix.app.dockerfile }}
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
 
       - name: Output image info
         if: github.event_name != 'pull_request'

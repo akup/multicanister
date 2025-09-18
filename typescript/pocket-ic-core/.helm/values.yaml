@@ -1,0 +1,103 @@
+fullnameOverride: "pocket-ic-core"
+
+podLabels:
+  app: pocket-ic
+  tier: icp-chain
+
+env_vars:
+  PIC_GATEWAY_DOMAINS: pocket-ic-core, dev.gateway.pic.mc-ops.tech
+
+replicaCount: 1
+
+revisionHistoryLimit: 5
+
+image:
+  repository: "ghcr.io/jjoinvest/dex-multicanister/pocket-ic-core"
+  tag: "dev-testdeploy"
+  pullPolicy: Always
+
+# Enable StatefulSet
+statefulSet:
+  enabled: true
+  podManagementPolicy: "OrderedReady"
+
+# Persistence will use volumeClaimTemplates instead of PVCs
+persistence:
+  enabled: true
+  pvc:
+    pvcList:
+      data:
+        storageClassName: vultr-block-storage
+        accessMode: ReadWriteOnce
+        size: 10Gi
+        mountPath: /app/ic-data
+        readOnly: false
+
+global:
+  alwaysRedeploy: true
+  terminationGracePeriodSeconds: 30
+  shareProcessNamespace: false
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podDisruptionBudget:
+  enabled: false
+  minAvailable: 1
+  maxUnavailable: 0
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    # cert-manager.io/cluster-issuer: letsencrypt-http  # Disabled HTTPS
+    nginx.ingress.kubernetes.io/force-reload: "true"
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/client-max-body-size: "5M"
+    nginx.ingress.kubernetes.io/proxy-body-size: "5M"
+  hosts:
+    - host: dev.service.pic.mc-ops.tech
+      paths:
+        - path: /
+          pathType: Prefix
+          servicePort: 80
+    - host: dev.gateway.pic.mc-ops.tech
+      paths:
+        - path: /
+          pathType: Prefix
+          servicePort: 4944
+  # tls: #Use this section if certifiacte is issued with lets encrypt. It can be that cloudflare issues certificate and sends http traffic to ingress.
+  #   - secretName: pic-service-tls  # cert-manager will create this secret
+  #     hosts:
+  #       - dev.service.pic.mc-ops.tech
+
+resources:
+  requests:
+    cpu: 1000m
+    memory: 1Gi
+
+service: 
+  type: ClusterIP
+  ports:
+    http:
+      pod_port: 8092
+      protocol: TCP
+      service_port: 80
+      ingress: true
+    pocket-ic:
+      pod_port: 4944
+      protocol: TCP
+      service_port: 4944
+      ingress: true
+
+tolerations:
+  - key: node-role
+    operator: "Equal"
+    value: log-workloads #Change to dex-app-workloads
+    effect: NoExecute
+
+nodeSelector:
+  kubernetes.io/os: linux
+  node-role.kubernetes.io/log-workloads: ""

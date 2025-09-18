@@ -1,5 +1,6 @@
 {
   "factory": "factory",
+  "hello": "hello",
   "candid_ui": "didjs",
   "sns_root": "sns_root",
   "sns_governance": "sns_governance",

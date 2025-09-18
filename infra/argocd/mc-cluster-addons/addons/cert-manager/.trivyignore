@@ -1,0 +1,10 @@
+# Trivy Security Policy Exceptions for cert-manager
+# This file contains exceptions for security issues that are accepted for this chart
+
+# KSV041: Secrets permissions are required for cert-manager functionality
+KSV041
+# KSV114: Manage webhookconfigurations is required for cert-manager functionality
+KSV114
+
+# Additional exceptions can be added here as needed
+# Format: <VULNERABILITY_ID> <optional_reason> 

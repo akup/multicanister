@@ -1,0 +1,13 @@
+region: ewr
+clusterName: test-capi-generation
+controlPlaneHighAvailability: true
+workerGroups:
+  system-workloads:
+    count: 2
+    planId: vc2-2c-4gb
+  app-workloads:
+    count: 3
+    planId: vc2-4c-8gb
+  database-workloads:
+    count: 1
+    planId: vc2-6c-16gb

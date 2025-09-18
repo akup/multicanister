@@ -1,0 +1,348 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-proxy-config
+  namespace: wireguard-proxy
+data:
+  nginx.conf: |
+    events {
+      worker_connections 1024;
+    }
+    
+    http {
+      upstream argocd-backend {
+        server argocd-server.argocd.svc.cluster.local:80;
+      }
+
+      upstream test-app-backend {
+        server test-app.dev-dex.svc.cluster.local:80;
+      }
+
+      upstream grafana-backend {
+        server grafana.observability.svc.cluster.local:80;
+      }
+      
+      # upstream other-app-backend {
+      #   server other-app.other-namespace.svc.cluster.local:80;
+      # }
+      
+      server {
+        listen 80;
+        server_name _;
+        
+        # Health check
+        location /health {
+          access_log off;
+          return 200 "healthy\n";
+          add_header Content-Type text/plain;
+        }
+        
+        # Route based on Host header
+        location / {
+          proxy_pass http://$host;
+          proxy_set_header Host $host;
+          proxy_set_header X-Real-IP $remote_addr;
+          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+          proxy_set_header X-Forwarded-Proto $scheme;
+          
+          # Timeouts
+          proxy_connect_timeout 30s;
+          proxy_send_timeout 30s;
+          proxy_read_timeout 30s;
+        }
+      }
+    }
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wireguard-proxy-1
+  namespace: wireguard-proxy
+  labels:
+    app: wireguard-proxy
+    instance: proxy-1
+  annotations:
+    reloader.stakater.com/auto: "true"
+    reloader.stakater.com/search: "wireguard-config-1,wireguard-shared-config,wireguard-secret-1"
+spec:
+  replicas: 1
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      app: wireguard-proxy
+      instance: proxy-1
+  template:
+    metadata:
+      labels:
+        app: wireguard-proxy
+        instance: proxy-1
+    spec:
+      # Node scheduling
+      nodeSelector:
+        kubernetes.io/os: linux
+        node-role.kubernetes.io/system-workloads: ""
+      
+      # Tolerations for system workloads
+      tolerations:
+        - key: node-role
+          operator: Equal
+          value: system-workloads
+          effect: NoExecute
+        - key: node-role.kubernetes.io/control-plane
+          operator: Exists
+          effect: NoSchedule
+      
+      initContainers:
+      - name: generate-wg-config
+        image: alpine:latest
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          apk add --no-cache bash sed
+          POD_PRIVATE_KEY=$(cat /pod-secret/pod-private-key)
+          POD_IP=$(cat /pod-config/pod-ip)
+          SERVER_PUBLIC_KEY=$(cat /shared-config/server-public-key)
+          GATEWAY_SERVER_IP=$(cat /shared-config/gateway-server-ip)
+          GATEWAY_SERVER_PORT=$(cat /shared-config/gateway-server-port)
+          
+          cat > /output/wg0.conf << EOF
+          [Interface]
+          PrivateKey = $POD_PRIVATE_KEY
+          Address = $POD_IP/24
+          # DNS = 8.8.8.8
+          
+          [Peer]
+          PublicKey = $SERVER_PUBLIC_KEY
+          Endpoint = $GATEWAY_SERVER_IP:$GATEWAY_SERVER_PORT
+          AllowedIPs = 10.0.0.0/16
+          # AllowedIPs = 0.0.0.0/0, !172.26.0.0/16  # Exclude cluster CIDR
+          PersistentKeepalive = 25
+          EOF
+          
+          echo "Generated WireGuard configuration for pod $POD_IP"
+        volumeMounts:
+        - name: pod-config
+          mountPath: /pod-config
+        - name: pod-secret
+          mountPath: /pod-secret
+        - name: shared-config
+          mountPath: /shared-config
+        - name: wg-config-output
+          mountPath: /output
+      
+      containers:
+      - name: wireguard
+        image: linuxserver/wireguard:1.0.20250521
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - name: wg-config-output
+          mountPath: /config/wg_confs
+        env:
+        - name: PUID
+          value: "1000"
+        - name: PGID
+          value: "1000"
+        - name: TZ
+          value: "UTC"
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "128Mi"
+            cpu: "100m"
+      
+      - name: nginx-proxy
+        image: nginx:alpine
+        ports:
+        - containerPort: 80
+          protocol: TCP
+        volumeMounts:
+        - name: nginx-config
+          mountPath: /etc/nginx/nginx.conf
+          subPath: nginx.conf
+        - name: nginx-logs
+          mountPath: /var/log/nginx
+        command: ["nginx", "-g", "daemon off;"]
+        resources:
+          requests:
+            memory: "32Mi"
+            cpu: "25m"
+          limits:
+            memory: "64Mi"
+            cpu: "50m"
+      
+      volumes:
+      - name: pod-config
+        configMap:
+          name: wireguard-config-1
+      - name: pod-secret
+        secret:
+          secretName: wireguard-secret-1
+      - name: shared-config
+        configMap:
+          name: wireguard-shared-config
+      - name: wg-config-output
+        emptyDir: {}
+      - name: nginx-config
+        configMap:
+          name: nginx-proxy-config
+      - name: nginx-logs
+        emptyDir: {}
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wireguard-proxy-2
+  namespace: wireguard-proxy
+  labels:
+    app: wireguard-proxy
+    instance: proxy-2
+  annotations:
+    reloader.stakater.com/auto: "true"
+    reloader.stakater.com/search: "wireguard-config-2,wireguard-shared-config,wireguard-secret-2"
+spec:
+  replicas: 1
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      app: wireguard-proxy
+      instance: proxy-2
+  template:
+    metadata:
+      labels:
+        app: wireguard-proxy
+        instance: proxy-2
+    spec:
+      # Node scheduling
+      nodeSelector:
+        kubernetes.io/os: linux
+        node-role.kubernetes.io/system-workloads: ""
+      
+      # Tolerations for system workloads
+      tolerations:
+        - key: node-role
+          operator: Equal
+          value: system-workloads
+          effect: NoExecute
+        - key: node-role.kubernetes.io/control-plane
+          operator: Exists
+          effect: NoSchedule
+      
+      initContainers:
+      - name: generate-wg-config
+        image: alpine:latest
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          apk add --no-cache bash sed
+          POD_PRIVATE_KEY=$(cat /pod-secret/pod-private-key)
+          POD_IP=$(cat /pod-config/pod-ip)
+          SERVER_PUBLIC_KEY=$(cat /shared-config/server-public-key)
+          GATEWAY_SERVER_IP=$(cat /shared-config/gateway-server-ip)
+          GATEWAY_SERVER_PORT=$(cat /shared-config/gateway-server-port)
+          
+          cat > /output/wg0.conf << EOF
+          [Interface]
+          PrivateKey = $POD_PRIVATE_KEY
+          Address = $POD_IP/24
+          # DNS = 8.8.8.8
+          
+          [Peer]
+          PublicKey = $SERVER_PUBLIC_KEY
+          Endpoint = $GATEWAY_SERVER_IP:$GATEWAY_SERVER_PORT
+          AllowedIPs = 10.0.0.0/16
+          # AllowedIPs = 0.0.0.0/0, !172.26.0.0/16  # Exclude cluster CIDR
+          PersistentKeepalive = 25
+          EOF
+          
+          echo "Generated WireGuard configuration for pod $POD_IP"
+        volumeMounts:
+        - name: pod-config
+          mountPath: /pod-config
+        - name: pod-secret
+          mountPath: /pod-secret
+        - name: shared-config
+          mountPath: /shared-config
+        - name: wg-config-output
+          mountPath: /output
+      
+      containers:
+      - name: wireguard
+        image: linuxserver/wireguard:1.0.20250521
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - name: wg-config-output
+          mountPath: /config/wg_confs
+        env:
+        - name: PUID
+          value: "1000"
+        - name: PGID
+          value: "1000"
+        - name: TZ
+          value: "UTC"
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "128Mi"
+            cpu: "100m"
+      
+      - name: nginx-proxy
+        image: nginx:alpine
+        ports:
+        - containerPort: 80
+          protocol: TCP
+        volumeMounts:
+        - name: nginx-config
+          mountPath: /etc/nginx/nginx.conf
+          subPath: nginx.conf
+        - name: nginx-logs
+          mountPath: /var/log/nginx
+        command: ["nginx", "-g", "daemon off;"]
+        resources:
+          requests:
+            memory: "32Mi"
+            cpu: "25m"
+          limits:
+            memory: "64Mi"
+            cpu: "50m"
+      
+      volumes:
+      - name: pod-config
+        configMap:
+          name: wireguard-config-2
+      - name: pod-secret
+        secret:
+          secretName: wireguard-secret-2
+      - name: shared-config
+        configMap:
+          name: wireguard-shared-config
+      - name: wg-config-output
+        emptyDir: {}
+      - name: nginx-config
+        configMap:
+          name: nginx-proxy-config
+      - name: nginx-logs
+        emptyDir: {}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: wireguard-proxy-service
+  namespace: wireguard-proxy
+spec:
+  selector:
+    app: wireguard-proxy
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+    protocol: TCP
+  type: ClusterIP 

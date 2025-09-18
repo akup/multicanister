@@ -1,0 +1,12 @@
+- op: add
+  path: "/spec/template/spec/containers/0/volumeMounts/-"
+  value:
+    mountPath: /creds
+    name: argocd-dex-sa-key
+- op: add
+  path: "/spec/template/spec/volumes/-"
+  value:
+    name: argocd-dex-sa-key
+    secret:
+      defaultMode: 420
+      secretName: argocd-dex-sa-key 

@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { DATA_DIR } from './DataDir';
 
 export interface CoreRecord {
   canisterIds: string[];
@@ -14,7 +15,7 @@ export class CoreModel {
   private static instance: CoreModel;
   private readonly storageDir: string;
 
-  private constructor(storageDir: string = path.join(process.cwd(), 'ic-data', 'cores')) {
+  private constructor(storageDir: string = path.join(DATA_DIR, 'cores')) {
     this.storageDir = storageDir;
     this.ensureStorageDir();
   }

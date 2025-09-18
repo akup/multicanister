@@ -1,0 +1,163 @@
+name: Update Helm Repository and Default Values
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/update-helm-repo-and-defaults.yml'
+      - 'app-helm-chart/**'
+  workflow_dispatch:
+
+env:
+  REPO_OWNER: JJOInvest
+  REPO_NAME: dex-apps
+  CHART_NAME: app-helm-chart
+  HELM_REPO_DIR: helm-repo-raw
+
+jobs:
+  update-helm-repo-and-defaults:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: v3.12.0
+
+      - name: Extract chart version
+        id: chart-version
+        run: |
+          CHART_VERSION=$(grep '^version:' app-helm-chart/Chart.yaml | awk '{print $2}')
+          echo "chart_version=$CHART_VERSION" >> $GITHUB_OUTPUT
+          echo "Extracted chart version: $CHART_VERSION"
+
+      - name: Generate raw GitHub repository
+        run: bash scripts/generate-raw-index.sh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO_OWNER: ${{ env.REPO_OWNER }}
+          REPO_NAME: ${{ env.REPO_NAME }}
+          CHART_NAME: ${{ env.CHART_NAME }}
+          CHART_VERSION: ${{ steps.chart-version.outputs.chart_version }}
+          HELM_REPO_DIR: ${{ env.HELM_REPO_DIR }}
+
+      - name: Load default values from remote chart
+        run: ./scripts/load-defaults.sh
+
+      - name: Package Helm chart for GitHub Pages
+        run: |
+          helm package app-helm-chart
+          mv app-helm-chart-${{ steps.chart-version.outputs.chart_version }}.tgz helm-repo/
+
+      - name: Update GitHub Pages index.yaml
+        run: |
+          helm repo index helm-repo --url https://jjoinvest.github.io/dex-apps/helm-repo
+          helm repo index . --url https://jjoinvest.github.io/dex-apps
+
+      - name: Check for changes
+        id: check-changes
+        run: |
+          # Check for changes in raw repo directory
+          RAW_REPO_CHANGES=false
+          if ! git diff --quiet $HELM_REPO_DIR || [ -n "$(git ls-files --others --exclude-standard $HELM_REPO_DIR)" ]; then
+            RAW_REPO_CHANGES=true
+          fi
+          
+          # Check for changes in GitHub Pages repo
+          GITHUB_PAGES_CHANGES=false
+          if ! git diff --quiet helm-repo/ || [ -n "$(git ls-files --others --exclude-standard helm-repo/)" ]; then
+            GITHUB_PAGES_CHANGES=true
+          fi
+          
+          # Check for changes in default values file
+          DEFAULTS_CHANGES=false
+          if ! git diff --quiet app-helm-chart-values.yaml || [ -n "$(git ls-files --others --exclude-standard app-helm-chart-values.yaml)" ]; then
+            DEFAULTS_CHANGES=true
+          fi
+          
+          # Set overall changes flag
+          if [ "$RAW_REPO_CHANGES" = "true" ] || [ "$GITHUB_PAGES_CHANGES" = "true" ] || [ "$DEFAULTS_CHANGES" = "true" ]; then
+            echo "changes=true" >> $GITHUB_OUTPUT
+            echo "raw_repo_changes=$RAW_REPO_CHANGES" >> $GITHUB_OUTPUT
+            echo "github_pages_changes=$GITHUB_PAGES_CHANGES" >> $GITHUB_OUTPUT
+            echo "defaults_changes=$DEFAULTS_CHANGES" >> $GITHUB_OUTPUT
+          else
+            echo "changes=false" >> $GITHUB_OUTPUT
+            echo "raw_repo_changes=false" >> $GITHUB_OUTPUT
+            echo "github_pages_changes=false" >> $GITHUB_OUTPUT
+            echo "defaults_changes=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit and push changes
+        #It alway be true because app-helm-chart-1.0.0.tgz includes timestamp
+        #But action is called only manually or when there are changes in app-helm-chart/
+        if: steps.check-changes.outputs.changes == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          
+          # Fetch latest changes to avoid conflicts
+          git fetch origin
+          
+          # Add raw repo changes if any
+          if [ "${{ steps.check-changes.outputs.raw_repo_changes }}" = "true" ]; then
+            git add $HELM_REPO_DIR/
+          fi
+          
+          # Add GitHub Pages repo changes if any
+          if [ "${{ steps.check-changes.outputs.github_pages_changes }}" = "true" ]; then
+            git add helm-repo/
+          fi
+          
+          # Add default values changes if any
+          if [ "${{ steps.check-changes.outputs.defaults_changes }}" = "true" ]; then
+            git add app-helm-chart-values.yaml
+          fi
+          
+          # Create commit message based on what changed
+          COMMIT_MSG="Update"
+          if [ "${{ steps.check-changes.outputs.raw_repo_changes }}" = "true" ]; then
+            COMMIT_MSG="$COMMIT_MSG raw GitHub repository"
+          fi
+          if [ "${{ steps.check-changes.outputs.github_pages_changes }}" = "true" ]; then
+            if [ "${{ steps.check-changes.outputs.raw_repo_changes }}" = "true" ]; then
+              COMMIT_MSG="$COMMIT_MSG and"
+            fi
+            COMMIT_MSG="$COMMIT_MSG GitHub Pages repository"
+          fi
+          if [ "${{ steps.check-changes.outputs.defaults_changes }}" = "true" ]; then
+            if [ "${{ steps.check-changes.outputs.raw_repo_changes }}" = "true" ] || [ "${{ steps.check-changes.outputs.github_pages_changes }}" = "true" ]; then
+              COMMIT_MSG="$COMMIT_MSG and"
+            fi
+            COMMIT_MSG="$COMMIT_MSG default values"
+          fi
+          COMMIT_MSG="$COMMIT_MSG [skip ci]"
+          
+          git commit -m "$COMMIT_MSG"
+          git push
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request' && steps.check-changes.outputs.changes == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            let message = '✅ ';
+            if ('${{ steps.check-changes.outputs.raw_repo_changes }}' === 'true') {
+              message += 'Raw GitHub repository updated';
+            }
+            if ('${{ steps.check-changes.outputs.defaults_changes }}' === 'true') {
+              if ('${{ steps.check-changes.outputs.raw_repo_changes }}' === 'true') {
+                message += ' and ';
+              }
+              message += 'Default values updated';
+            }
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              body: message
+            }) 

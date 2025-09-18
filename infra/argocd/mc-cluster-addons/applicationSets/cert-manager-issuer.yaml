@@ -1,0 +1,28 @@
+ # mc-cluster-addons/applicationSets/cert-manager-issuer.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: cert-manager-issuer
+  namespace: argocd
+spec:
+  generators:
+    - clusters:
+        selector:
+          matchLabels:
+            nginx-ingress: enabled
+  template:
+    metadata:
+      name: 'cert-manager-issuer-{{name}}'
+    spec:
+      project: cluster-addons
+      source:
+        repoURL: https://github.com/akup/multicanister
+        targetRevision: main
+        path: infra/argocd/mc-cluster-addons/addons/cert-manager-issuer/
+      destination:
+        name: '{{name}}'
+        namespace: security
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true

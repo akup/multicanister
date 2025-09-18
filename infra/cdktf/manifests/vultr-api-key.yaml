@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: vultr-ccm
+  namespace: kube-system
+stringData:
+  api-key: "${vultr_api_key}"
+  region: "${region}"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: vultr-csi
+  namespace: kube-system
+stringData:
+  api-key: "${vultr_api_key}"

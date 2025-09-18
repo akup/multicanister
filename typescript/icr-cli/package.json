@@ -4,7 +4,6 @@
   "version": "0.1.0",
   "main": "./src/index.ts",
   "private": true,
-  "type": "module",
   "bin": "dist/index.js",
   "scripts": {
     "dev-create-user": "nodemon --config nodemon.json ./src/index.ts create-user --d ../../ --n default",
@@ -31,10 +30,18 @@
     "build-binary-debug": "pkg . --no-deps"
   },
   "pkg": {
-    "targets": ["node18-macos-x64", "node18-linux-x64", "node18-win-x64"],
+    "targets": [
+      "node18-macos-x64",
+      "node18-linux-x64",
+      "node18-win-x64"
+    ],
     "outputPath": "dist/bin",
-    "scripts": ["dist/**/*.js"],
-    "assets": ["fonts/**/*"],
+    "scripts": [
+      "dist/**/*.js"
+    ],
+    "assets": [
+      "fonts/**/*"
+    ],
     "dependencies": false,
     "devDependencies": false,
     "optionalDependencies": false,
@@ -69,9 +76,15 @@
   },
   "prettier": "@repo/prettier-config",
   "dependencies": {
+    "@types/node-fetch": "^2.6.13",
+    "dotenv": "^17.2.1",
+    "form-data": "^4.0.4",
     "glob": "^10.3.10",
     "node-fetch": "^3.3.2",
+    "p-timeout": "^6.1.4",
+    "pkg": "^5.8.1",
     "rimraf": "^5.0.5",
-    "undici": "^6.6.2"
+    "yargs": "17.7.2",
+    "@dfinity/identity": "2.4.1"
   }
 }

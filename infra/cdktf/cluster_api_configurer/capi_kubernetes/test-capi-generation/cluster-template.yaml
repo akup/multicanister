@@ -1,0 +1,258 @@
+apiVersion: cluster.x-k8s.io/v1beta1
+kind: Cluster
+metadata:
+  name: test-capi-generation
+spec:
+  clusterNetwork:
+    pods:
+      cidrBlocks:
+      - 172.25.0.0/16
+    services:
+      cidrBlocks:
+      - 172.26.0.0/16
+  infrastructureRef:
+    apiVersion: infrastructure.cluster.x-k8s.io/v1
+    kind: VultrCluster
+    name: test-capi-generation
+  controlPlaneRef:
+    kind: KubeadmControlPlane
+    apiVersion: controlplane.cluster.x-k8s.io/v1beta1
+    name: test-capi-generation-control-plane
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+kind: VultrCluster
+metadata:
+  name: test-capi-generation
+spec:
+  region: ewr
+---
+apiVersion: controlplane.cluster.x-k8s.io/v1beta1
+kind: KubeadmControlPlane
+metadata:
+  name: test-capi-generation-control-plane
+spec:
+  replicas: 3
+  version: v1.28.0
+  machineTemplate:
+    infrastructureRef:
+      apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+      kind: VultrMachineTemplate
+      name: test-capi-generation-control-plane
+  kubeadmConfigSpec:
+    initConfiguration:
+      nodeRegistration:
+        criSocket: unix:///var/run/containerd/containerd.sock
+        kubeletExtraArgs:
+          cgroup-driver: systemd
+          eviction-hard: nodefs.available<0%,nodefs.inodesFree<0%,imagefs.available<0%
+          cloud-provider: external
+          provider-id: vultr://'{{ ds.meta_data["instance_id"] }}'
+    clusterConfiguration:
+      controllerManager:
+        extraArgs:
+          enable-hostpath-provisioner: 'true'
+          cloud-provider: external
+      apiServer:
+        extraArgs:
+          cloud-provider: external
+    joinConfiguration:
+      nodeRegistration:
+        criSocket: unix:///var/run/containerd/containerd.sock
+        kubeletExtraArgs:
+          cgroup-driver: systemd
+          eviction-hard: nodefs.available<0%,nodefs.inodesFree<0%,imagefs.available<0%
+          cloud-provider: external
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+kind: VultrMachineTemplate
+metadata:
+  name: test-capi-generation-control-plane
+spec:
+  template:
+    spec:
+      planID: vc2-2c-4gb
+      region: ewr
+      snapshot_id: ${SNAPSHOT_ID}
+      vpc_id: ${VPC_ID}
+      sshKey:
+      - ${SSH_KEY_ID}
+---
+apiVersion: cluster.x-k8s.io/v1beta1
+kind: MachineDeployment
+metadata:
+  name: test-capi-generation-system-workloads
+  labels:
+    cluster.x-k8s.io/cluster-name: test-capi-generation
+spec:
+  clusterName: test-capi-generation
+  replicas: 2
+  selector:
+    matchLabels:
+      cluster.x-k8s.io/cluster-name: test-capi-generation
+      role: system-workloads
+  template:
+    metadata:
+      labels:
+        cluster.x-k8s.io/cluster-name: test-capi-generation
+        role: system-workloads
+    spec:
+      clusterName: test-capi-generation
+      version: v1.28.0
+      bootstrap:
+        configRef:
+          apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
+          kind: KubeadmConfigTemplate
+          name: test-capi-generation-system-workloads
+      infrastructureRef:
+        apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+        kind: VultrMachine
+        name: test-capi-generation-system-workloads
+---
+apiVersion: cluster.x-k8s.io/v1beta1
+kind: MachineDeployment
+metadata:
+  name: test-capi-generation-app-workloads
+  labels:
+    cluster.x-k8s.io/cluster-name: test-capi-generation
+spec:
+  clusterName: test-capi-generation
+  replicas: 3
+  selector:
+    matchLabels:
+      cluster.x-k8s.io/cluster-name: test-capi-generation
+      role: app-workloads
+  template:
+    metadata:
+      labels:
+        cluster.x-k8s.io/cluster-name: test-capi-generation
+        role: app-workloads
+    spec:
+      clusterName: test-capi-generation
+      version: v1.28.0
+      bootstrap:
+        configRef:
+          apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
+          kind: KubeadmConfigTemplate
+          name: test-capi-generation-app-workloads
+      infrastructureRef:
+        apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+        kind: VultrMachine
+        name: test-capi-generation-app-workloads
+---
+apiVersion: cluster.x-k8s.io/v1beta1
+kind: MachineDeployment
+metadata:
+  name: test-capi-generation-database-workloads
+  labels:
+    cluster.x-k8s.io/cluster-name: test-capi-generation
+spec:
+  clusterName: test-capi-generation
+  replicas: 1
+  selector:
+    matchLabels:
+      cluster.x-k8s.io/cluster-name: test-capi-generation
+      role: database-workloads
+  template:
+    metadata:
+      labels:
+        cluster.x-k8s.io/cluster-name: test-capi-generation
+        role: database-workloads
+    spec:
+      clusterName: test-capi-generation
+      version: v1.28.0
+      bootstrap:
+        configRef:
+          apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
+          kind: KubeadmConfigTemplate
+          name: test-capi-generation-database-workloads
+      infrastructureRef:
+        apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+        kind: VultrMachine
+        name: test-capi-generation-database-workloads
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+kind: VultrMachineTemplate
+metadata:
+  name: test-capi-generation-system-workloads
+spec:
+  template:
+    spec:
+      planID: vc2-2c-4gb
+      region: ewr
+      snapshot_id: ${SNAPSHOT_ID}
+      vpc_id: ${VPC_ID}
+      sshKey:
+      - ${SSH_KEY_ID}
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+kind: VultrMachineTemplate
+metadata:
+  name: test-capi-generation-app-workloads
+spec:
+  template:
+    spec:
+      planID: vc2-4c-8gb
+      region: ewr
+      snapshot_id: ${SNAPSHOT_ID}
+      vpc_id: ${VPC_ID}
+      sshKey:
+      - ${SSH_KEY_ID}
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+kind: VultrMachineTemplate
+metadata:
+  name: test-capi-generation-database-workloads
+spec:
+  template:
+    spec:
+      planID: vc2-6c-16gb
+      region: ewr
+      snapshot_id: ${SNAPSHOT_ID}
+      vpc_id: ${VPC_ID}
+      sshKey:
+      - ${SSH_KEY_ID}
+---
+apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
+kind: KubeadmConfigTemplate
+metadata:
+  name: test-capi-generation-system-workloads
+spec:
+  template:
+    spec:
+      joinConfiguration:
+        nodeRegistration:
+          criSocket: unix:///var/run/containerd/containerd.sock
+          kubeletExtraArgs:
+            cloud-provider: external
+            cgroup-driver: systemd
+            eviction-hard: nodefs.available<0%,nodefs.inodesFree<0%,imagefs.available<0%
+---
+apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
+kind: KubeadmConfigTemplate
+metadata:
+  name: test-capi-generation-app-workloads
+spec:
+  template:
+    spec:
+      joinConfiguration:
+        nodeRegistration:
+          criSocket: unix:///var/run/containerd/containerd.sock
+          kubeletExtraArgs:
+            cloud-provider: external
+            cgroup-driver: systemd
+            eviction-hard: nodefs.available<0%,nodefs.inodesFree<0%,imagefs.available<0%
+---
+apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
+kind: KubeadmConfigTemplate
+metadata:
+  name: test-capi-generation-database-workloads
+spec:
+  template:
+    spec:
+      joinConfiguration:
+        nodeRegistration:
+          criSocket: unix:///var/run/containerd/containerd.sock
+          kubeletExtraArgs:
+            cloud-provider: external
+            cgroup-driver: systemd
+            eviction-hard: nodefs.available<0%,nodefs.inodesFree<0%,imagefs.available<0%

@@ -1,0 +1,23 @@
+# Generated files
+generated/
+
+# Kubernetes config files (for security reasons can not be in git)
+*.kubeconfig
+
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+# Cluster API Configuration
+clusters/
+server.pid
+server.log
+
+# VSCode
+.vscode/
+/**/.vscode/

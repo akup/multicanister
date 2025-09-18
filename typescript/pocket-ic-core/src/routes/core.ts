@@ -1,11 +1,12 @@
 import { Router, Request, Response } from 'express';
 import multer from 'multer';
 import path from 'path';
-import { CoreModel } from '~/models/CoreModel';
+import { CoreModel } from '../models/CoreModel';
 import crypto from 'crypto';
 import fs from 'fs';
-import { pocketICService } from '~/index';
-import { CanisterStatus, UpdateStrategy } from '~/services/PocketICService';
+import { pocketICService } from '../index';
+import { UpdateStrategy } from '../services/PocketICService';
+import { DATA_DIR } from '~/models/DataDir';
 
 const router = Router();
 const coreModel = CoreModel.getInstance();
@@ -14,10 +15,10 @@ const coreModel = CoreModel.getInstance();
 const storage = multer.diskStorage({
   destination: (
     req: Request,
-    file: Express.Multer.File,
+    file: globalThis.Express.Multer.File,
     cb: (error: Error | null, destination: string) => void
   ) => {
-    const uploadDir = path.join(process.cwd(), 'ic-data', 'uploads');
+    const uploadDir = path.join(DATA_DIR, 'uploads');
     // Ensure upload directory exists
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true });
@@ -26,7 +27,7 @@ const storage = multer.diskStorage({
   },
   filename: (
     req: Request,
-    file: Express.Multer.File,
+    file: globalThis.Express.Multer.File,
     cb: (error: Error | null, filename: string) => void
   ) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
@@ -79,16 +80,18 @@ router.get('/list-core', async (req: Request, res: Response) => {
 });
 
 interface UploadRequest extends Request {
-  file?: Express.Multer.File;
+  file?: globalThis.Express.Multer.File;
 }
 
 router.post('/upload', upload.single('file'), async (req: Request, res: Response) => {
   let uploadedFilePath: string | undefined = undefined;
   try {
+    console.log('uploading file');
     if (!req.file) {
-      return res.status(400).json({ message: 'No file uploaded' });
+      return res.status(400).json({ message: 'No file in request' });
     }
     uploadedFilePath = req.file.path; // Get path from disk storage
+    console.log('has file contents');
 
     let { name, sha256, branch, tag, commit, initArgB64 } = req.body;
 
@@ -100,7 +103,6 @@ router.post('/upload', upload.single('file'), async (req: Request, res: Response
 
     const existingCanisterDetails = await coreModel.get(name);
     const isFirstInstall = !existingCanisterDetails?.wasmHash;
-
     const updateStrategy: UpdateStrategy = isFirstInstall ? 'reinstall' : 'upgrade';
 
     console.log(`Determined strategy: '${updateStrategy}' for canister '${name}'`);
@@ -122,11 +124,14 @@ router.post('/upload', upload.single('file'), async (req: Request, res: Response
       });
     }
 
+    console.log('File sha256 hash matches');
+
     if (!existingCanisterDetails || existingCanisterDetails.canisterIds.length === 0) {
       return res.status(404).json({
         message: `Canister '${name}' not found. It must be created first via /get-canister-ids.`,
       });
     }
+
     const canisterId = existingCanisterDetails.canisterIds[0];
 
     const canisterStatus = await pocketICService.checkCanisterHashAndRunning(
@@ -182,7 +187,7 @@ router.post('/upload', upload.single('file'), async (req: Request, res: Response
 
 // Cleanup incomplete uploads on server start
 const cleanupIncompleteUploads = async (): Promise<void> => {
-  const uploadDir = path.join(process.cwd(), 'ic-data', 'uploads');
+  const uploadDir = path.join(DATA_DIR, 'uploads');
   if (fs.existsSync(uploadDir)) {
     const files = await fs.promises.readdir(uploadDir);
     for (const file of files) {

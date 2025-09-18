@@ -11,6 +11,7 @@ export class CoreInfo {
   sns_index: string = '';
   ii?: string;
   candid_ui?: string;
+  hello?: string;
 }
 
 export function readCoreFile(coreFilePath: string = defaultConfig.coreFile): CoreInfo | null {

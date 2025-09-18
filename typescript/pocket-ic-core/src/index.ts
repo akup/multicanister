@@ -1,3 +1,6 @@
+import * as dotenv from 'dotenv';
+dotenv.config();
+
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import express from 'express';
@@ -5,8 +8,7 @@ import { coreRoutes } from './routes/core';
 import { PocketICService } from '~/services/PocketICService';
 import chalk from 'chalk';
 
-import * as dotenv from 'dotenv';
-dotenv.config();
+import { DATA_DIR } from './models/DataDir';
 
 const argv = yargs(hideBin(process.argv))
   .option('port', {
@@ -40,6 +42,8 @@ app.use(express.json());
 // Routes
 app.use('/api', coreRoutes);
 
+console.log('Try to start with state dir: ', DATA_DIR);
+
 // Start PocketIC
 export const pocketICService = PocketICService.getInstance();
 pocketICService
@@ -64,8 +68,13 @@ pocketICService
   });
 
 // Handle process termination
-process.on('SIGINT', async () => {
+process.on('SIGINT', () => {
   console.log('Shutting down...');
-  await pocketICService.stop();
-  process.exit(0);
+  pocketICService
+    .stop()
+    .then(() => process.exit(0))
+    .catch(error => {
+      console.error('Error during shutdown:', error);
+      process.exit(1);
+    });
 });

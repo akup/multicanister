@@ -4,6 +4,7 @@ import * as fs from 'fs';
 import chalk from 'chalk';
 import * as path from 'path';
 import { defaultConfig } from '../configs';
+import { URL } from 'url';
 
 export type DfxProjectCanister = DfxCanisterConfig;
 
@@ -28,14 +29,6 @@ export function prepareDfx(): Record<string, [DfxCanisterConfig, DfxProject]> | 
       const fullPath = path.join(dir, name);
       const stat = fs.statSync(fullPath);
       if (stat.isDirectory()) {
-        // Check if the directory is a git submodule by looking for a .git file (not directory).
-        // This is a reliable way to identify and skip submodules.
-        // const gitFilePath = path.join(fullPath, '.git');
-        // if (fs.existsSync(gitFilePath) && fs.statSync(gitFilePath).isFile()) {
-        //   console.log(chalk.gray(` - Skipping submodule directory: ${fullPath}`));
-        //   continue;
-        // }
-
         // Skip node_modules and other non-project directories
         if (
           name.includes('node_modules') ||

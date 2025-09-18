@@ -1,0 +1,28 @@
+ # mc-cluster-addons/applicationSets/wireguard-gate.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: wireguard-gate
+  namespace: argocd
+spec:
+  generators:
+    - clusters:
+        selector:
+          matchLabels:
+            wireguard-gate: enabled
+  template:
+    metadata:
+      name: 'wireguard-gate-{{name}}'
+    spec:
+      project: cluster-addons
+      source:
+        repoURL: https://github.com/akup/multicanister
+        targetRevision: main
+        path: infra/argocd/mc-cluster-addons/addons/wireguard-gate/
+      destination:
+        name: '{{name}}'
+        namespace: security
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true

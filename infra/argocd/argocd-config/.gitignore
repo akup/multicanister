@@ -1,0 +1,5 @@
+# JetBrains IDE metadata
+.idea
+# VS Code workspace settings
+.vscode
+*.code-workspace

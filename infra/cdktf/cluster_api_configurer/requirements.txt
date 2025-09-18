@@ -1,0 +1,5 @@
+# No external dependencies required - uses only Python standard library
+# This file is included for consistency with Python projects 
+PyYAML==6.0.1
+requests==2.32.4
+watchdog==3.0.0 

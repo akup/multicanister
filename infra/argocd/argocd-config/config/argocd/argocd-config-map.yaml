@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-cm
+data:
+  # Disables submodules
+  repository.gitmodules.enabled: "false"
+  # Enables anonymous users
+  users.anonymous.enabled: "true"
+  # Enables admin user
+  admin.enabled: "true"
+  # The instance label is applied to resources managed by ArgoCD,
+  # and is then used to figure out which resources need to be considered further.
+  application.instanceLabelKey: "www.jjo.finance/internal"

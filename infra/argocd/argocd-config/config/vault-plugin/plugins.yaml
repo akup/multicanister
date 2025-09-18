@@ -1,0 +1,45 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-vault-plugin
+data:
+  argocd-vault-plugin.yaml: |
+    apiVersion: argoproj.io/v1alpha1
+    kind: ConfigManagementPlugin
+    metadata:
+      name: argocd-vault-plugin
+    spec:
+      allowConcurrency: true
+      discover:
+        find:
+          command:
+            - sh
+            - "-c"
+            - "find . -name '*.yaml' | xargs -I {} grep \"<path\\|avp\\.kubernetes\\.io\" {} | grep ."
+      generate:
+        command:
+          - argocd-vault-plugin
+          - generate
+          - "."
+      lockRepo: false
+  argocd-vault-plugin-helm.yaml: |
+    apiVersion: argoproj.io/v1alpha1
+    kind: ConfigManagementPlugin
+    metadata:
+      name: argocd-vault-plugin-helm
+    spec:
+      init:
+        command: [ sh, -c ]
+        args: [ "helm dependency build" ]
+        generate:
+          command: [ "sh", "-c" ]
+          args: [ "helm template $ARGOCD_APP_NAME . --include-crds | argocd-vault-plugin generate -" ]
+  argocd-vault-plugin-kustomize.yaml: |
+    apiVersion: argoproj.io/v1alpha1
+    kind: ConfigManagementPlugin
+    metadata:
+      name: argocd-vault-plugin-kustomize
+    spec:
+      generate:
+        command: [ "sh", "-c" ]
+        args: [ "kustomize build --load-restrictor LoadRestrictionsNone . | argocd-vault-plugin generate -" ]

@@ -1,0 +1,56 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: dex-apps
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  description: Dex Applications
+  sourceRepos:
+    - https://github.com/JJOInvest/dex-apps.git
+    - https://github.com/JJOInvest/dex-multicanister.git
+    - https://raw.githubusercontent.com/JJOInvest/dex-apps/main/helm-repo
+    - https://raw.githubusercontent.com/JJOInvest/dex-apps/main/helm-repo-raw
+    # - oci://ghcr.io/jjoinvest/dex-helm-charts
+    # - oci://ghcr.io/jjoinvest/dex-helm-charts/app-helm-chart
+    # - ghcr.io/jjoinvest/dex-helm-charts
+  destinations:
+    - namespace: '*'
+      name: argocd-local
+  clusterResourceWhitelist:
+    - group: '*'
+      kind: '*'
+  namespaceResourceWhitelist:
+    - group: '*'
+      kind: '*'
+  orphanedResources:
+    warn: true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: dex-applicationsets
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: dex-apps
+  source:
+    repoURL: https://github.com/JJOInvest/dex-apps.git
+    targetRevision: HEAD
+    path: .
+  destination:
+    # The cluster this app will be deployed to
+    namespace: argocd
+    name: argocd-local
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    retry:
+      limit: 3
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m

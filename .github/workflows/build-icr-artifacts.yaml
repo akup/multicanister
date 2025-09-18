@@ -1,0 +1,188 @@
+name: Build ICR CLI Artifacts
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-artifacts:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.15.0
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install
+
+
+      ### This is debug step
+      # - name: Setup Rust
+      #   uses: dtolnay/rust-toolchain@stable
+      #   with:
+      #     targets: wasm32-unknown-unknown
+
+      # - name: Cache Rust targets
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: |
+      #       ~/.rustup/toolchains/*/lib/rustlib/wasm32-unknown-unknown
+      #       ~/.cargo/bin
+      #       ~/.cargo/registry/index/*
+      #       ~/.cargo/registry/cache/*
+      #       ~/.cargo/git/db/*
+      #     key: ${{ runner.os }}-rust-${{ hashFiles('**/Cargo.lock') }}
+      #     restore-keys: |
+      #       ${{ runner.os }}-rust-
+
+      # # Fallback: Manual Rust target installation if actions-rs fails
+      # - name: Install wasm32 target manually
+      #   if: failure()
+      #   run: |
+      #     rustup target add wasm32-unknown-unknown
+      #     rustup show
+
+      # - name: Get ic-wasm release info
+      #   id: ic-wasm-release
+      #   run: |
+      #     # Get latest release info
+      #     IC_WASM_RELEASE_INFO=$(curl -s https://api.github.com/repos/dfinity/ic-wasm/releases/latest)
+      #     IC_WASM_TAG=$(echo "$IC_WASM_RELEASE_INFO" | jq -r .tag_name)
+      #     IC_WASM_SHA=$(echo "$IC_WASM_RELEASE_INFO" | jq -r .target_commitish)
+          
+      #     echo "ic_wasm_tag=$IC_WASM_TAG" >> $GITHUB_OUTPUT
+      #     echo "ic_wasm_sha=$IC_WASM_SHA" >> $GITHUB_OUTPUT
+          
+      #     echo "Latest ic-wasm release: $IC_WASM_TAG (SHA: $IC_WASM_SHA)"
+
+      # - name: Cache ic-wasm
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: |
+      #       ~/.local/bin/ic-wasm
+      #       ic-wasm-cache
+      #     key: ic-wasm-${{ steps.ic-wasm-release.outputs.ic_wasm_sha }}
+      #     restore-keys: |
+      #       ic-wasm-
+
+      # - name: Download ic-wasm if not cached
+      #   if: steps.cache.outputs.cache-hit != 'true'
+      #   run: |
+      #     mkdir -p ~/.local/bin
+      #     cd ~/.local/bin
+
+      #     # Get latest release tag
+      #     IC_WASM_LATEST=$(curl -s https://api.github.com/repos/dfinity/ic-wasm/releases/latest | jq -r .tag_name)
+      #     echo "Latest ic-wasm release: $IC_WASM_LATEST"
+
+      #     # Download the Linux binary asset
+      #     IC_WASM_URL=$(curl -s https://api.github.com/repos/dfinity/ic-wasm/releases/latest | \
+      #       jq -r '.assets[] | select(.name | test("ic-wasm-linux64$")) | .browser_download_url')
+
+      #     if [ -z "$IC_WASM_URL" ]; then
+      #       echo "Could not find ic-wasm-linux64 asset in latest release"
+      #       exit 1
+      #     fi
+
+      #     echo "Downloading ic-wasm from $IC_WASM_URL"
+      #     curl -L "$IC_WASM_URL" -o ic-wasm
+      #     chmod +x ic-wasm
+
+      #     # Verify download
+      #     ./ic-wasm --version || echo "ic-wasm downloaded successfully"
+
+      #     # Cache the downloaded binary
+      #     echo "ic-wasm cached for future use"
+
+      # - name: Add ic-wasm to PATH
+      #   run: echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      # - name: Remove candidUi dependencies (we don't need on test build)
+      #   run: |
+      #     cd "$GITHUB_WORKSPACE"
+      #     rm -rf innerDfxProjects
+
+      # - name: Install wasm-opt
+      #   run: |
+      #     npm install -g wasm-opt
+      ### End of debug step
+
+      - name: Build binary
+        working-directory: typescript/icr-cli
+        env:
+          POCKET_IC_CORE_URL: http://dev.service.pic.mc-ops.tech/
+          PIC_GATEWAY_URL: http://dev.gateway.pic.mc-ops.tech/
+        run: |
+          # Build the app
+          pnpm run build
+          
+          # Check the code works
+          node dist/index.js --version
+
+          # Build binaries
+          pnpm run build-binary-debug
+
+      - name: List built binaries
+        working-directory: typescript/icr-cli
+        run: ls -la dist/bin/
+
+      - name: Create ICR CLI JS tgz file
+        run: |
+          mkdir -p icr-cli-tgz/fonts
+          cp typescript/icr-cli/dist/index.js icr-cli-tgz/icr-cli.js
+          cp -r typescript/icr-cli/fonts/* icr-cli-tgz/fonts/
+          tar -czf icr-cli-js.tgz -C icr-cli-tgz . 
+          rm -rf icr-cli-tgz
+
+          mkdir -p bin
+          mv typescript/icr-cli/dist/bin/* bin/
+          rm -rf typescript/icr-cli/dist
+
+      - name: Upload binaries as artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: icr-cli-binaries-${{ github.run_number }}
+          path: |
+            bin/*
+            icr-cli-js.tgz
+            typescript/icr-cli/dist/icr-cli.js
+          retention-days: 90
+
+      - name: Output artifact information
+        run: |
+          echo "## Build Complete!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Run Number:** ${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Artifacts:**" >> $GITHUB_STEP_SUMMARY
+          echo "- Name: icr-cli-binaries-${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Retention: 90 days" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Download artifacts from the Actions tab or use the workflow run URL:" >> $GITHUB_STEP_SUMMARY
+          echo "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY

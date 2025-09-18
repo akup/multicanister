@@ -1,0 +1,31 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: monitoring-crds
+  namespace: argocd
+spec:
+  generators:
+    - clusters:
+        selector:
+          matchLabels:
+            monitoring: enabled
+  template:
+    metadata:
+      name: 'monitoring-crds-{{name}}'
+    spec:
+      project: cluster-addons
+      source:
+        repoURL: https://github.com/akup/multicanister
+        targetRevision: main
+        path: infra/argocd/mc-cluster-addons/addons/monitoring-crds/
+      destination:
+        name: '{{name}}'
+        namespace: observability
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+          allowEmpty: false
+        syncOptions:
+          - CreateNamespace=true
+          - ServerSideApply=true
