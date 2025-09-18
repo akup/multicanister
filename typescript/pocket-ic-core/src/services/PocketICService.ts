@@ -44,9 +44,10 @@ export class PocketICService {
 
     const proc = spawn(
       process.env.POCKET_IC_BIN || 'pocket-ic',
-      // NEW: Increased TTL to 30 minutes to prevent premature shutdown during long deployments.
-      ['-p', port.toString(), '--ttl', '1800'],
-      { stdio: 'pipe' }
+      ['-p', port.toString(), '--ttl', '120'],
+      {
+        stdio: 'pipe',
+      }
     );
 
     if (!proc.pid) {
@@ -130,6 +131,8 @@ export class PocketICService {
       nns: { state: { type: SubnetStateType.New } },
     };
 
+    // Topology and state will be loaded from the state directory
+    // if $POCKET_IC_STATE_DIR environment variable is set and directory exists
     this.pocketIC = await PocketIc.create(pocketICHost, {
       processingTimeoutMs: POCKET_IC_TIMEOUT,
       stateDir: process.env.POCKET_IC_STATE_DIR,
@@ -159,12 +162,18 @@ export class PocketICService {
       identity,
       host: ICGatewayAPIHost,
     });
+    // Fetch root key as we are talking to the Pocket IC and not the mainnet
     await agent.fetchRootKey();
 
     this.managementCanisterAgent = ICManagementCanister.create({ agent });
 
     const keepAlive = async (): Promise<void> => {
       try {
+        // const getTimeStart = Date.now();
+        // const time = await this.pocketIC!.getTime();
+        // const getTimeEnd = Date.now();
+        // console.log('PocketIC time', time);
+        // console.log('PocketIC getTime took', getTimeEnd - getTimeStart, 'ms');
         await this.pocketIC!.getTime();
       } catch (error) {
         console.error('Error pinging PocketIC to keep it alive:', error);

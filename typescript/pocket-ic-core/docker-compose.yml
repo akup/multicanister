@@ -11,8 +11,6 @@ services:
       # pocket-ic state folder
       - pic-core-service-state:/app/ic-data
     restart: unless-stopped
-    environment:
-      - EFFECTIVE_CANISTER_ID_FALLBACK=rwlgt-iiaaa-aaaaa-aaaaa-cai
 
 volumes:
   pocket-ic-state:
