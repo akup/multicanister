@@ -12,6 +12,7 @@ import { readAppsFile } from './components/appsInfo';
 import { BuildService } from './services/buildService';
 import { DeployService } from './services/deployService';
 import { createUser, UsersManagment } from './components/users/manageUsers';
+import { prepareSnsConfigs } from './components/prepareSnsConfigs';
 
 import { PocketIcCoreService } from './services/pocketIcCoreService';
 import { genFactoryIdl } from './services/genFactoryIdl';
@@ -233,6 +234,8 @@ const startICRCli = async (): Promise<void> => {
 
           //Building for build and deploy commands
           if (commandHandled === 'build' || commandHandled === 'deploy') {
+            prepareSnsConfigs();
+
             if (!commandArgs.skipBuild) {
               if (!commandArgs.skipCore) {
                 await BuildService.buildCore(coreInfo, dfxProjects);
@@ -246,10 +249,20 @@ const startICRCli = async (): Promise<void> => {
           //Deploying for deploy command
           let factoryCanisterId: string | undefined = undefined;
           if (commandHandled === 'deploy' && !commandArgs.skipCore) {
+            const usersManager = new UsersManagment('./users.json');
+            const userName = commandArgs.user as string;
+            const user = usersManager.getUser(userName);
+            if (!user) {
+              console.log(chalk.red(`User '${userName}' not found in users.json`));
+              return;
+            }
+            const userPrincipal = user.getPrincipal().toString();
+
             factoryCanisterId = await DeployService.deployCore({
               coreInfo,
               dfxProjectsByActorName: dfxProjects,
               picCoreUrl: picCoreUrl as URL,
+              userPrincipal,
             });
           }
 

@@ -14,7 +14,8 @@
     "@validation-poc/toolkit": "^0.0.0",
     "@validation-poc/channel-base": "^0.0.0",
     "@validation-poc/protocol": "^0.0.0",
-    "mobx": "^6.3.5"
+    "mobx": "^6.3.5",
+    "@dfinity/identity": "2.4.1"
   },
   "devDependencies": {
     "rimraf": "^3.0.2",

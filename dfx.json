@@ -25,6 +25,37 @@
       "type": "custom",
       "optimize": "cycles",
       "gzip": true
+    },
+    "sns_root": {
+      "type": "custom",
+      "candid": "canisters/sns/did/sns-root-canister.wasm.did",
+      "wasm": "canisters/sns/sns-root-canister.wasm",
+      "init_args_file": "canisters/sns/args/sns-root-canister.wasm.idl"
+    },
+    "sns_governance": {
+      "type": "custom",
+      "candid": "canisters/sns/did/sns-governance-canister.wasm.did",
+      "wasm": "canisters/sns/sns-governance-canister.wasm",
+      "init_args_file": "canisters/sns/args/sns-governance-canister.wasm.idl"
+
+    },
+    "sns_ledger": {
+      "type": "custom",
+      "candid": "canisters/sns/did/ic-icrc1-ledger.wasm.did",
+      "wasm": "canisters/sns/ic-icrc1-ledger.wasm",
+      "init_args_file": "canisters/sns/args/ic-icrc1-ledger.wasm.idl"
+    },
+    "sns_swap": {
+      "type": "custom",
+      "candid": "canisters/sns/did/sns-swap-canister.wasm.did",
+      "wasm": "canisters/sns/sns-swap-canister.wasm",
+      "init_args_file": "canisters/sns/args/sns-swap-canister.wasm.idl"
+    },
+    "sns_index": {
+      "type": "custom",
+      "candid": "canisters/sns/did/ic-icrc1-index-ng.wasm.did",
+      "wasm": "canisters/sns/ic-icrc1-index-ng.wasm",
+      "init_args_file": "canisters/sns/args/ic-icrc1-index-ng.wasm.idl"
     }
   },
   "defaults": {

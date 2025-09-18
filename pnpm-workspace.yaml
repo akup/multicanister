@@ -1,5 +1,6 @@
 packages:
   - 'typescript/*'
   - 'picjs/packages/*'
+  - 'innerDfxProjects/candidUi/tools/*'
   - '!**/node_modules/**'
   - '!**/target/**'

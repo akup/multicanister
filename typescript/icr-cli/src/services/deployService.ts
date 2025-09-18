@@ -9,6 +9,7 @@ import { URL } from 'url';
 
 import { Identity } from '@dfinity/agent';
 import { FactoryService } from './factoryService';
+import { requiredCoreKeys, optionalCoreKeys } from '../constants';
 export { idlFactory } from '../declarations/factory/factory.did';
 
 interface GitInfo {
@@ -66,35 +67,50 @@ export class DeployService {
     coreInfo,
     dfxProjectsByActorName,
     picCoreUrl,
+    userPrincipal,
   }: {
     coreInfo: CoreInfo;
     dfxProjectsByActorName: Record<string, [DfxProjectCanister, DfxProject]>;
     picCoreUrl: URL;
+    userPrincipal: string;
   }): Promise<string | undefined> {
     console.log(chalk.whiteBright('Deploying core to pocket IC...'));
 
     PocketIcCoreService.setPicCoreUrl(picCoreUrl);
     const pocketIcCoreService = PocketIcCoreService.getInstance();
-    const cores = await pocketIcCoreService.listCores();
-    console.log(cores);
+    const deploymentOrder = [...requiredCoreKeys, ...optionalCoreKeys];
+    const canisterNamesToDeploy = deploymentOrder.filter(key => coreInfo[key as keyof CoreInfo]);
 
-    //Deploy core canisters
-    for (const [key, value] of Object.entries(coreInfo)) {
-      if (key === 'modules' || typeof value !== 'string' || !value) {
-        continue;
-      }
-      if (!dfxProjectsByActorName[value]) {
-        throw new Error(`There is no required core canister '${value}' in dfx json`);
-      }
+    // 2. Call the new endpoint to create canisters and get their IDs
+    console.log(chalk.white(' - Ensuring all core canisters exist...'));
+    const deployedCanisterIds = await pocketIcCoreService.getCanisterIds(canisterNamesToDeploy);
+    console.log('Received canister IDs:', deployedCanisterIds);
+
+    // 3. Now iterate and install the code into the already created canisters
+    for (const key of deploymentOrder) {
+      const value = coreInfo[key as keyof CoreInfo];
+      if (!value) continue;
+
       const [dfxCanister, dfxProject] = dfxProjectsByActorName[value];
       const wasmPath = dfxProject.root + dfxCanister.wasm;
+
+      // Fetch state data (hash, etc.) from the server
+      const cores = await pocketIcCoreService.listCores();
       const coreCanisterData = cores[key];
-      await deployCoreCanisterToPocketIC(key, value, wasmPath, coreCanisterData);
+
+      await deployCoreCanisterToPocketIC({
+        canisterName: key,
+        wasmName: value,
+        wasmPath,
+        canisterConfig: dfxCanister,
+        coreCanisterData,
+        deployedCanisterIds,
+        dfxProjectRoot: dfxProject.root,
+        userPrincipal,
+      });
     }
-    if (cores.factory && cores.factory.canisterIds.length > 0) {
-      return cores.factory.canisterIds[0];
-    }
-    return undefined;
+
+    return deployedCanisterIds.factory;
   }
 
   // Here we deploy the apps: create and upload all wasms referenced by canisterServices[].dfxName from apps.json

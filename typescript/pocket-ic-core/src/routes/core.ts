@@ -5,7 +5,7 @@ import { CoreModel } from '../models/CoreModel';
 import crypto from 'crypto';
 import fs from 'fs';
 import { pocketICService } from '../index';
-import { CanisterStatus, UpdateStrategy } from '../services/PocketICService';
+import { UpdateStrategy } from '../services/PocketICService';
 import { DATA_DIR } from '~/models/DataDir';
 
 const router = Router();
@@ -48,6 +48,25 @@ const cleanupUploadedFile = async (filePath: string): Promise<void> => {
 
 const upload = multer({ storage });
 
+router.post('/get-canister-ids', async (req: Request, res: Response) => {
+  try {
+    const { names } = req.body;
+    if (!Array.isArray(names) || names.length === 0) {
+      return res.status(400).json({ message: 'Missing or invalid "names" array in request body' });
+    }
+
+    console.log('GET-CANISTER-IDS requested for names:', names);
+
+    const canisterIds = await pocketICService.getCanisterIds(names);
+    res.status(200).json(canisterIds);
+  } catch (error) {
+    res.status(500).json({
+      message: 'Error ensuring canisters were created',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
 router.get('/list-core', async (req: Request, res: Response) => {
   try {
     const cores = await coreModel.list();
@@ -64,129 +83,105 @@ interface UploadRequest extends Request {
   file?: globalThis.Express.Multer.File;
 }
 
-router.post('/upload', upload.single('file'), async (req: UploadRequest, res: Response) => {
-  let uploadedFilePath: string | null = null;
-
+router.post('/upload', upload.single('file'), async (req: Request, res: Response) => {
+  let uploadedFilePath: string | undefined = undefined;
   try {
     console.log('uploading file');
     if (!req.file) {
       return res.status(400).json({ message: 'No file in request' });
     }
+    uploadedFilePath = req.file.path; // Get path from disk storage
     console.log('has file contents');
 
-    uploadedFilePath = req.file.path;
-
-    let { name, sha256, branch, tag, commit, updateStrategy } = req.body;
+    let { name, sha256, branch, tag, commit, initArgB64 } = req.body;
 
     if (!branch) {
       branch = 'main';
       tag = 'latest';
       commit = 'latest';
     }
-    if (!updateStrategy || !['upgrade', 'reinstall'].includes(updateStrategy)) {
-      updateStrategy = 'upgrade' as UpdateStrategy;
-    }
+
+    const existingCanisterDetails = await coreModel.get(name);
+    const isFirstInstall = !existingCanisterDetails?.wasmHash;
+    const updateStrategy: UpdateStrategy = isFirstInstall ? 'reinstall' : 'upgrade';
+
+    console.log(`Determined strategy: '${updateStrategy}' for canister '${name}'`);
 
     if (!name || !sha256) {
-      await cleanupUploadedFile(uploadedFilePath);
       return res.status(400).json({
         message: 'Missing required parameters',
         required: ['name', 'sha256'],
       });
     }
 
-    // Calculate wasm hash
-    const fileBuffer = await fs.promises.readFile(req.file.path);
+    // Read file from temporary path to get the buffer
+    const fileBuffer = await fs.promises.readFile(uploadedFilePath);
     const wasmHash = crypto.createHash('sha256').update(fileBuffer).digest('hex');
 
-    //Compare the wasm hash
     if (sha256 !== wasmHash) {
-      await cleanupUploadedFile(uploadedFilePath);
       return res.status(400).json({
         message: "Provided file's sha256 hash does not match the uploaded file",
-        required: ['sha256'],
       });
     }
 
     console.log('File sha256 hash matches');
 
-    var canisterStatus: CanisterStatus | undefined = undefined;
-    const existingCanisterDetails = await coreModel.get(name);
-    if (existingCanisterDetails && existingCanisterDetails.canisterIds.length > 0) {
-      canisterStatus = await pocketICService.checkCanisterHashAndRunning(
-        existingCanisterDetails.canisterIds[0],
-        existingCanisterDetails.wasmHash
-      );
-      /*
-      const canisterStatus = await pocketICService
-        .getManagementCanisterAgent()
-        ?.canisterStatus(Principal.fromText(existingCanisterDetails.canisterIds[0]));
-      const deployedModuleHash = canisterStatus?.module_hash?.[0]
-        ? Buffer.from(canisterStatus.module_hash[0]).toString('hex')
-        : undefined;
-      isCanisterCorrupted = deployedModuleHash !== existingCanisterDetails.wasmHash;
-      */
-
-      if (canisterStatus === 'running' && existingCanisterDetails.wasmHash === wasmHash) {
-        return res.status(200).json({
-          message: 'Canister with same hash already exists and deployed',
-        });
-      }
+    if (!existingCanisterDetails || existingCanisterDetails.canisterIds.length === 0) {
+      return res.status(404).json({
+        message: `Canister '${name}' not found. It must be created first via /get-canister-ids.`,
+      });
     }
 
-    // If canister wasm hash matches stored hash we upgrade the canister
-    // If canister wasm hash does not match stored hash (corrupted) we use http parameter upgrade to define the install mode (default to upgrade)
-    // If canister does not exist we install the canister
-    const canisterId = await pocketICService.deployCanister({
-      canisterId:
-        existingCanisterDetails && existingCanisterDetails.canisterIds.length > 0
-          ? existingCanisterDetails.canisterIds[0]
-          : undefined,
-      wasmPath: uploadedFilePath,
+    const canisterId = existingCanisterDetails.canisterIds[0];
+
+    const canisterStatus = await pocketICService.checkCanisterHashAndRunning(
+      canisterId,
+      existingCanisterDetails.wasmHash
+    );
+
+    if (canisterStatus === 'running' && existingCanisterDetails.wasmHash === wasmHash) {
+      return res.status(200).json({
+        message: 'Canister with same hash already exists and deployed',
+        data: existingCanisterDetails,
+      });
+    }
+
+    await pocketICService.installCode({
+      canisterId: canisterId,
+      wasmModule: fileBuffer, // Use the buffer read from the file
       wasmModuleHash: wasmHash,
+      initArgB64,
       updateStrategy:
-        canisterStatus === 'corrupted'
-          ? (updateStrategy as UpdateStrategy)
-          : existingCanisterDetails
-            ? 'upgrade'
-            : undefined,
+        // canisterStatus === 'corrupted' ? (updateStrategy as UpdateStrategy) : 'upgrade',     // temporary disabling, look beforehand
+        updateStrategy,
     });
 
-    // Create core record
     const coreRecord = {
       canisterIds: [canisterId],
       wasmHash,
       branch,
       tag,
       commit,
+      corrupted: false,
     };
 
     await coreModel.set(name, coreRecord);
 
-    // Clean up the uploaded file after successful processing
-    await cleanupUploadedFile(uploadedFilePath);
-
     res.json({
-      message: 'File uploaded successfully',
-      data: {
-        name,
-        wasmHash,
-        branch,
-        tag,
-        commit,
-      },
+      message: 'File uploaded and code installed successfully',
+      data: coreRecord,
     });
   } catch (error) {
     console.error('Error uploading file:', error);
-    // Clean up the uploaded file in case of error
-    if (uploadedFilePath) {
-      await cleanupUploadedFile(uploadedFilePath);
-    }
-
     res.status(500).json({
       message: 'Error uploading file',
       error: error instanceof Error ? error.message : 'Unknown error',
     });
+  } finally {
+    // Ensure the temporary file is always cleaned up
+    if (uploadedFilePath) {
+      cleanupUploadedFile(uploadedFilePath);
+    }
   }
 });
 
@@ -202,11 +197,7 @@ const cleanupIncompleteUploads = async (): Promise<void> => {
   }
 };
 
-//Можно посмотреть Candid UI так (поставить соответмствующие canisterId)
-//http://6laxw-bp777-77776-qaaea-cai.localhost:4944/?id=7goty-oh777-77776-qaadq-cai
-//http://${candidUiCanisterId}.localhost:${gatewayPort}/?id=${canisterId}
-
 // Run cleanup on server start
 cleanupIncompleteUploads().catch(console.error);
 
-export default router;
+export { router as coreRoutes };

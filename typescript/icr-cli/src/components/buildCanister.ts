@@ -1,6 +1,7 @@
+import type { DfxProjectCanister } from './dfxProject';
 import chalk from 'chalk';
 import { spawnProcessWithOutput } from './spawnProcess';
-import { DfxProjectCanister } from './dfxProject';
+import type { DfxProject } from './dfxProject';
 
 export const buildCanister = async (
   canisterName: string,
@@ -21,19 +22,9 @@ export const buildCanister = async (
   //Change working directory to the dfx project root
   process.chdir(dfxProjectRoot);
 
+  console.log('before build canister');
   await _buildCanisterWithoutDfx(canisterName, dfxProjectCanister);
-
-  //Building canister
-  /*
-  try {
-    await _buildCanister(canisterName);
-  } catch (e) {
-    if (e instanceof CanisterNotCreatedError) {
-      await _createCanister(canisterName);
-      await _buildCanister(canisterName);
-    } else throw e;
-  }
-  */
+  console.log('after build canister');
 
   console.log('Optimizing wasm code:', dfxProjectCanister.wasm);
 
@@ -61,16 +52,29 @@ const _buildCanisterWithoutDfx = async (
   canisterName: string,
   dfxProjectCanister: DfxProjectCanister
 ): Promise<void> => {
+  console.log(dfxProjectCanister);
   if (dfxProjectCanister.type === 'custom') {
-    if (typeof dfxProjectCanister.build === 'string') {
-      dfxProjectCanister.build = [dfxProjectCanister.build];
+    // If there's no build command, it's a pre-compiled wasm. Skip the build step.
+    if (!dfxProjectCanister.build) {
+      console.log(chalk.bold.yellow(`Canister '${canisterName}' is pre-compiled, skipping build.`));
+      return;
     }
 
-    for (const buildCommand of dfxProjectCanister.build) {
+    let buildCommands: string[] = [];
+    if (typeof dfxProjectCanister.build === 'string') {
+      buildCommands = [dfxProjectCanister.build];
+    } else if (Array.isArray(dfxProjectCanister.build)) {
+      buildCommands = dfxProjectCanister.build;
+    }
+
+    for (const buildCommand of buildCommands) {
       console.log(chalk.bold.whiteBright(buildCommand + '\n'));
-      const args = buildCommand.split(' ').map(arg => arg.trim());
-      const command = args[0];
-      args.shift();
+      const args = buildCommand.split(' ').map((arg: string) => arg.trim());
+      const command = args.shift(); // remove the command from args
+
+      if (!command) {
+        throw new Error(`Invalid build command: "${buildCommand}"`);
+      }
 
       await spawnProcessWithOutput({
         command,

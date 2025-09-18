@@ -41,15 +41,37 @@ export class PocketIcCoreService {
     return PocketIcCoreService.instance;
   }
 
-  async uploadWasm(
-    wasmPath: string,
-    wasmSha256: string,
-    canisterName: string
-  ): Promise<UploadResponse> {
+  async getCanisterIds(names: string[]): Promise<Record<string, string>> {
+    const { default: fetch } = await import('node-fetch');
+    const response = await fetch(`${PocketIcCoreService.picCoreUrl!.origin}/api/get-canister-ids`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ names }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Failed to get canister IDs: ${errorText}`);
+    }
+    return (await response.json()) as Record<string, string>;
+  }
+
+  async uploadWasm({
+    wasmPath,
+    wasmSha256,
+    canisterName,
+    initArgB64,
+  }: {
+    wasmPath: string;
+    wasmSha256: string;
+    canisterName: string;
+    initArgB64?: string;
+  }): Promise<UploadResponse> {
     // We are using 'form-data' package to upload the wasm file to the PocketIC Core.
     // This creates a deprecation warning in Node.js 20.
     // We are suppressing the warning for this function.
     // We need to use form-data instead of undici's FormData because the latter is not working in a linux binary.
+
     // Store original warning listeners
     const originalWarningListeners = process.listeners('warning');
     // Suppress deprecation warnings for this function
@@ -67,6 +89,10 @@ export class PocketIcCoreService {
       formData.append('sha256', wasmSha256);
       formData.append('name', canisterName);
 
+      if (initArgB64) {
+        formData.append('initArgB64', initArgB64);
+      }
+
       console.log('uploadWasm 1');
       const response = await pTimeout(
         fetch(`${PocketIcCoreService.picCoreUrl!.origin}/api/upload`, {
@@ -79,16 +105,7 @@ export class PocketIcCoreService {
 
       if (!response.ok) {
         console.log('uploadWasm error');
-        const text = await response.text();
-        let json: any = undefined;
-        try {
-          json = JSON.parse(text);
-        } catch (error) {
-          console.log(text);
-          throw error;
-        }
-
-        // Check for various error message formats
+        const json: any = await response.json();
         let errorMessage = 'Unknown error';
 
         if (json && typeof json === 'object') {
@@ -110,8 +127,8 @@ export class PocketIcCoreService {
           `Failed to upload canister ${canisterName} with wasm file: ${errorMessage}`
         );
       }
-      console.log('uploadWasm ok');
 
+      console.log('uploadWasm ok');
       return (await response.json()) as UploadResponse;
     } catch (error) {
       console.error('Error uploading wasm:', error);
@@ -129,8 +146,6 @@ export class PocketIcCoreService {
 
     if (!response.ok) {
       const json = await response.json();
-
-      // Check for various error message formats
       let errorMessage = 'Unknown error';
 
       if (json && typeof json === 'object') {
@@ -165,11 +180,9 @@ export class PocketIcCoreService {
     if (!core) {
       return 'not_found';
     }
-
     if (core.wasmHash === wasmSha256) {
       return 'valid_hash';
     }
-
     return 'invalid_hash';
   }
 }

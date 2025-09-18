@@ -8,11 +8,12 @@
   "scripts": {
     "dev-create-user": "nodemon --config nodemon.json ./src/index.ts create-user --d ../../ --n default",
     "dev-start-build-all": "nodemon --config nodemon.json ./src/index.ts deploy --d ../../",
-    "dev-start": "nodemon --config nodemon.json ./src/index.ts deploy --d ../../ --skip-build --skip-core",
+    "dev-start": "nodemon --config nodemon.json ./src/index.ts deploy --d ../../ --skip-build -u default",
     "create-user": "tsx ./src/index.ts create-user --d ../../ --n default",
-    "build-and-deploy": "tsx ./src/index.ts deploy --d ../../",
-    "deploy": "tsx ./src/index.ts deploy --d ../../ -u default",
+    "build-and-deploy": "pnpm run prepare-sns-configs && tsx ./src/index.ts deploy --d ../../",
+    "deploy": "pnpm run prepare-sns-configs && tsx ./src/index.ts deploy --d ../../ -u default --skip-core --skip-build",
     "gen-factory-idl": "tsx ./src/index.ts gen-factory-idl --d ../../",
+    "prepare-sns-configs": "tsx ./src/components/prepareSnsConfigs.ts",
     "authorize": "tsx ./src/index.ts authorize --d ../../ --u default",
     "turbo-install": "pnpm install",
     "lint": "eslint .",
@@ -83,6 +84,7 @@
     "p-timeout": "^6.1.4",
     "pkg": "^5.8.1",
     "rimraf": "^5.0.5",
-    "yargs": "17.7.2"
+    "yargs": "17.7.2",
+    "@dfinity/identity": "2.4.1"
   }
 }

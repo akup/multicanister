@@ -1,5 +1,26 @@
 {
+  "factory": {
+    "local": "lqy7q-dh777-77777-aaaaq-cai"
+  },
   "hello": {
     "local": "bkyz2-fmaaa-aaaaa-qaaaq-cai"
+  },
+  "internet_identity": {
+    "local": "lz3um-vp777-77777-aaaba-cai"
+  },
+  "sns_governance": {
+    "local": "l62sy-yx777-77777-aaabq-cai"
+  },
+  "sns_index": {
+    "local": "ll5dv-z7777-77777-aaaca-cai"
+  },
+  "sns_ledger": {
+    "local": "lm4fb-uh777-77777-aaacq-cai"
+  },
+  "sns_root": {
+    "local": "lf7o5-cp777-77777-aaada-cai"
+  },
+  "sns_swap": {
+    "local": "lc6ij-px777-77777-aaadq-cai"
   }
 }

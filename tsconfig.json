@@ -1,15 +1,38 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
-    "module": "commonjs",
+    "target": "ES2022",
+    "module": "ESNext", // Use ESNext for modern module support
+    "moduleResolution": "node",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    
+    "baseUrl": ".",
+    "paths": {
+      "~/*": ["typescript/pocket-ic-core/src/*"]
+    },
+    
+    // This prevents conflicts with browser-specific types like FormData
+    "lib": ["ES2022"],
+
     "outDir": "./dist",
-    "rootDir": "./",
-    "moduleResolution": "node"
+    "rootDir": "./"
   },
-  "include": ["**/*.ts"],
-  "exclude": ["node_modules", "dist"]
-} 
+  "include": [
+    // Include only the active projects you are working on
+    "typescript/icr-cli/src/**/*.ts",
+    "typescript/pocket-ic-core/src/**/*.ts"
+  ],
+  "exclude": [
+    // Explicitly exclude everything else
+    "node_modules",
+    "dist",
+    "libs",
+    "picjs",
+    "innerDfxProjects",
+    "canisters",
+    "target"
+  ]
+}

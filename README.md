@@ -141,6 +141,54 @@ npm install -g wasm-opt
 
 During build ICR CLI tool will go throwgh all folders to find `dfx.json` files, all of them will be applyed in the build from folder leafs, to the root. Core canisters can be used from inner dfx projects, so submodules can be added and deployed as part of core or environment like it is done with CandidUI Canister.
 
+## Declarative Canister Initialization
+
+For canisters that require initialization arguments (like SNS canisters), you can specify them directly in `dfx.json` using the `init_args` field. The ICR CLI tool will automatically encode these arguments using `didc` before deployment.
+
+To handle dependencies between canisters (e.g., `sns_root` needing the ID of `sns_governance`), you can use placeholders in the `init_args` string. The CLI will resolve these placeholders with the actual canister IDs during deployment.
+
+**Placeholder Format:** `{{canisterId:role_name}}` where `role_name` is the key from `core.json`.
+
+**Example `dfx.json`:**
+```json
+{
+  "canisters": {
+    "sns_root": {
+      "type": "custom",
+      "candid": "canisters/sns/did/sns-root-canister.wasm.did",
+      "wasm": "canisters/sns/sns-root-canister.wasm",
+      "init_args": "(record { governance_canister_id = principal \"{{canisterId:sns_governance}}\"; ledger_canister_id = principal \"{{canisterId:sns_ledger}}\"; })"
+    },
+    "sns_governance": {
+      "type": "custom",
+      "candid": "canisters/sns/did/sns-governance-canister.wasm.did",
+      "wasm": "canisters/sns/sns-governance-canister.wasm"
+    },
+    "sns_ledger": {
+        "type": "custom",
+        "candid": "canisters/sns/did/ic-icrc1-ledger.wasm.did",
+        "wasm": "canisters/sns/ic-icrc1-ledger.wasm"
+    }
+  }
+}
+```
+
+### Build SNS canisters
+
+Compile the SNS canisters (governance, root, swap, ICRC-1 ledger/index) and write their `.wasm` and `.did` files exactly to the paths declared in `dfx.json`.
+
+```bash
+pnpm run sns:build
+```
+
+During development you can build a subset:
+
+```bash
+SNS_SET=governance,root,swap pnpm run sns:build
+```
+
+**How it works:** sources are taken from the local `./ic` submodule; WASM is optionally optimized with `ic-wasm shrink` (set `NO_SHRINK=1` to skip).
+
 ## Starting the Services
 
 Before start follow instructions of preparing [Pocket IC Core Service](https://github.com/akup/multicanister/tree/main/typescript/pocket-ic-core) and [ICR CLI](https://github.com/akup/multicanister/tree/main/typescript/icr-cli)
