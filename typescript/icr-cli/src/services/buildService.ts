@@ -1,8 +1,10 @@
+import type { DfxCanisterConfig } from '../types';
+
 import chalk from 'chalk';
 import { AppsInfo } from '../components/appsInfo';
 import { buildCanister } from '../components/buildCanister';
 import { CoreInfo } from '../components/coreInfo';
-import { DfxProject, DfxProjectCanister } from '../components/dfxProject';
+import { DfxProject } from '../components/dfxProject';
 
 export class BuildService {
   private static builtCanisters: Record<string, boolean> = {};
@@ -10,7 +12,7 @@ export class BuildService {
   // Here we build the core: all canisters from core.json
   public static async buildCore(
     coreInfo: CoreInfo,
-    dfxProjectsByActorName: Record<string, [DfxProjectCanister, DfxProject]>
+    dfxProjectsByActorName: Record<string, [DfxCanisterConfig, DfxProject]>
   ): Promise<void> {
     console.log(chalk.whiteBright('Building core with dfx...'));
     if (!dfxProjectsByActorName[coreInfo.factory]) {
@@ -37,7 +39,7 @@ export class BuildService {
   // Here we build the apps: all canisters from apps.json
   public static async buildApps(
     appsInfo: AppsInfo,
-    dfxProjectsByActorName: Record<string, [DfxProjectCanister, DfxProject]>
+    dfxProjectsByActorName: Record<string, [DfxCanisterConfig, DfxProject]>
   ): Promise<void> {
     console.log(chalk.whiteBright('Building apps with dfx...'));
     //First we iterate over all apps and check if all canisters are in dfx json

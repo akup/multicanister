@@ -6,8 +6,6 @@ import * as path from 'path';
 import { defaultConfig } from '../configs';
 import { URL } from 'url';
 
-export type DfxProjectCanister = DfxCanisterConfig;
-
 export class DfxProject {
   root: string = './';
   dfxJson: DfxConfig;

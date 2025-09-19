@@ -127,6 +127,7 @@ export class PocketIcCoreService {
           `Failed to upload canister ${canisterName} with wasm file: ${errorMessage}`
         );
       }
+      console.log('uploadWasm ok');
 
       console.log('uploadWasm ok');
       return (await response.json()) as UploadResponse;

@@ -1,4 +1,6 @@
-import { DfxProject, DfxProjectCanister } from '../components/dfxProject';
+import type { DfxCanisterConfig } from '../types';
+
+import { DfxProject } from '../components/dfxProject';
 import { CoreInfo } from '../components/coreInfo';
 import { execSync } from 'node:child_process';
 import * as fs from 'fs';
@@ -11,7 +13,7 @@ export const genFactoryIdl = ({
   projectRoot,
 }: {
   coreInfo: CoreInfo;
-  dfxProjectsByActorName: Record<string, [DfxProjectCanister, DfxProject]>;
+  dfxProjectsByActorName: Record<string, [DfxCanisterConfig, DfxProject]>;
   projectRoot: string;
 }): void => {
   const [dfxCanister] = dfxProjectsByActorName[coreInfo.factory];

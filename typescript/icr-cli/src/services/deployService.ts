@@ -1,7 +1,9 @@
+import type { DfxCanisterConfig } from '../types';
+
 import chalk from 'chalk';
 import { AppsInfo } from '../components/appsInfo';
 import { CoreInfo } from '../components/coreInfo';
-import { DfxProject, DfxProjectCanister } from '../components/dfxProject';
+import { DfxProject } from '../components/dfxProject';
 import { PocketIcCoreService } from './pocketIcCoreService';
 import { deployCoreCanisterToPocketIC } from '../components/deployCanister';
 import { execSync } from 'child_process';
@@ -70,7 +72,7 @@ export class DeployService {
     userPrincipal,
   }: {
     coreInfo: CoreInfo;
-    dfxProjectsByActorName: Record<string, [DfxProjectCanister, DfxProject]>;
+    dfxProjectsByActorName: Record<string, [DfxCanisterConfig, DfxProject]>;
     picCoreUrl: URL;
     userPrincipal: string;
   }): Promise<string | undefined> {
@@ -125,7 +127,7 @@ export class DeployService {
   }: {
     appsInfo: AppsInfo;
     coreInfo: CoreInfo;
-    dfxProjectsByActorName: Record<string, [DfxProjectCanister, DfxProject]>;
+    dfxProjectsByActorName: Record<string, [DfxCanisterConfig, DfxProject]>;
     picGatewayUrl: URL;
     factoryCanisterId: string;
     user: Identity;

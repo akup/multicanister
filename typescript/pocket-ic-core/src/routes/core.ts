@@ -128,7 +128,7 @@ router.post('/upload', upload.single('file'), async (req: Request, res: Response
 
     if (!existingCanisterDetails || existingCanisterDetails.canisterIds.length === 0) {
       return res.status(404).json({
-        message: `Canister '${name}' not found. It must be created first via /get-canister-ids.`,
+        message: `Canister '${name}' not found. It must be created first.`,
       });
     }
 

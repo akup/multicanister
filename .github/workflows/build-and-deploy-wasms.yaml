@@ -16,11 +16,11 @@ on:
       application:
         description: 'Application to deploy (leave empty for all)'
         required: false
-        type: string
-        default: ''
+        type: choice
         options:
           - pocket-ic-core
           - test-app
+        default: pocket-ic-core
 
 env:
   REGISTRY: ghcr.io
@@ -106,7 +106,7 @@ jobs:
           cd ~/.local/bin
           
           # Get the asset ID for the Linux binary
-          ASSET_ID=$(gh api repos/${{ github.repository }}/releases/tags/${{ steps.release.outputs.release_tag }} \
+          ASSET_ID=$(gh api repos/${{ github.repository }}/releases/tags/${{ steps.release.outputs.icr_cli_tag }} \
             --jq '.assets[] | select(.name=="icr-cli-js.tgz") | .id')
           
           echo "Downloading asset ID: $ASSET_ID"
