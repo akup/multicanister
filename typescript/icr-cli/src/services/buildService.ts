@@ -30,8 +30,13 @@ export class BuildService {
       }
       const [dfxCanister, dfxProject] = dfxProjectsByActorName[value];
       // Sequential build of canisters
-      await buildCanister(value, dfxCanister, dfxProject.root, () => {
-        console.log(chalk.white(` - Building ${key} core canister '${value}'...`));
+      await buildCanister({
+        canisterName: value,
+        dfxProjectCanister: dfxCanister,
+        dfxProjectRoot: dfxProject.root,
+        onBuildStart: () => {
+          console.log(chalk.white(` - Building ${key} core canister '${value}'...`));
+        },
       });
     }
   }
@@ -60,12 +65,17 @@ export class BuildService {
         if (!BuildService.builtCanisters[canisterService.dfxName]) {
           BuildService.builtCanisters[canisterService.dfxName] = true;
           const [dfxCanister, dfxProject] = dfxProjectsByActorName[canisterService.dfxName];
-          await buildCanister(canisterService.dfxName, dfxCanister, dfxProject.root, () => {
-            console.log(
-              chalk.white(
-                ` - Building service '${canisterService.serviceId}' backed by canister '${canisterService.dfxName}'...`
-              )
-            );
+          await buildCanister({
+            canisterName: canisterService.dfxName,
+            dfxProjectCanister: dfxCanister,
+            dfxProjectRoot: dfxProject.root,
+            onBuildStart: () => {
+              console.log(
+                chalk.white(
+                  ` - Building service '${canisterService.serviceId}' backed by canister '${canisterService.dfxName}'...`
+                )
+              );
+            },
           });
         }
       }

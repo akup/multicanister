@@ -2,74 +2,99 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { execSync } from 'child_process';
 import chalk from 'chalk';
-import { pathToFileURL, fileURLToPath } from 'url';
+import { fileURLToPath } from 'url';
 
-export function prepareSnsConfigs(): void {
-  console.log(chalk.whiteBright('--- Preparing SNS CLI and Initial Arguments ---'));
+export function prepareSnsConfigs(projectRoot: string, canisterIds: Record<string, string>): void {
+  console.log(chalk.whiteBright('--- Preparing SNS init args ---'));
 
+  // Resolve important paths
   const __dirname = path.dirname(fileURLToPath(import.meta.url));
-  const cliRootDir = path.resolve(__dirname, '..', '..');
-  const projectRoot = path.resolve(cliRootDir, '..', '..');
-  const icRepoPath = path.join(projectRoot, 'ic');
-  const patchFilePath = path.join(cliRootDir, 'sns-cli-dump-args.patch');
-  const outputDir = path.join(projectRoot, 'canisters', 'sns', 'args_generated');
-  const snsCliBinPath = path.join(icRepoPath, 'target', 'release', 'sns');
+  const cliRootDir = path.resolve(__dirname, '..', '..'); // typescript/icr-cli
+  const snsDumpInitDir = path.join(projectRoot, 'innerDfxProjects', 'snsDumpInit');
+  const snsDumpInitManifest = path.join(snsDumpInitDir, 'Cargo.toml');
+  const snsDumpBinPath = path.join(
+    snsDumpInitDir,
+    'target',
+    'release',
+    process.platform === 'win32' ? 'sns-dump-init.exe' : 'sns-dump-init'
+  );
+
   const snsInitYamlPath = path.join(projectRoot, 'sns_init.yaml');
+  const outputDir = path.join(projectRoot, 'canisters', 'sns', 'args_generated');
+  const canisterIdsJsonPath = path.join(outputDir, 'pocket-ic-canisters.json');
 
-  // 1. Check if the IC submodule exists
-  if (!fs.existsSync(icRepoPath)) {
-    throw new Error(
-      `IC repository not found at ${icRepoPath}. Please ensure the submodule is cloned.`
-    );
+  // Preflight checks
+  if (!fs.existsSync(snsDumpInitManifest)) {
+    throw new Error(`sns-dump-init Cargo.toml not found at ${snsDumpInitManifest}`);
   }
-
-  // 2. Apply the patch to the sns-cli
-  console.log(chalk.blue('Applying patch to sns-cli...'));
-  try {
-    // Check if patch is already applied by trying to reverse it in dry-run mode.
-    // If this command succeeds, it means the patch is applied. If it fails, we need to apply it.
-    execSync(`patch -p1 --reverse --dry-run < "${patchFilePath}"`, {
-      cwd: icRepoPath,
-      stdio: 'ignore',
-    });
-    console.log(chalk.yellow('Patch seems to be already applied. Skipping.'));
-  } catch (error) {
-    console.log('Patch not applied yet. Applying now...');
-    execSync(`patch -p1 < "${patchFilePath}"`, { cwd: icRepoPath, stdio: 'inherit' });
-  }
-
-  // 3. Build the patched sns-cli binary
-  console.log(chalk.blue('Building patched sns-cli...'));
-  execSync('cargo build --release --bin sns', {
-    cwd: path.join(icRepoPath, 'rs', 'sns', 'cli'),
-    stdio: 'inherit', // Show build progress to the user
-  });
-
-  // 4. Generate the init argument files
-  console.log(chalk.blue('Generating SNS init arg files...'));
   if (!fs.existsSync(snsInitYamlPath)) {
     throw new Error(`sns_init.yaml not found at ${snsInitYamlPath}`);
   }
 
-  // Ensure the output directory exists
+  // Ensure output dir and write canister IDs
   fs.mkdirSync(outputDir, { recursive: true });
+  fs.writeFileSync(canisterIdsJsonPath, JSON.stringify(canisterIds, null, 2));
+  console.log(chalk.blue(`Canister IDs saved to: ${canisterIdsJsonPath}`));
 
-  execSync(
-    `"${snsCliBinPath}" deploy-testflight --init-config-file "${snsInitYamlPath}" --dump-init-args "${outputDir}"`,
-    {
-      cwd: projectRoot, // Run from project root so dfx can find its context
-      stdio: 'inherit',
+  // Build the Rust utility (release)
+  console.log(chalk.blue('Building sns-dump-init...'));
+  try {
+    // Optional: skip rebuild if binary exists and looks fresh enough
+    const needBuild =
+      !fs.existsSync(snsDumpBinPath) ||
+      fs.statSync(snsDumpBinPath).mtimeMs < fs.statSync(snsDumpInitManifest).mtimeMs;
+
+    if (needBuild) {
+      execSync(`cargo build --release --manifest-path "${snsDumpInitManifest}"`, {
+        cwd: snsDumpInitDir,
+        stdio: 'inherit',
+      });
+    } else {
+      // Try building anyway to pick up dependency changes; comment out if undesired
+      execSync(`cargo build --release --manifest-path "${snsDumpInitManifest}"`, {
+        cwd: snsDumpInitDir,
+        stdio: 'inherit',
+      });
     }
+  } catch (e) {
+    throw new Error(`Failed to build sns-dump-init: ${(e as Error).message}`);
+  }
+
+  if (!fs.existsSync(snsDumpBinPath)) {
+    throw new Error(`sns-dump-init binary not found at ${snsDumpBinPath}`);
+  }
+
+  // Run the utility to produce *.arg.bin and summary JSON
+  console.log(
+    chalk.blue('Generating SNS init args from sns_init.yaml and provided canister IDs...')
   );
+  const cmd = [
+    `"${snsDumpBinPath}"`,
+    `--init-config "${snsInitYamlPath}"`,
+    `--canister-ids "${canisterIdsJsonPath}"`,
+    `--out-dir "${outputDir}"`,
+  ].join(' ');
+
+  try {
+    execSync(cmd, { cwd: projectRoot, stdio: 'inherit' });
+  } catch (e) {
+    throw new Error(`sns-dump-init failed: ${(e as Error).message}`);
+  }
+
+  // Quick sanity check for expected files
+  const expected = [
+    'sns_governance.arg.bin',
+    'sns_ledger.arg.bin',
+    'sns_root.arg.bin',
+    'sns_swap.arg.bin',
+    'sns_index.arg.bin',
+    'sns_init_args.summary.json',
+  ];
+  const missing = expected.filter(f => !fs.existsSync(path.join(outputDir, f)));
+  if (missing.length) {
+    throw new Error(`Missing output files: ${missing.join(', ')} in ${outputDir}`);
+  }
 
   console.log(chalk.green(`\nSNS init args successfully generated in ${outputDir}`));
-}
-
-if (import.meta.url === pathToFileURL(process.argv[1]).href) {
-  try {
-    prepareSnsConfigs();
-  } catch (error) {
-    console.error(chalk.red((error as Error).message));
-    process.exit(1);
-  }
+  console.log(chalk.gray(`Files: ${expected.join(', ')}`));
 }

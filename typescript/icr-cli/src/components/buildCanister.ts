@@ -1,14 +1,20 @@
-import type { DfxProjectCanister } from './dfxProject';
+import type { DfxCanisterConfig } from '../types';
+
 import chalk from 'chalk';
 import { spawnProcessWithOutput } from './spawnProcess';
 import type { DfxProject } from './dfxProject';
 
-export const buildCanister = async (
-  canisterName: string,
-  dfxProjectCanister: DfxProjectCanister,
-  dfxProjectRoot?: string,
-  onBuildStart?: () => void
-): Promise<void> => {
+export const buildCanister = async ({
+  canisterName,
+  dfxProjectCanister,
+  dfxProjectRoot,
+  onBuildStart,
+}: {
+  canisterName: string;
+  dfxProjectCanister: DfxCanisterConfig;
+  dfxProjectRoot?: string;
+  onBuildStart?: () => void;
+}): Promise<void> => {
   if (onBuildStart) {
     onBuildStart();
   } else {
@@ -23,7 +29,7 @@ export const buildCanister = async (
   process.chdir(dfxProjectRoot);
 
   console.log('before build canister');
-  await _buildCanisterWithoutDfx(canisterName, dfxProjectCanister);
+  await _buildCanisterWithoutDfx({ canisterName, dfxProjectCanister });
   console.log('after build canister');
 
   console.log('Optimizing wasm code:', dfxProjectCanister.wasm);
@@ -48,10 +54,13 @@ export const buildCanister = async (
   process.chdir(processWorkingDirectory);
 };
 
-const _buildCanisterWithoutDfx = async (
-  canisterName: string,
-  dfxProjectCanister: DfxProjectCanister
-): Promise<void> => {
+const _buildCanisterWithoutDfx = async ({
+  canisterName,
+  dfxProjectCanister,
+}: {
+  canisterName: string;
+  dfxProjectCanister: DfxCanisterConfig;
+}): Promise<void> => {
   console.log(dfxProjectCanister);
   if (dfxProjectCanister.type === 'custom') {
     // If there's no build command, it's a pre-compiled wasm. Skip the build step.
@@ -107,7 +116,7 @@ const _buildCanisterWithoutDfx = async (
 
 const _addCandidToMetadata = async (
   canisterName: string,
-  dfxProjectCanister: DfxProjectCanister
+  dfxProjectCanister: DfxCanisterConfig
 ): Promise<void> => {
   console.log(
     chalk.bold.whiteBright(

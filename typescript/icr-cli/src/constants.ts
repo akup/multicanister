@@ -6,7 +6,7 @@
 
 // --- Core Configuration Keys (from core.json) ---
 // The order of this array defines the deployment order.
-// Place dependencies (like governance) before the canisters that need them (like root).
+// Place dependencies (like sns_governance) before the canisters that need them (like root).
 export const requiredCoreKeys = [
   'factory',
   'sns_governance',

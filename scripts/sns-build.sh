@@ -2,12 +2,12 @@
 set -Eeuo pipefail
 
 # ===================== Config (env-overridable) =====================
-: "${IC_REPO:=$(pwd)/ic}"                 # Path to the dfinity/ic submodule (no auto-update here)
-: "${TARGET:=wasm32-unknown-unknown}"     # Cargo target
-: "${PROFILE:=release}"                   # 'release' | 'debug' | custom profile
-: "${SNS_SET:=governance,root,swap,ledger,index}"   # What to build
-: "${DFX_JSON:=$(pwd)/dfx.json}"          # Path to dfx.json
-: "${NO_SHRINK:=}"                        # If set (non-empty) -> skip ic-wasm shrink optimization
+: "${IC_REPO:=$(pwd)/ic}"                                               # Path to the dfinity/ic submodule (no auto-update here)
+: "${TARGET:=wasm32-unknown-unknown}"                                   # Cargo target
+: "${PROFILE:=release}"                                                 # 'release' | 'debug' | custom profile
+: "${SNS_SET:=sns_governance,sns_root,sns_swap,sns_ledger,sns_index}"   # What to build
+: "${DFX_JSON:=$(pwd)/dfx.json}"                                        # Path to dfx.json
+: "${NO_SHRINK:=}"                                                      # If set (non-empty) -> skip ic-wasm shrink optimization
 # ===================================================================
 
 log() { echo -e "\033[1;34m[ sns-build ]\033[0m $*"; }
@@ -224,12 +224,12 @@ main() {
   IFS=',' read -r -a parts <<< "$SNS_SET"
   for part in "${parts[@]}"; do
     case "$part" in
-      governance) build_and_place "sns_governance" "rs/sns/governance" "sns-governance-canister.wasm" ;;
-      root)       build_and_place "sns_root"       "rs/sns/root"       "sns-root-canister.wasm"       ;;
-      swap)       build_and_place "sns_swap"       "rs/sns/swap"       "sns-swap-canister.wasm"       ;;
-      ledger)     detect_ledger_paths_and_build ;;
-      index)      detect_ledger_paths_and_build ;;  # handles both ledger/index if requested
-      *)          die "Unknown part: $part (expected: governance,root,swap,ledger,index)" ;;
+      sns_governance) build_and_place "sns_governance" "rs/sns/governance" "sns-governance-canister.wasm" ;;
+      sns_root)       build_and_place "sns_root"       "rs/sns/root"       "sns-root-canister.wasm"       ;;
+      sns_swap)       build_and_place "sns_swap"       "rs/sns/swap"       "sns-swap-canister.wasm"       ;;
+      sns_ledger)     detect_ledger_paths_and_build ;;
+      sns_index)      detect_ledger_paths_and_build ;;  # handles both ledger/index if requested
+      *)          die "Unknown part: $part (expected: sns_governance,sns_root,sns_swap,sns_ledger,sns_index)" ;;
     esac
   done
 

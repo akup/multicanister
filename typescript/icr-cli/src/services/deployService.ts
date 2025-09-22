@@ -12,6 +12,9 @@ import { URL } from 'url';
 import { Identity } from '@dfinity/agent';
 import { FactoryService } from './factoryService';
 import { requiredCoreKeys, optionalCoreKeys } from '../constants';
+
+import { prepareSnsConfigs } from '../components/prepareSnsConfigs';
+
 export { idlFactory } from '../declarations/factory/factory.did';
 
 interface GitInfo {
@@ -70,11 +73,13 @@ export class DeployService {
     dfxProjectsByActorName,
     picCoreUrl,
     userPrincipal,
+    projectRoot,
   }: {
     coreInfo: CoreInfo;
     dfxProjectsByActorName: Record<string, [DfxCanisterConfig, DfxProject]>;
     picCoreUrl: URL;
     userPrincipal: string;
+    projectRoot: string;
   }): Promise<string | undefined> {
     console.log(chalk.whiteBright('Deploying core to pocket IC...'));
 
@@ -87,6 +92,8 @@ export class DeployService {
     console.log(chalk.white(' - Ensuring all core canisters exist...'));
     const deployedCanisterIds = await pocketIcCoreService.getCanisterIds(canisterNamesToDeploy);
     console.log('Received canister IDs:', deployedCanisterIds);
+
+    prepareSnsConfigs(projectRoot, deployedCanisterIds);
 
     // 3. Now iterate and install the code into the already created canisters
     for (const key of deploymentOrder) {

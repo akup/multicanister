@@ -1,6 +1,7 @@
 {
   "devDependencies": {
     "@types/figlet": "^1.7.0",
+    "@types/minimatch": "^6.0.0",
     "@types/node": "^20.11.24",
     "@typescript-eslint/eslint-plugin": "^8.30.1",
     "@typescript-eslint/parser": "^8.30.1",
@@ -28,7 +29,7 @@
     "submodules:init": "git submodule init && git submodule update --init --depth 1 --jobs 4 picjs innerDfxProjects/candidUi ic",
     "submodules:update": "git submodule update --remote --jobs 4 picjs innerDfxProjects/candidUi && git submodule update --init --checkout ic",
     "sns:build": "bash scripts/sns-build.sh",
-    "sns:build:subset": "SNS_SET=governance,root,ledger bash scripts/sns-build.sh",
+    "sns:build:subset": "SNS_SET=sns_governance,sns_root,sns_ledger bash scripts/sns-build.sh",
     "sns:build:debug": "PROFILE=debug bash scripts/sns-build.sh",
     "prepare": "husky install",
     "lint": "pnpm turbo run lint",

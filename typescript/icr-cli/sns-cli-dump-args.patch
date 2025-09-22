@@ -1,5 +1,5 @@
 diff --git a/rs/sns/cli/src/deploy.rs b/rs/sns/cli/src/deploy.rs
-index 8400fdef06..0f270dccfb 100644
+index 8400fdef06..6a858169e5 100644
 --- a/rs/sns/cli/src/deploy.rs
 +++ b/rs/sns/cli/src/deploy.rs
 @@ -7,7 +7,7 @@ use std::{
@@ -11,27 +11,60 @@ index 8400fdef06..0f270dccfb 100644
  use serde_json::{json, Value as JsonValue};
  
  use crate::{call_dfx, call_dfx_or_panic, get_identity, hex_encode_candid, DeployTestflightArgs};
-@@ -154,6 +154,8 @@ pub struct DirectSnsDeployerForTests {
+@@ -154,6 +154,10 @@ pub struct DirectSnsDeployerForTests {
      pub wallet_canister: PrincipalId,
      pub dfx_identity: PrincipalId,
      pub testflight: bool,
 +    /// If set, dump init args here and exit early.
 +    pub dump_init_args_to: Option<PathBuf>,
++    /// If set, skip canister creation and use IDs from this JSON file.
++    pub use_canister_ids_from: Option<PathBuf>,
  }
  
  impl DirectSnsDeployerForTests {
-@@ -192,6 +194,7 @@ impl DirectSnsDeployerForTests {
+@@ -161,12 +165,26 @@ impl DirectSnsDeployerForTests {
+         args: DeployTestflightArgs,
+         mut sns_init_payload: SnsInitPayload,
+     ) -> Result<Self> {
+-        let sns_canisters = lookup_or_else_create_canisters(
+-            args.verbose,
+-            &args.network,
+-            Some(args.initial_cycles_per_canister),
+-        );
++        // NEW LOGIC: Either create canisters with dfx, or load IDs from a file.
++        let sns_canisters = if let Some(path) = &args.use_canister_ids_from {
++            println!("Reading canister IDs from {}...", path.display());
++            let content = std::fs::read_to_string(path)
++                .context("Could not read canister IDs file")?;
++            let ids_map: std::collections::HashMap<String, String> = serde_json::from_str(&content)
++                .context("Could not parse canister IDs file as a map")?;
++            SnsCanisterIds {
++                governance: PrincipalId::from_str(ids_map.get("sns_governance").context("missing sns_governance")?)?,
++                ledger:     PrincipalId::from_str(ids_map.get("sns_ledger").context("missing sns_ledger")?)?,
++                root:       PrincipalId::from_str(ids_map.get("sns_root").context("missing sns_root")?)?,
++                swap:       PrincipalId::from_str(ids_map.get("sns_swap").context("missing sns_swap")?)?,
++                index:      PrincipalId::from_str(ids_map.get("sns_index").context("missing sns_index")?)?,
++            }
++        } else {
++            lookup_or_else_create_canisters(args.verbose, &args.network, Some(args.initial_cycles_per_canister))
++        };
+ 
+         // Populate the SnsInitPayload with the values that would normally be set by the NNS
+         sns_init_payload.nns_proposal_id = Some(0);
+@@ -188,6 +206,8 @@ impl DirectSnsDeployerForTests {
              wallet_canister,
              dfx_identity,
              testflight: true,
 +            dump_init_args_to: args.dump_init_args,
++            use_canister_ids_from: args.use_canister_ids_from,
          })
      }
  
-@@ -478,4 +481,55 @@ impl DirectSnsDeployerForTests {
+@@ -478,4 +498,54 @@ impl DirectSnsDeployerForTests {
+             &wasm.into_os_string().into_string().unwrap(),
              sns_canister_name,
          ]);
-     }
++    }
 +
 +    /// Dump init args for all SNS canisters and exit (no installation).
 +    pub fn dump_init_args(&self) -> Result<()> {
@@ -47,29 +80,25 @@ index 8400fdef06..0f270dccfb 100644
 +
 +        // Prepare tuples: (logical name, canister id, candid-bytes)
 +        let items: [(&str, PrincipalId, Vec<u8>); 5] = [
-+            ("governance", self.sns_canisters.governance, enc(&self.sns_canister_payloads.governance)),
-+            ("ledger",     self.sns_canisters.ledger,     enc(&self.sns_canister_payloads.ledger)),
-+            ("root",       self.sns_canisters.root,       enc(&self.sns_canister_payloads.root)),
-+            ("swap",       self.sns_canisters.swap,       enc(&self.sns_canister_payloads.swap)),
-+            // Note: payload field is `index_ng`, canister alias remains `sns_index`.
-+            ("index",      self.sns_canisters.index,      enc(&self.sns_canister_payloads.index_ng)),
++            ("sns_governance", self.sns_canisters.governance, enc(&self.sns_canister_payloads.governance)),
++            ("sns_ledger",     self.sns_canisters.ledger,     enc(&self.sns_canister_payloads.ledger)),
++            ("sns_root",       self.sns_canisters.root,       enc(&self.sns_canister_payloads.root)),
++            ("sns_swap",       self.sns_canisters.swap,       enc(&self.sns_canister_payloads.swap)),
++            ("sns_index",      self.sns_canisters.index,      enc(&self.sns_canister_payloads.index_ng)),
 +        ];
 +
 +        // Summary JSON.
 +        let mut summary = serde_json::Map::new();
 +
 +        for (name, cid, bytes) in items {
-+            let bin_path = dir.join(format!("{name}.arg.bin"));
-+            let hex_path = dir.join(format!("{name}.arg.hex"));
++            let bin_path = dir.join(format!("{}.arg.bin", name));
 +            std::fs::write(&bin_path, &bytes)?;
-+            let hex_str = hex::encode(&bytes);
-+            std::fs::write(&hex_path, hex_str.as_bytes())?;
 +
 +            summary.insert(
 +                name.to_string(),
 +                json!({
 +                    "canister_id": cid.to_string(),
-+                    "arg_hex": hex_str,
++                    "arg_hex": hex::encode(&bytes),
 +                    "arg_len": bytes.len()
 +                }),
 +            );
@@ -82,13 +111,13 @@ index 8400fdef06..0f270dccfb 100644
 +        )?;
 +        println!("Wrote SNS init args to {}", dir.display());
 +        Ok(())
-+    }
+     }
  }
 diff --git a/rs/sns/cli/src/lib.rs b/rs/sns/cli/src/lib.rs
-index 1d9c31139a..518ed19d77 100644
+index 1d9c31139a..f006767431 100644
 --- a/rs/sns/cli/src/lib.rs
 +++ b/rs/sns/cli/src/lib.rs
-@@ -193,6 +193,10 @@ pub struct DeployTestflightArgs {
+@@ -193,6 +193,12 @@ pub struct DeployTestflightArgs {
      /// The directory with SNS canister WASMs.
      #[structopt(default_value = ".", long)]
      wasms_dir: PathBuf,
@@ -96,10 +125,13 @@ index 1d9c31139a..518ed19d77 100644
 +    /// Dump init args for all SNS canisters into the given directory and exit (no installation).
 +    #[clap(long, value_parser = clap::value_parser!(std::path::PathBuf))]
 +    pub dump_init_args: Option<PathBuf>,
++    /// Skip creating canisters with dfx, and instead use the canister IDs from this JSON file.
++    #[clap(long, value_parser = clap::value_parser!(std::path::PathBuf))]
++    pub use_canister_ids_from: Option<PathBuf>,
  }
  
  #[derive(Debug, Parser)]
-@@ -297,7 +301,13 @@ pub fn deploy_testflight(args: DeployTestflightArgs) -> Result<()> {
+@@ -297,7 +303,13 @@ pub fn deploy_testflight(args: DeployTestflightArgs) -> Result<()> {
      let sns_init_payload = args
          .generate_sns_init_payload()
          .context("Could not generate the SnsInitPayload")?;

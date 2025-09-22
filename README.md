@@ -184,7 +184,7 @@ pnpm run sns:build
 During development you can build a subset:
 
 ```bash
-SNS_SET=governance,root,swap pnpm run sns:build
+SNS_SET=sns_governance,sns_root,sns_ledger pnpm run sns:build
 ```
 
 **How it works:** sources are taken from the local `./ic` submodule; WASM is optionally optimized with `ic-wasm shrink` (set `NO_SHRINK=1` to skip).

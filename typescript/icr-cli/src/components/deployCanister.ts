@@ -1,4 +1,5 @@
 import type { DfxCanisterConfig } from '../types';
+
 import chalk from 'chalk';
 import * as crypto from 'crypto';
 import * as fs from 'fs';

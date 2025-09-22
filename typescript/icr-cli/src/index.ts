@@ -173,10 +173,12 @@ const startICRCli = async (): Promise<void> => {
   }
 
   const cwd = process.cwd();
-  //Если передан параметр dir, то переключаем working directory
+  //If dir argument passed, then switch working directory
   if (commandArgs.dir) {
     process.chdir(commandArgs.dir);
   }
+
+  const projectRoot = process.cwd();
 
   //First handle users management commands as they do not need dfx.json, core.json and apps.json
   if (commandHandled === 'create-user') {
@@ -232,10 +234,8 @@ const startICRCli = async (): Promise<void> => {
 
           let appsInfo = readAppsFile(commandArgs.apps);
 
-          //Building for build and deploy commands
+          // Building for build and deploy commands
           if (commandHandled === 'build' || commandHandled === 'deploy') {
-            prepareSnsConfigs();
-
             if (!commandArgs.skipBuild) {
               if (!commandArgs.skipCore) {
                 await BuildService.buildCore(coreInfo, dfxProjects);
@@ -246,7 +246,7 @@ const startICRCli = async (): Promise<void> => {
             }
           }
 
-          //Deploying for deploy command
+          // Deploying for deploy command
           let factoryCanisterId: string | undefined = undefined;
           if (commandHandled === 'deploy' && !commandArgs.skipCore) {
             const usersManager = new UsersManagment('./users.json');
@@ -263,6 +263,7 @@ const startICRCli = async (): Promise<void> => {
               dfxProjectsByActorName: dfxProjects,
               picCoreUrl: picCoreUrl as URL,
               userPrincipal,
+              projectRoot,
             });
           }
 
