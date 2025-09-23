@@ -55,3 +55,18 @@ When factory is deployed to Pocket IC Core Service, ICR Cli will upload canister
 - Fix linting issues: `pnpm lint:fix`
 - Format code: `pnpm format`
 - Type checking: `pnpm check-types`
+
+### SNS init args generation
+
+When SNS canisters are part of the core set, the CLI runs
+`innerDfxProjects/snsDumpInit` to produce per-canister init arguments from your
+v2 `sns_init.yaml` and the actual canister IDs created in Pocket IC (local/CI).
+
+- Artifacts are written to: `canisters/sns/args_generated/`
+  (`sns_governance.arg.bin`, `sns_ledger.arg.bin`, `sns_root.arg.bin`,
+  `sns_swap.arg.bin`, `sns_index.arg.bin`, and `sns_init_args.summary.json`).
+
+This keeps local/staging deployments consistent with the configuration that will
+be used on **mainnet**, where releases are pushed by GitHub workflow and changes
+are **approved by the DAO**. The mainnet proposal/approval flow itself does not
+use this helper; it uses standard SNS/NNS proposals.

@@ -189,6 +189,21 @@ SNS_SET=sns_governance,sns_root,sns_ledger pnpm run sns:build
 
 **How it works:** sources are taken from the local `./ic` submodule; WASM is optionally optimized with `ic-wasm shrink` (set `NO_SHRINK=1` to skip).
 
+## SNS init args for local/CI environments (sns-dump-init)
+
+This repository includes a helper that generates binary init arguments for SNS
+canisters from the canonical **v2 `sns_init.yaml`** plus a JSON file with the
+pre-created canister IDs (Pocket IC).
+
+- Tool: `innerDfxProjects/snsDumpInit` → [`README`](innerDfxProjects/snsDumpInit/README.md)
+- Output: `canisters/sns/args_generated/*.arg.bin` and a summary JSON
+- You can update `sns_init.yaml` up to your needs.
+
+`icr-cli` calls this tool automatically during **local/CI** deployments to keep
+your test/staging configuration aligned with what will go to **mainnet**.
+The **mainnet** rollout is driven by a release and a GitHub workflow that
+submits proposals for **DAO approval**, ensuring decentralized updates.
+
 ## Starting the Services
 
 Before start follow instructions of preparing [Pocket IC Core Service](https://github.com/akup/multicanister/tree/main/typescript/pocket-ic-core) and [ICR CLI](https://github.com/akup/multicanister/tree/main/typescript/icr-cli)
