@@ -1,0 +1,29 @@
+(
+  variant {
+    Init = record {
+      decimals = null;
+      token_symbol = "MCO";
+      transfer_fee = (10_000 : nat);
+      metadata = vec {};
+      minting_account = record {
+        owner = principal "{{canisterId:sns_governance}}";
+        subaccount = null;
+      };
+      initial_balances = vec {};
+      fee_collector_account = null;
+      archive_options = record {
+        num_blocks_to_archive = (1_000 : nat64);
+        max_transactions_per_response = null;
+        trigger_threshold = (2_000 : nat64);
+        more_controller_ids = null;
+        max_message_size_bytes = opt (131_072 : nat64);
+        cycles_for_archive_creation = opt (10_000_000_000_000 : nat64);
+        node_max_memory_size_bytes = opt (1_073_741_824 : nat64);
+        controller_id = principal "{{canisterId:sns_root}}";
+      };
+      max_memo_length = null;
+      token_name = "MulticanisterOPS Token";
+      feature_flags = null;
+    }
+  }
+)

@@ -1,7 +1,9 @@
+import type { Readable } from 'node:stream';
+
 import { spawn } from 'child_process';
 import { CoreModel } from '../models/CoreModel';
 import { ApplicationSubnetConfig, PocketIc, SubnetStateType } from '@repo/pic';
-import { chunk_hash, ICManagementCanister } from '@dfinity/ic-management';
+import { ICManagementCanister, chunk_hash } from '@dfinity/ic-management';
 import { createAgent } from '@dfinity/utils';
 import { Principal } from '@dfinity/principal';
 import { CreateInstanceRequest } from '@repo/pic/src/pocket-ic-client-types';
@@ -40,7 +42,6 @@ export class PocketICService {
       throw new Error('PocketIC is already running');
     }
 
-    // Start PocketIC process
     const proc = spawn(
       process.env.POCKET_IC_BIN || 'pocket-ic',
       ['-p', port.toString(), '--ttl', '120'],
@@ -48,9 +49,12 @@ export class PocketICService {
         stdio: 'pipe',
       }
     );
+
     if (!proc.pid) {
       throw new Error('Failed to spawn PocketIC process');
     }
+
+    // Process event handlers
     proc.on('error', error => {
       throw new Error(`PocketIC process error: ${error.message}`);
     });
@@ -82,22 +86,19 @@ export class PocketICService {
 
     // Wait for PocketIC to be ready
     await new Promise<void>((resolve, reject) => {
-      // Capture stdout from the spawned PocketIC process
       if (proc.stdout && proc.stderr) {
         const cleanup = (): void =>
           [proc.stdout, proc.stderr].forEach(s => s?.removeAllListeners('data'));
         proc.stdout.once('data', chunk => {
-          const stdOutData = chunk.toString().trim();
-          if (stdOutData.includes('The PocketIC server is listening on port')) {
-            resolve();
-          } else {
+          if (chunk.toString().includes('The PocketIC server is listening on port')) resolve();
+          else {
             cleanup();
-            reject(new Error(`Unexpected output from PocketIC: ${stdOutData}`));
+            reject(new Error(`Unexpected output from PocketIC: ${chunk.toString()}`));
           }
         });
         proc.stderr.once('data', chunk => {
           cleanup();
-          reject(new Error(chunk.toString().trim()));
+          reject(new Error(chunk.toString()));
         });
       } else {
         reject(new Error('PocketIC process stdout not found'));
@@ -105,50 +106,36 @@ export class PocketICService {
     });
     this.pocketICProcess = proc;
 
-    //Redirecting stdout and stderr for logging of PocketIC
-    //For some reason .on('data') is not working, so we are using .once('data') and re-add listener for the stderr
-    var collectedStdErr = '';
-    const stdErrChunkListener = (chunk: Buffer): void => {
-      collectedStdErr += chunk.toString();
-      if (collectedStdErr.includes('\n')) {
-        console.error('PIC: ' + collectedStdErr.trim());
-        collectedStdErr = '';
-      }
-      proc.stderr.once('data', stdErrChunkListener);
+    // Redirect stdout and stderr for logging
+    const redirectOutput = (stream: Readable, prefix: string) => {
+      let buffer = '';
+      const listener = (chunk: Buffer) => {
+        buffer += chunk.toString();
+        if (buffer.includes('\n')) {
+          console.log(`${prefix}: ${buffer.trim()}`);
+          buffer = '';
+        }
+        stream.once('data', listener);
+      };
+      stream.once('data', listener);
     };
-    proc.stderr.once('data', stdErrChunkListener);
-
-    var collectedStdOut = '';
-    const stdOutChunkListener = (chunk: Buffer): void => {
-      console.log('trying to get stdout: ' + chunk.toString());
-      collectedStdOut += chunk.toString();
-      if (collectedStdOut.includes('\n')) {
-        console.log('PIC: ' + collectedStdOut.trim());
-        collectedStdOut = '';
-      }
-      proc.stdout.once('data', stdOutChunkListener);
-    };
-    proc.stdout.once('data', stdOutChunkListener);
+    redirectOutput(proc.stderr, 'PIC_ERR');
+    redirectOutput(proc.stdout, 'PIC_OUT');
 
     const pocketICHost = `http://localhost:${port}`;
     const gwPort = gatewayPort ?? port + 1;
     const ICGatewayAPIHost = `http://localhost:${gwPort}`;
 
-    // Initialize PocketIC client with application subnet and NNS subnet
-    const defaultApplicationSubnet: ApplicationSubnetConfig = {
-      state: { type: SubnetStateType.New },
-    };
     const subnetCreateConfigs: CreateInstanceRequest = {
-      application: [defaultApplicationSubnet],
-      nns: {
-        state: { type: SubnetStateType.New },
-      },
+      application: [{ state: { type: SubnetStateType.New } }],
+      nns: { state: { type: SubnetStateType.New } },
     };
+
     // Topology and state will be loaded from the state directory
     // if $POCKET_IC_STATE_DIR environment variable is set and directory exists
     this.pocketIC = await PocketIc.create(pocketICHost, {
       processingTimeoutMs: POCKET_IC_TIMEOUT,
-      stateDir: !process.env.POCKET_IC_STATE_DIR ? undefined : process.env.POCKET_IC_STATE_DIR,
+      stateDir: process.env.POCKET_IC_STATE_DIR,
       ...subnetCreateConfigs,
     });
 
@@ -169,9 +156,7 @@ export class PocketICService {
     });
     console.log('PocketIC gateway started on port', gwPort);
 
-    // Use default IC Management via IC Agent
-
-    // Initialize management canister
+    // Initialize high-level management canister agent
     const identity = IdentityModel.getInstance().getIdentity();
     const agent = await createAgent({
       identity,
@@ -179,11 +164,10 @@ export class PocketICService {
     });
     // Fetch root key as we are talking to the Pocket IC and not the mainnet
     await agent.fetchRootKey();
-    this.managementCanisterAgent = ICManagementCanister.create({
-      agent,
-    });
 
-    const logPocketICTime = async (): Promise<void> => {
+    this.managementCanisterAgent = ICManagementCanister.create({ agent });
+
+    const keepAlive = async (): Promise<void> => {
       try {
         // const getTimeStart = Date.now();
         // const time = await this.pocketIC!.getTime();
@@ -192,17 +176,12 @@ export class PocketICService {
         // console.log('PocketIC getTime took', getTimeEnd - getTimeStart, 'ms');
         await this.pocketIC!.getTime();
       } catch (error) {
-        console.error('Error fetching PocketIC time:', error);
+        console.error('Error pinging PocketIC to keep it alive:', error);
       }
     };
+    keepAlive();
+    setInterval(keepAlive, 60 * 1000);
 
-    // Initial invocation
-    logPocketICTime();
-    // Schedule to run every minute
-    // It is important to run every minute to keep the PocketIC running, or it will shutdown without
-    setInterval(logPocketICTime, 60 * 1000);
-
-    // Check existing canisters
     await this.checkExistingCanisters();
   }
 
@@ -216,12 +195,7 @@ export class PocketICService {
   }
 
   private async checkExistingCanisters(): Promise<void> {
-    if (!this.pocketIC || !this.managementCanisterAgent) {
-      throw new Error('PocketIC client is not initialized');
-    }
-
     const cores = await this.coreModel.list();
-
     for (const [name, record] of Object.entries(cores)) {
       for (const canisterId of record.canisterIds) {
         try {
@@ -236,15 +210,12 @@ export class PocketICService {
             this.coreModel.markAsCorrupted(name, true);
           } else if (canisterStatus === 'unexisting') {
             console.warn(
-              `Canister ${canisterId} from core ${name} does not exist in PocketIC. Deleting record...`
+              `Canister ${canisterId} from core ${name} does not exist. Deleting record...`
             );
             this.coreModel.delete(name);
           }
-
-          //TODO: check if the canister is started and running
         } catch (error) {
           console.error(`Error checking canister ${canisterId} from core ${name}:`, error);
-          throw error;
         }
       }
     }
@@ -253,153 +224,115 @@ export class PocketICService {
   public getClient(): PocketIc | null {
     return this.pocketIC;
   }
-
   public getManagementCanisterAgent(): ICManagementCanister | null {
     return this.managementCanisterAgent;
   }
-
   public isRunning(): boolean {
     return this.pocketICProcess !== null && this.pocketICProcess.pid !== null;
   }
-
   public getPocketICProcessId(): number | undefined {
     return this.pocketICProcess?.pid;
   }
 
-  private async uploadWasmInChunks(wasmModule: Buffer, canisterId: string): Promise<chunk_hash[]> {
+  // Stage 1 of the two-stage deployment. It creates all canisters first.
+  public async getCanisterIds(names: string[]): Promise<Record<string, string>> {
+    const results: Record<string, string> = {};
+    for (const name of names) {
+      const existing = await this.coreModel.get(name);
+      if (existing && existing.canisterIds.length > 0) {
+        results[name] = existing.canisterIds[0];
+      } else {
+        const newCanisterId = await this.createCanister();
+        await this.coreModel.set(name, {
+          canisterIds: [newCanisterId],
+          wasmHash: '',
+          branch: '',
+          tag: '',
+          commit: '',
+          corrupted: false,
+        });
+        results[name] = newCanisterId;
+      }
+    }
+    return results;
+  }
+
+  public async createCanister(): Promise<string> {
     if (!this.managementCanisterAgent) {
-      throw new Error('PocketIC client is not initialized');
+      throw new Error('Management Canister Agent is not initialized');
+    }
+    const canisterId = await this.managementCanisterAgent.provisionalCreateCanisterWithCycles({
+      amount: 1_000_000_000_000_000_000n, // 1000T cycles for good measure
+    });
+    const canisterIdText = canisterId.toText();
+    console.log(`Canister ${canisterIdText} created.`);
+    return canisterIdText;
+  }
+
+  private async uploadWasmInChunks(
+    wasmModule: Buffer,
+    canisterId: Principal
+  ): Promise<chunk_hash[]> {
+    if (!this.managementCanisterAgent) {
+      throw new Error('Management Canister Agent is not initialized');
     }
 
-    // Create chunks
     const chunks: Buffer[] = [];
-    const wasmArray = new Uint8Array(wasmModule);
     for (let i = 0; i < wasmModule.length; i += this.CHUNK_SIZE) {
-      chunks.push(Buffer.from(wasmArray.slice(i, i + this.CHUNK_SIZE)));
+      chunks.push(Buffer.from(wasmModule.slice(i, i + this.CHUNK_SIZE)));
     }
-
     console.log(`Uploading WASM in ${chunks.length} chunks...`);
 
-    // Clear the chunk store
-    await this.managementCanisterAgent.clearChunkStore({
-      canisterId: Principal.fromText(canisterId),
-    });
+    await this.managementCanisterAgent.clearChunkStore({ canisterId });
 
-    // Upload each chunk
     const chunkHashes: chunk_hash[] = [];
     for (let i = 0; i < chunks.length; i++) {
       const chunkHash = await this.managementCanisterAgent.uploadChunk({
-        canisterId: Principal.fromText(canisterId),
+        canisterId,
         chunk: chunks[i],
       });
       chunkHashes.push(chunkHash);
       console.log(`Uploaded chunk ${i + 1}/${chunks.length}`);
     }
-
     return chunkHashes;
   }
 
-  public async deployCanister({
+  // Stage 2 of the two-stage deployment. It installs code into existing canisters.
+  public async installCode({
     canisterId,
-    wasmPath,
+    wasmModule,
     wasmModuleHash,
     updateStrategy,
+    initArgB64,
   }: {
-    canisterId?: string;
-    wasmPath: string;
+    canisterId: string;
+    wasmModule: Buffer;
     wasmModuleHash: string;
     updateStrategy?: UpdateStrategy;
-  }): Promise<string> {
+    initArgB64?: string;
+  }): Promise<void> {
     if (!this.managementCanisterAgent) {
-      throw new Error('PocketIC client is not initialized');
+      throw new Error('Management Canister Agent is not initialized');
     }
 
-    if (canisterId && !updateStrategy) {
-      try {
-        const canisterStatus = await this.managementCanisterAgent.canisterStatus(
-          Principal.fromText(canisterId)
-        );
-        if (canisterStatus) {
-          console.log(`Canister ${canisterId} already exists`);
-          return canisterId;
-        }
-      } catch {
-        console.log(`Canister ${canisterId} does not exist, creating new one`);
-      }
-    }
+    const canisterPrincipal = Principal.fromText(canisterId);
+    const uploadedChunks = await this.uploadWasmInChunks(wasmModule, canisterPrincipal);
+    const wasmHashBlob = Uint8Array.from(Buffer.from(wasmModuleHash, 'hex'));
 
-    const identity = IdentityModel.getInstance().getIdentity();
+    const argBytes =
+      initArgB64 && initArgB64.length > 0
+        ? new Uint8Array(Buffer.from(initArgB64, 'base64'))
+        : new Uint8Array();
 
-    if (!updateStrategy) {
-      // Create canister with initial cycles (1T cycles = 1_000_000_000_000)
-      const settings = {
-        controllers: [identity.getPrincipal().toText()], // You can customize controllers as needed
-        compute_allocation: [], // Optional: Set compute allocation
-        memory_allocation: [], // Optional: Set memory allocation
-        freezing_threshold: [], // Optional: Set freezing threshold
-      };
-
-      //Creating canister with cycles
-      const createCanisterResponse =
-        await this.managementCanisterAgent.provisionalCreateCanisterWithCycles({
-          settings,
-          amount: 1_000_000_000_000_000_000n,
-        });
-      canisterId = createCanisterResponse.toString();
-      console.log(`Canister ${canisterId} created with 1T cycles`);
-    } else {
-      //TODO: add cycles to the canister
-    }
-
-    if (!canisterId) {
-      throw new Error('Canister ID is not defined');
-    }
-
-    const canisterStatus = await this.managementCanisterAgent.canisterStatus(
-      Principal.fromText(canisterId)
-    );
-    console.log('canister status', canisterStatus);
-
-    // Read and upload the wasm code in chunks
-    const wasmModule = await fs.promises.readFile(wasmPath);
-    const uploadedChunks = await this.uploadWasmInChunks(wasmModule, canisterId);
-
-    // Install the wasm code
     await this.managementCanisterAgent.installChunkedCode({
-      targetCanisterId: Principal.fromText(canisterId),
+      targetCanisterId: canisterPrincipal,
       chunkHashesList: uploadedChunks,
-      wasmModuleHash: wasmModuleHash,
-      arg: new Uint8Array(), // Empty initialization arguments
-      mode: ((): { reinstall: null } | { upgrade: [] } | { install: null } => {
-        if (updateStrategy === 'reinstall') {
-          return { reinstall: null };
-        } else if (updateStrategy === 'upgrade') {
-          return { upgrade: [] };
-        } else {
-          return { install: null };
-        }
-      })(), // Install mode
+      wasmModuleHash: wasmHashBlob,
+      arg: argBytes,
+      mode: updateStrategy === 'reinstall' ? { reinstall: null } : { upgrade: [] },
     });
 
     console.log(`Wasm code installed for canister ${canisterId}`);
-
-    const canisterStatusAfterInstall = await this.managementCanisterAgent.canisterStatus(
-      Principal.fromText(canisterId)
-    );
-
-    if (canisterStatusAfterInstall.module_hash?.[0]) {
-      const moduleHash = Buffer.from(canisterStatusAfterInstall.module_hash[0]).toString('hex');
-      if (moduleHash !== wasmModuleHash) {
-        //TODO: delete the canister
-        throw new Error('Wasm module hash does not match uploaded file');
-      }
-    } else {
-      throw new Error('Wasm module was not installed. Module hash not found');
-    }
-
-    console.log('canister status after install', canisterStatusAfterInstall);
-
-    return canisterId;
   }
 
   public async checkCanisterHashAndRunning(
@@ -407,36 +340,29 @@ export class PocketICService {
     wasmHash: string
   ): Promise<CanisterStatus> {
     if (!this.managementCanisterAgent) {
-      throw new Error('PocketIC client is not initialized');
+      throw new Error('Management Canister Agent is not initialized');
     }
-
     try {
-      const canisterStatus = await this.managementCanisterAgent.canisterStatus(
+      const status = await this.managementCanisterAgent.canisterStatus(
         Principal.fromText(canisterId)
       );
 
-      if (
-        canisterStatus.module_hash?.[0] &&
-        Buffer.from(canisterStatus.module_hash[0]).toString('hex') === wasmHash
-      ) {
-        const statuses: CanisterStatus[] = ['stopped', 'stopping', 'running'];
-        for (const status of statuses) {
-          if (status in canisterStatus.status) {
-            return status;
-          }
+      if (status.module_hash?.[0]) {
+        const moduleHash = Buffer.from(status.module_hash[0]).toString('hex');
+        if (moduleHash === wasmHash) {
+          if ('running' in status.status) return 'running';
+          if ('stopping' in status.status) return 'stopping';
+          if ('stopped' in status.status) return 'stopped';
         }
       }
       return 'corrupted';
     } catch (error) {
+      // NEW: Restored robust error handling to correctly identify unexisting canisters.
       if (
         error instanceof AgentCallError &&
-        error.message.match(/.*?does not belong to any subnet.*/i)
-      ) {
-        return 'unexisting';
-      }
-      if (
-        typeof (error as { reject_message?: string }).reject_message === 'string' &&
-        (error as { reject_message: string }).reject_message.match(/.*?not found.*/i)
+        (error.message.includes('does not exist') ||
+          error.message.includes('not found') ||
+          error.message.includes('does not belong to any subnet'))
       ) {
         return 'unexisting';
       }

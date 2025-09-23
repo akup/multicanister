@@ -1,0 +1,34 @@
+(
+  record {
+    nns_proposal_id = opt (0 : nat64);
+    sns_root_canister_id = "{{canisterId:sns_root}}";
+    neurons_fund_participation = opt false;
+    min_participant_icp_e8s = opt (10_000_000_000 : nat64);
+    neuron_basket_construction_parameters = opt record {
+      dissolve_delay_interval_seconds = 2_630_016 : nat64;
+      count = 2 : nat64;
+    };
+    fallback_controller_principal_ids = vec {
+      "{{principal:default}}";
+    };
+    max_icp_e8s = null;
+    neuron_minimum_stake_e8s = opt (100_000_000 : nat64);
+    confirmation_text = null;
+    swap_start_timestamp_seconds = opt (0 : nat64);
+    swap_due_timestamp_seconds = opt (0 : nat64);
+    min_participants = opt (57 : nat32);
+    sns_token_e8s = opt (50_000_000_000_000 : nat64);
+    nns_governance_canister_id = "rrkah-fqaaa-aaaaa-aaaaq-cai";
+    transaction_fee_e8s = opt (10_000 : nat64);
+    icp_ledger_canister_id = "ryjl3-tyaaa-aaaaa-aaaba-cai";
+    sns_ledger_canister_id = "{{canisterId:sns_ledger}}";
+    neurons_fund_participation_constraints = null;
+    should_auto_finalize = opt true;
+    max_participant_icp_e8s = opt (1_000_000_000_000 : nat64);
+    sns_governance_canister_id = "{{canisterId:sns_governance}}";
+    min_direct_participation_icp_e8s = opt (10_000_000_000_000 : nat64);
+    restricted_countries = opt record { iso_codes = vec { "AQ" } };
+    min_icp_e8s = null;
+    max_direct_participation_icp_e8s = opt (100_000_000_000_000 : nat64);
+  },
+)

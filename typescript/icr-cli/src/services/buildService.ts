@@ -1,8 +1,10 @@
+import type { DfxCanisterConfig } from '../types';
+
 import chalk from 'chalk';
 import { AppsInfo } from '../components/appsInfo';
 import { buildCanister } from '../components/buildCanister';
 import { CoreInfo } from '../components/coreInfo';
-import { DfxProject, DfxProjectCanister } from '../components/dfxProject';
+import { DfxProject } from '../components/dfxProject';
 
 export class BuildService {
   private static builtCanisters: Record<string, boolean> = {};
@@ -10,7 +12,7 @@ export class BuildService {
   // Here we build the core: all canisters from core.json
   public static async buildCore(
     coreInfo: CoreInfo,
-    dfxProjectsByActorName: Record<string, [DfxProjectCanister, DfxProject]>
+    dfxProjectsByActorName: Record<string, [DfxCanisterConfig, DfxProject]>
   ): Promise<void> {
     console.log(chalk.whiteBright('Building core with dfx...'));
     if (!dfxProjectsByActorName[coreInfo.factory]) {
@@ -28,8 +30,13 @@ export class BuildService {
       }
       const [dfxCanister, dfxProject] = dfxProjectsByActorName[value];
       // Sequential build of canisters
-      await buildCanister(value, dfxCanister, dfxProject.root, () => {
-        console.log(chalk.white(` - Building ${key} core canister '${value}'...`));
+      await buildCanister({
+        canisterName: value,
+        dfxProjectCanister: dfxCanister,
+        dfxProjectRoot: dfxProject.root,
+        onBuildStart: () => {
+          console.log(chalk.white(` - Building ${key} core canister '${value}'...`));
+        },
       });
     }
   }
@@ -37,7 +44,7 @@ export class BuildService {
   // Here we build the apps: all canisters from apps.json
   public static async buildApps(
     appsInfo: AppsInfo,
-    dfxProjectsByActorName: Record<string, [DfxProjectCanister, DfxProject]>
+    dfxProjectsByActorName: Record<string, [DfxCanisterConfig, DfxProject]>
   ): Promise<void> {
     console.log(chalk.whiteBright('Building apps with dfx...'));
     //First we iterate over all apps and check if all canisters are in dfx json
@@ -58,12 +65,17 @@ export class BuildService {
         if (!BuildService.builtCanisters[canisterService.dfxName]) {
           BuildService.builtCanisters[canisterService.dfxName] = true;
           const [dfxCanister, dfxProject] = dfxProjectsByActorName[canisterService.dfxName];
-          await buildCanister(canisterService.dfxName, dfxCanister, dfxProject.root, () => {
-            console.log(
-              chalk.white(
-                ` - Building service '${canisterService.serviceId}' backed by canister '${canisterService.dfxName}'...`
-              )
-            );
+          await buildCanister({
+            canisterName: canisterService.dfxName,
+            dfxProjectCanister: dfxCanister,
+            dfxProjectRoot: dfxProject.root,
+            onBuildStart: () => {
+              console.log(
+                chalk.white(
+                  ` - Building service '${canisterService.serviceId}' backed by canister '${canisterService.dfxName}'...`
+                )
+              );
+            },
           });
         }
       }

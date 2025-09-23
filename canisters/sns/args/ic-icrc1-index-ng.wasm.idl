@@ -1,0 +1,8 @@
+(
+  opt variant {
+    Init = record {
+      ledger_id = principal "{{canisterId:sns_ledger}}";
+      retrieve_blocks_from_ledger_interval_seconds = null;
+    }
+  },
+)

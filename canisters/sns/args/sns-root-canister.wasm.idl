@@ -1,0 +1,13 @@
+(
+  record {
+    dapp_canister_ids = vec {};
+    timers = null;
+    testflight = true;
+    extensions = null;
+    archive_canister_ids = vec {};
+    governance_canister_id = opt principal "{{canisterId:sns_governance}}";
+    index_canister_id = opt principal "{{canisterId:sns_index}}";
+    swap_canister_id = opt principal "{{canisterId:sns_swap}}";
+    ledger_canister_id = opt principal "{{canisterId:sns_ledger}}";
+  },
+)

@@ -37,7 +37,7 @@ COPY ./pnpm-lock.yaml ./pnpm-lock.yaml
 
 # Run pnpm install from pocket-ic-core project
 WORKDIR /app/typescript/pocket-ic-core
-RUN pnpm install
+RUN pnpm install --ignore-scripts
 
 # Build the TypeScript application
 RUN pnpm run esbuild

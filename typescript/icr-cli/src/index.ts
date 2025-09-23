@@ -12,6 +12,7 @@ import { readAppsFile } from './components/appsInfo';
 import { BuildService } from './services/buildService';
 import { DeployService } from './services/deployService';
 import { createUser, UsersManagment } from './components/users/manageUsers';
+import { prepareSnsConfigs } from './components/prepareSnsConfigs';
 
 import { PocketIcCoreService } from './services/pocketIcCoreService';
 import { genFactoryIdl } from './services/genFactoryIdl';
@@ -172,10 +173,12 @@ const startICRCli = async (): Promise<void> => {
   }
 
   const cwd = process.cwd();
-  //Если передан параметр dir, то переключаем working directory
+  //If dir argument passed, then switch working directory
   if (commandArgs.dir) {
     process.chdir(commandArgs.dir);
   }
+
+  const projectRoot = process.cwd();
 
   //First handle users management commands as they do not need dfx.json, core.json and apps.json
   if (commandHandled === 'create-user') {
@@ -231,7 +234,7 @@ const startICRCli = async (): Promise<void> => {
 
           let appsInfo = readAppsFile(commandArgs.apps);
 
-          //Building for build and deploy commands
+          // Building for build and deploy commands
           if (commandHandled === 'build' || commandHandled === 'deploy') {
             if (!commandArgs.skipBuild) {
               if (!commandArgs.skipCore) {
@@ -243,13 +246,24 @@ const startICRCli = async (): Promise<void> => {
             }
           }
 
-          //Deploying for deploy command
+          // Deploying for deploy command
           let factoryCanisterId: string | undefined = undefined;
           if (commandHandled === 'deploy' && !commandArgs.skipCore) {
+            const usersManager = new UsersManagment('./users.json');
+            const userName = commandArgs.user as string;
+            const user = usersManager.getUser(userName);
+            if (!user) {
+              console.log(chalk.red(`User '${userName}' not found in users.json`));
+              return;
+            }
+            const userPrincipal = user.getPrincipal().toString();
+
             factoryCanisterId = await DeployService.deployCore({
               coreInfo,
               dfxProjectsByActorName: dfxProjects,
               picCoreUrl: picCoreUrl as URL,
+              userPrincipal,
+              projectRoot,
             });
           }
 
