@@ -4,7 +4,9 @@ use candid::Encode;
 use ic_base_types::PrincipalId;
 use ic_sns_init::{pb::v1::SnsInitPayload, SnsCanisterIds};
 use ic_nns_governance_api::CreateServiceNervousSystem;
-use std::{fs, path::{Path, PathBuf}, str::FromStr};
+use std::{fs, path::{Path, PathBuf}, str::FromStr, collections::HashSet};
+
+mod canisters;
 
 /// Shim so `friendly.rs` can find `crate::unit_helpers` under the expected path.
 #[allow(unused_imports)]
@@ -28,12 +30,22 @@ struct Args {
     /// Path to sns_init.yaml (v2 format with units)
     #[arg(long)]
     init_config: PathBuf,
+
     /// JSON with SNS canister IDs {sns_root, sns_governance, sns_ledger, sns_swap, sns_index}
     #[arg(long)]
     canister_ids: PathBuf,
+
     /// Output dir for *.arg.bin and summary json
     #[arg(long)]
     out_dir: PathBuf,
+
+    /// Optional comma-separated list of canisters to emit
+    #[arg(
+        long,
+        value_delimiter = ',',
+        value_parser = clap::builder::PossibleValuesParser::new(canisters::ALL)
+    )]
+    only: Option<Vec<String>>,
 }
 
 /// Mirrors `read_create_service_nervous_system_from_init_yaml` from the CLI:
@@ -91,11 +103,11 @@ fn main() -> Result<()> {
         Ok(PrincipalId::from_str(s)?)
     };
     let sns_ids = SnsCanisterIds {
-        governance: get("sns_governance")?,
-        ledger:     get("sns_ledger")?,
-        root:       get("sns_root")?,
-        swap:       get("sns_swap")?,
-        index:      get("sns_index")?,
+        governance: get(canisters::SNS_GOVERNANCE)?,
+        ledger:     get(canisters::SNS_LEDGER)?,
+        root:       get(canisters::SNS_ROOT)?,
+        swap:       get(canisters::SNS_SWAP)?,
+        index:      get(canisters::SNS_INDEX)?,
     };
 
     // Build init payloads and write artifacts.
@@ -103,21 +115,30 @@ fn main() -> Result<()> {
         .build_canister_payloads(&sns_ids, None, true)
         .map_err(|e| anyhow!("Failed to build SNS canister payloads: {e}"))?;
 
-    let items: &[(&str, Vec<u8>)] = &[
-        ("sns_governance", Encode!(&payloads.governance)?),
-        ("sns_ledger",     Encode!(&payloads.ledger)?),
-        ("sns_root",       Encode!(&payloads.root)?),
-        ("sns_swap",       Encode!(&payloads.swap)?),
-        ("sns_index",      Encode!(&payloads.index_ng)?),
+    let mut items: Vec<(&str, Vec<u8>)> = vec![
+        (canisters::SNS_GOVERNANCE, Encode!(&payloads.governance)?),
+        (canisters::SNS_LEDGER,     Encode!(&payloads.ledger)?),
+        (canisters::SNS_ROOT,       Encode!(&payloads.root)?),
+        (canisters::SNS_SWAP,       Encode!(&payloads.swap)?),
+        (canisters::SNS_INDEX,      Encode!(&payloads.index_ng)?),
     ];
+
+    // filter by --only if provided
+    if let Some(only) = &args.only {
+        let selected: HashSet<&str> = only.iter().map(String::as_str).collect();
+        items.retain(|(name, _)| selected.contains(*name));
+        if items.is_empty() {
+            anyhow::bail!("--only filtered out all canisters; nothing to emit.");
+        }
+    }
 
     let mut summary = serde_json::Map::new();
     for (name, bytes) in items {
         let p = args.out_dir.join(format!("{name}.arg.bin"));
-        fs::write(&p, bytes)?;
+        fs::write(&p, &bytes)?;
         summary.insert(name.to_string(), serde_json::json!({
-            "arg_hex": hex::encode(bytes),
-            "arg_len": bytes.len()
+            "arg_hex": hex::encode(&bytes),
+            "arg_len": &bytes.len()
         }));
     }
     fs::write(

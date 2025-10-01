@@ -2,14 +2,11 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { execSync } from 'child_process';
 import chalk from 'chalk';
-import { fileURLToPath } from 'url';
 
 export function prepareSnsConfigs(projectRoot: string, canisterIds: Record<string, string>): void {
   console.log(chalk.whiteBright('--- Preparing SNS init args ---'));
 
   // Resolve important paths
-  const __dirname = path.dirname(fileURLToPath(import.meta.url));
-  const cliRootDir = path.resolve(__dirname, '..', '..'); // typescript/icr-cli
   const snsDumpInitDir = path.join(projectRoot, 'innerDfxProjects', 'snsDumpInit');
   const snsDumpInitManifest = path.join(snsDumpInitDir, 'Cargo.toml');
   const snsDumpBinPath = path.join(
